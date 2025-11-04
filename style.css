@@ -193,18 +193,35 @@ body {
 .section-icon {
   width: 20px;
   height: 20px;
-  margin-right: 8px;
-  vertical-align: middle;
   transition: transform 0.3s ease;
   object-fit: contain;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+/* Icons inside buttons should not have margin (gap handles spacing) */
+.btn .btn-icon,
+.btn .btn-icon-lg {
+  margin-right: 0;
+  margin-left: 0;
+  vertical-align: unset;
+}
+
+/* Icons outside buttons keep margin for spacing */
+.modal-icon,
+.input-icon,
+.info-icon,
+.section-icon {
+  margin-right: 8px;
+  vertical-align: middle;
 }
 
 .btn-icon-lg {
   width: 24px;
   height: 24px;
-  margin-right: 8px;
-  vertical-align: middle;
   object-fit: contain;
+  flex-shrink: 0;
+  display: inline-block;
 }
 
 .btn:hover .btn-icon,
@@ -506,7 +523,7 @@ body {
   background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
   border: none;
   border-radius: 8px;
-  padding: 0.5rem;
+  padding: 0;
   box-shadow: 0 3px 8px rgba(255, 107, 107, 0.3);
   transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   display: inline-flex;
@@ -525,9 +542,12 @@ body {
 }
 
 .btn-delete .btn-icon {
-  margin-right: 0;
+  margin: 0;
   width: 18px;
   height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Header right section alignment */
@@ -632,6 +652,30 @@ body {
   margin-top: 1rem;
 }
 
+/* Plugin info container - align author icon and badge properly */
+.plugin-info {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.plugin-info strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: 0;
+}
+
+.plugin-info .info-icon {
+  margin-right: 0; /* Remove margin, use gap instead */
+  flex-shrink: 0;
+}
+
+.plugin-info .author-badge {
+  margin-left: 0; /* Remove margin, use gap from container instead */
+}
+
 /* Author badge */
 .author-badge {
   background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
@@ -643,12 +687,15 @@ body {
   font-size: 1.05rem;
   box-shadow: 0 3px 10px rgba(67, 233, 123, 0.25);
   animation: slideIn 0.5s ease-out;
-  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: padding 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
-  overflow: hidden;
+  overflow: visible; /* Allow star to show outside */
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  min-height: 36px; /* Consistent height */
+  white-space: nowrap; /* Prevent text wrapping */
 }
 
 .author-badge::before {
@@ -665,15 +712,27 @@ body {
     transparent
   );
   transition: transform 0.6s;
+  z-index: 1;
 }
 
 .author-badge::after {
   content: "★";
   opacity: 0;
-  margin-left: 5px;
   transform: scale(0) rotate(-180deg);
-  transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-  display: inline-block;
+  transition: opacity 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55), transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55), width 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 0;
+  min-width: 0;
+  max-width: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+  font-size: 1rem;
+  visibility: hidden;
 }
 
 @keyframes authorBadgeGlow {
@@ -689,11 +748,11 @@ body {
 }
 
 .author-badge:hover {
-  transform: translateY(-3px) scale(1.05);
+  transform: translateY(0px) scale(1.03);
   box-shadow: 0 8px 20px rgba(67, 233, 123, 0.4);
   background: linear-gradient(135deg, #2ecc71, #1abc9c);
-  animation: authorBadgeGlow 1.5s infinite;
-  padding-right: 1.8rem;
+  animation: authorBadgeGlow 1s infinite;
+  padding-right: 1.2rem; /* Keep consistent padding */
 }
 
 .author-badge:hover::before {
@@ -703,6 +762,12 @@ body {
 .author-badge:hover::after {
   opacity: 1;
   transform: scale(1) rotate(0deg);
+  width: 1em; /* Fixed width for star */
+  min-width: 1em;
+  max-width: 1em;
+  overflow: visible;
+  visibility: visible;
+  margin-left: 0.5rem; /* Use gap instead */
 }
 
 @keyframes slideIn {
@@ -719,14 +784,58 @@ body {
 /* Button animations */
 .btn {
   display: inline-flex; /* makes icon + text align side by side */
-  align-items: center; /* vertically center */
-  justify-content: center; /* horizontally center (optional) */
-  gap: 0.5rem;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  align-items: center; /* vertically center all items */
+  justify-content: center; /* horizontally center content */
+  gap: 0.5rem; /* consistent spacing between icon and text */
+  transition: transform 0.28s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.35s cubic-bezier(0.2, 0, 0, 1), background-color 0.35s ease, color 0.35s ease;
   position: relative;
   overflow: hidden;
   transform: translateZ(0);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  text-align: center; /* center text content */
+  white-space: nowrap; /* prevent text wrapping */
+  line-height: 1.5; /* proper line height for text alignment */
+}
+
+/* Ensure all button content is properly aligned */
+.btn > * {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Ensure buttons with only icons are perfectly centered */
+.btn:has(> .btn-icon:only-child),
+.btn:has(> img.btn-icon:only-child) {
+  padding: 0.5rem;
+  min-width: auto;
+}
+
+/* Fix FontAwesome icons alignment in buttons */
+.btn i,
+.btn .fas,
+.btn .far,
+.btn .fab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* Ensure FontAwesome icons with Bootstrap spacing classes work correctly */
+.btn .me-2,
+.btn .ms-2 {
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+}
+
+/* But preserve spacing for FontAwesome icons - use gap instead */
+.btn i.fa,
+.btn i.fas,
+.btn i.far,
+.btn i.fab {
+  margin: 0;
 }
 
 .btn::before {
@@ -743,7 +852,7 @@ body {
     transparent
   );
   transform: translateX(-100%);
-  transition: transform 0.8s;
+  transition: transform 1.2s ease;
 }
 
 .btn:hover::before {
@@ -765,7 +874,7 @@ body {
 }
 
 .btn:focus:not(:active)::after {
-  animation: ripple 1s ease-out;
+  animation: ripple 1.2s ease-out;
 }
 
 .btn:active {
@@ -825,7 +934,7 @@ body {
   width: 0%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.15);
-  transition: all 0.5s;
+  transition: all 0.7s cubic-bezier(0.2, 0, 0, 1);
   z-index: -1;
 }
 
@@ -845,6 +954,21 @@ body {
   border: none;
   animation: modalFadeIn 0.5s ease-out forwards;
   transform: scale(0.8);
+}
+
+/* Modal footer button alignment */
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.modal-footer .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 @keyframes modalFadeIn {
@@ -1021,8 +1145,10 @@ body {
 .confirmation-buttons {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 1rem;
   margin-top: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .btn-yes {
@@ -1030,6 +1156,10 @@ body {
   border: none;
   padding: 0.5rem 2rem;
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .btn-no {
@@ -1037,6 +1167,10 @@ body {
   border: none;
   padding: 0.5rem 2rem;
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .confirmation-question {
@@ -1155,6 +1289,10 @@ body {
   border: 2px solid #6c757d;
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .reset-filters-btn:hover {
@@ -1361,12 +1499,12 @@ body {
 .card:hover {
   transform: translateY(-8px) scale(1.02);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform 0.35s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.4s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .btn-primary:hover {
-  animation: glow 2s infinite;
-  transform: translateY(-2px);
+  animation: glow 2.2s infinite;
+  transform: translateY(-1px);
 }
 
 .btn-delete:hover {
@@ -1476,14 +1614,22 @@ body {
   justify-content: center;
   align-items: center;
   width: 100%;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
 #userButtons {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   width: 100%;
+  flex-wrap: wrap;
+}
+
+#userButtons > * {
+  display: inline-flex;
+  align-items: center;
 }
 
 #authButtons {
@@ -1491,11 +1637,14 @@ body {
   justify-content: center;
   align-items: center;
   width: 100%;
+  gap: 0.75rem;
 }
 
 .button-creative {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 1em 2em;
   background: linear-gradient(135deg, #011120 0%, #e9ecef 100%);
   color: rgb(24, 24, 24);
@@ -1506,6 +1655,7 @@ body {
   font-size: 1.2rem;
   border-radius: 8px;
   z-index: 1;
+  gap: 0.5rem;
 }
 
 .button-creative::before {

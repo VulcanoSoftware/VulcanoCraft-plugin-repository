@@ -1478,29 +1478,33 @@
         buttons.forEach((btn) => {
           btn.addEventListener("mouseover", function () {
             gsap.to(this, {
-              scale: 1.05,
-              duration: 0.2,
+              scale: 1.03,
+              duration: 0.3,
+              ease: "power2.out",
             });
           });
 
           btn.addEventListener("mouseout", function () {
             gsap.to(this, {
               scale: 1,
-              duration: 0.2,
+              duration: 0.28,
+              ease: "power2.inOut",
             });
           });
 
           btn.addEventListener("mousedown", function () {
             gsap.to(this, {
-              scale: 0.95,
-              duration: 0.1,
+              scale: 0.97,
+              duration: 0.12,
+              ease: "power2.out",
             });
           });
 
           btn.addEventListener("mouseup", function () {
             gsap.to(this, {
-              scale: 1.05,
-              duration: 0.1,
+              scale: 1.03,
+              duration: 0.16,
+              ease: "power2.out",
             });
           });
         });
