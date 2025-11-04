@@ -13,7 +13,7 @@
         "title": "MCEEW - Earthquake Early Warning",
         "description": "A real-time Earthquake Early Warning (EEW) plugin for Minecraft servers.",
         "author": "Amiya233",
-        "icon": "https://www.spigotmc.org//static.spigotmc.org/styles/spigot/xenresource/resource_icon.png",
+        "icon": "https://www.spigotmc.org/",
         "versions": "1.13 1.14 1.15 1.16 1.17 1.18 1.19 1.20 1.20.6 1.21"
     },
     {
@@ -46,7 +46,7 @@
         "title": "Requests",
         "description": "API for your minecraft server",
         "author": "theMackabu",
-        "icon": "https://www.spigotmc.org//static.spigotmc.org/styles/spigot/xenresource/resource_icon.png",
+        "icon": "https://www.spigotmc.org/",
         "versions": "1.21",
         "owner": "Mohiyo"
     },
@@ -55,7 +55,7 @@
         "title": "GraveStonesPlus",
         "description": "Create a grave when a player dies",
         "author": "BenCodez",
-        "icon": "https://www.spigotmc.org//static.spigotmc.org/styles/spigot/xenresource/resource_icon.png",
+        "icon": "https://www.spigotmc.org/",
         "versions": "1.13 1.14 1.15 1.16 1.17 1.18 1.19 1.20 1.20.6 1.21",
         "owner": "Zomb"
     },
@@ -70,10 +70,10 @@
     },
     {
         "url": "https://www.curseforge.com/minecraft/texture-packs/spooky-decorations",
-        "title": "Spooky Decorations",
-        "description": "Spice up your Halloween!. Download Spooky Decorations by PixlStudios, with over 2.7K+ downloads on CurseForge",
-        "author": "PixlStudios",
-        "icon": "https://media.forgecdn.net/avatars/thumbnails/1094/599/64/64/638639283257529892.png",
+        "title": "",
+        "description": "",
+        "author": "",
+        "icon": "",
         "versions": "",
         "owner": "Mohiyo"
     },
@@ -89,28 +89,28 @@
     {
         "url": "https://www.curseforge.com/minecraft/mc-mods/iron-smelters",
         "title": "Iron Smelters",
-        "description": "Adds faster Furnaces, Blast Furnaces and Smokers!. Download Iron Smelters by Jaredlll08, with over 1.6K+ downloads on CurseForge",
+        "description": "Adds faster Furnaces, Blast Furnaces and Smokers!",
         "author": "Jaredlll08",
-        "icon": "https://media.forgecdn.net/avatars/thumbnails/1446/771/64/64/638938497367312557.png",
-        "versions": "",
+        "icon": "https://media.forgecdn.net/avatars/thumbnails/1446/771/256/256/638938497367312557.png",
+        "versions": "1.21.1",
         "owner": "Mohiyo"
     },
     {
         "url": "https://www.curseforge.com/minecraft/mc-mods/pillager-caravans",
         "title": "Pillager Caravans",
-        "description": "Adds roaming pillager caravans with biome-themed loot and guarded convoys. Download Pillager Caravans by Obscuria, with over 15.5K+ downloads on CurseForge",
+        "description": "Adds roaming pillager caravans with biome-themed loot and guarded convoys",
         "author": "Obscuria",
-        "icon": "https://media.forgecdn.net/avatars/thumbnails/1462/601/64/64/638949345921396516.png",
-        "versions": "",
+        "icon": "https://media.forgecdn.net/avatars/thumbnails/1491/3/256/256/638968883338033681.png",
+        "versions": "1.20.1",
         "owner": "Mohiyo"
     },
     {
         "url": "https://www.curseforge.com/minecraft/modpacks/immersive-pixelmon-renewed",
         "title": "Immersive Pixelmon - A New Pokemon Era (with Distant Horizons & Quests)",
-        "description": "Enjoy an exciting game of Minecraft surrounded by Pokemons, Quests and much more!. Download Immersive Pixelmon - A New Pokemon Era (with Distant Horizons & Quests) by Lupin, with over 12.7K+ downloads on CurseForge",
+        "description": "Enjoy an exciting game of Minecraft surrounded by Pokemons, Quests and much more!",
         "author": "Lupin",
-        "icon": "https://media.forgecdn.net/avatars/thumbnails/1344/889/64/64/638874109134852383.png",
-        "versions": "",
+        "icon": "https://media.forgecdn.net/avatars/thumbnails/1344/889/256/256/638874109134852383.png",
+        "versions": "1.20.1 1.21.1",
         "owner": "Mohiyo"
     },
     {
@@ -123,21 +123,21 @@
         "owner": "Mohiyo"
     },
     {
-        "author": "Kaworru",
-        "description": "Build, craft and innovate with a mix of scrapyard engineering, neon-powered machinery and urban workshop tools.",
-        "icon": "https://media.forgecdn.net/avatars/thumbnails/1477/261/256/256/638959016207095146.png",
-        "title": "Scrap Tech Workshop",
         "url": "https://www.curseforge.com/minecraft/mc-mods/scrap-tech-workshop",
+        "title": "Scrap Tech Workshop",
+        "description": "Build, craft and innovate with a mix of scrapyard engineering, neon-powered machinery and urban workshop tools.",
+        "author": "Kaworru",
+        "icon": "https://media.forgecdn.net/avatars/thumbnails/1477/261/256/256/638959016207095146.png",
         "versions": "1.20.1",
         "owner": "Mohiyo"
     },
     {
-        "author": "greateric",
-        "description": "Custom weapons plugin adding 75 custom items and gameplay mechanics",
-        "icon": "https://www.spigotmc.org/data/resource_icons/127/127725.jpg",
-        "title": "WeaponMaster",
         "url": "https://www.spigotmc.org/resources/weaponmaster.127725/",
-        "versions": "1.10.0 1.11.0 1.6.0 1.7.0 1.8.0 1.9.0",
+        "title": "WeaponMaster",
+        "description": "Custom weapons plugin adding 75 custom items and gameplay mechanics",
+        "author": "greateric",
+        "icon": "https://www.spigotmc.org/data/resource_icons/127/127725.jpg",
+        "versions": "1.21",
         "owner": "Mohiyo"
     }
 ]
