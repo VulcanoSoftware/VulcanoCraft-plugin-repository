@@ -1,7 +1,6 @@
-from flask import Flask, json, jsonify, request, send_file, session, redirect, url_for
+from flask import Flask, jsonify, request, send_file, session
 import os
 import json as json_module
-import urllib.parse
 import subprocess
 import sys
 import hashlib
@@ -457,4 +456,4 @@ def delete_plugin():
         return jsonify({'error': f'Onverwachte fout: {str(e)}'}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5000, use_reloader=False)

@@ -3,7 +3,6 @@ import re
 import requests
 import sys
 from urllib.parse import urlparse, urlunparse
-from playwright.sync_api import sync_playwright
 
 # -------- MODRINTH --------
 def get_modrinth_icon(slug):
