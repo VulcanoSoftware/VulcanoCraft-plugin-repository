@@ -145,15 +145,36 @@ def login_page():
     """Serveer de login.html pagina"""
     return send_file('components/user/login.html')
 
+@app.route('/change_password', methods=['GET', 'POST'])
+def change_password_page():
+    return send_file('components/user/change_password.html')
+
+
 @app.route('/style.css')
 def serve_css():
     """Serveer de CSS file"""
     return send_file('style.css', mimetype='text/css')
 
-@app.route('/app.js')
+@app.route('/script.js')
 def serve_js():
     """Serveer de JS file"""
-    return send_file('app.js', mimetype='application/javascript')
+    return send_file('script.js', mimetype='application/javascript')
+
+@app.route('/js/<path:filename>')
+def serve_js_from_folder(filename):
+    """Serveer JS bestanden uit de js map"""
+    try:
+        return send_file(f'js/{filename}', mimetype='application/javascript')
+    except FileNotFoundError:
+        return "JavaScript file not found", 404
+    
+@app.route('/css/<path:filename>')
+def serve_css_from_folder(filename):
+    """Serveer CSS bestanden uit de css map"""
+    try:
+        return send_file(f'css/{filename}', mimetype='text/css')
+    except FileNotFoundError:
+        return "CSS file not found", 404
 
 @app.route('/images/<path:filename>')
 def serve_image(filename):
@@ -244,6 +265,52 @@ def logout():
     """Logout gebruiker"""
     session.pop('user', None)
     return jsonify({'success': True})
+
+@app.route('/api/change-password', methods=['POST'])
+@require_login
+def change_password():
+    """Wijzig het wachtwoord van de ingelogde gebruiker"""
+    try:
+        data = request.get_json()
+        old_password = data.get('old_password', '')
+        new_password = data.get('new_password', '')
+
+        if not old_password or not new_password:
+            return jsonify({'error': 'Oud en nieuw wachtwoord zijn vereist'}), 400
+
+        user = get_current_user()
+        if not user:
+            return jsonify({'error': 'Gebruiker niet ingelogd'}), 401
+
+        print(f"DEBUG: old_password: {old_password}")
+        print(f"DEBUG: new_password: {new_password}")
+        print(f"DEBUG: user: {user}")
+
+        # Controleer of het oude wachtwoord correct is
+        hashed_old_password = hash_password(old_password)
+        print(f"DEBUG: hashed_old_password: {hashed_old_password}")
+        print(f"DEBUG: user['password']: {user['password']}")
+        if hashed_old_password != user['password']:
+            print("DEBUG: Old password mismatch")
+            return jsonify({'error': 'Oud wachtwoord is onjuist'}), 401
+
+        # Update het wachtwoord
+        users = load_users()
+        for u in users:
+            if u['username'] == user['username']:
+                u['password'] = hash_password(new_password)
+                print(f"DEBUG: Updating password for user {u['username']} to {u['password']}")
+                break
+        
+        save_success = save_users(users)
+        print(f"DEBUG: save_users success: {save_success}")
+        if save_success:
+            return jsonify({'success': True, 'message': 'Wachtwoord succesvol gewijzigd'})
+        else:
+            return jsonify({'error': 'Fout bij opslaan van nieuw wachtwoord'}), 500
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/auth-status')
 def auth_status():

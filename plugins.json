@@ -1,143 +1,29 @@
 [
     {
-        "url": "https://www.spigotmc.org/resources/back.94702/",
-        "title": "Back",
-        "description": "Teleport to your last location after your death",
+        "author": "Oliver",
+        "description": "Simple, lightweight and fast NPC plugin using packets",
+        "icon": "https://cdn.modrinth.com/data/EeyAn23L/36f54e5fe22b6d6c23a72ebd589f78531e3ced51_96.webp",
+        "title": "FancyNpcs",
+        "url": "https://modrinth.com/plugin/fancynpcs",
+        "versions": "1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
+        "owner": "admin"
+    },
+    {
         "author": "GFelberg",
+        "description": "Teleport to your last location after your death",
         "icon": "https://www.spigotmc.org/data/resource_icons/94/94702.jpg",
+        "title": "Back",
+        "url": "https://www.spigotmc.org/resources/back.94702/",
         "versions": "1.20 1.20.6 1.21",
-        "owner": "Mohiyo"
+        "owner": "admin"
     },
     {
-        "url": "https://www.spigotmc.org/resources/mceew-earthquake-early-warning.104549/",
-        "title": "MCEEW - Earthquake Early Warning",
-        "description": "A real-time Earthquake Early Warning (EEW) plugin for Minecraft servers.",
-        "author": "Amiya233",
-        "icon": "https://www.spigotmc.org/",
-        "versions": "1.13 1.14 1.15 1.16 1.17 1.18 1.19 1.20 1.20.6 1.21"
-    },
-    {
-        "url": "https://www.spigotmc.org/resources/antimobaura.27812/",
-        "title": "AntiMobAura",
-        "description": "They wont know until there banned.",
-        "author": "Destroid",
-        "icon": "https://www.spigotmc.org/data/resource_icons/27/27812.jpg",
-        "versions": "1.10 1.11 1.12 1.13 1.14 1.15 1.16 1.17 1.18 1.19 1.20 1.20.6 1.21 1.7 1.8 1.9"
-    },
-    {
-        "url": "https://www.spigotmc.org/resources/npvp.129398/",
-        "title": "nPvP",
-        "description": "nPvP – PvP Management Plugin with Region Support",
-        "author": "Tumasov",
-        "icon": "https://www.spigotmc.org/data/resource_icons/129/129398.jpg",
-        "versions": "1.21"
-    },
-    {
-        "url": "https://www.spigotmc.org/resources/1-21-crazyeggs.111676/",
-        "title": "[1.21] CrazyEggs",
-        "description": "Eggs that kill",
-        "author": "Choketa",
-        "icon": "https://www.spigotmc.org/data/resource_icons/111/111676.jpg",
-        "versions": "1.20 1.20.6 1.21",
-        "owner": "Zomb"
-    },
-    {
-        "url": "https://www.spigotmc.org/resources/requests.129472/",
-        "title": "Requests",
-        "description": "API for your minecraft server",
-        "author": "theMackabu",
-        "icon": "https://www.spigotmc.org/",
-        "versions": "1.21",
-        "owner": "Mohiyo"
-    },
-    {
-        "url": "https://www.spigotmc.org/resources/gravestonesplus.95132/",
-        "title": "GraveStonesPlus",
-        "description": "Create a grave when a player dies",
-        "author": "BenCodez",
-        "icon": "https://www.spigotmc.org/",
-        "versions": "1.13 1.14 1.15 1.16 1.17 1.18 1.19 1.20 1.20.6 1.21",
-        "owner": "Zomb"
-    },
-    {
-        "url": "https://www.spigotmc.org/resources/popup-plugin.129470/",
-        "title": "Popup Plugin",
-        "description": "Show popup messages to any player (Admin Command Only)",
-        "author": "gamerogg14",
-        "icon": "https://www.spigotmc.org/data/resource_icons/129/129470.jpg",
-        "versions": "",
-        "owner": "Zomb"
-    },
-    {
-        "url": "https://www.curseforge.com/minecraft/texture-packs/spooky-decorations",
-        "title": "",
-        "description": "",
-        "author": "",
-        "icon": "",
-        "versions": "",
-        "owner": "Mohiyo"
-    },
-    {
-        "url": "https://www.spigotmc.org/resources/gadgetsmenu-free.10885/",
-        "title": "GadgetsMenu [Free]",
-        "description": "Amazing hub perks for donor! Hats,Particles,Suits,Gadgets,Pets,Morphs,Banners,Emotes and much more!",
-        "author": "yapzhenyie",
-        "icon": "https://www.spigotmc.org/data/resource_icons/10/10885.jpg",
-        "versions": "1.12 1.13 1.14 1.15 1.16 1.17 1.18 1.19 1.20 1.20.6 1.21 1.8",
-        "owner": "Mohiyo"
-    },
-    {
-        "url": "https://www.curseforge.com/minecraft/mc-mods/iron-smelters",
-        "title": "Iron Smelters",
-        "description": "Adds faster Furnaces, Blast Furnaces and Smokers!",
-        "author": "Jaredlll08",
-        "icon": "https://media.forgecdn.net/avatars/thumbnails/1446/771/256/256/638938497367312557.png",
-        "versions": "1.21.1",
-        "owner": "Mohiyo"
-    },
-    {
-        "url": "https://www.curseforge.com/minecraft/mc-mods/pillager-caravans",
-        "title": "Pillager Caravans",
-        "description": "Adds roaming pillager caravans with biome-themed loot and guarded convoys",
-        "author": "Obscuria",
-        "icon": "https://media.forgecdn.net/avatars/thumbnails/1491/3/256/256/638968883338033681.png",
-        "versions": "1.20.1",
-        "owner": "Mohiyo"
-    },
-    {
-        "url": "https://www.curseforge.com/minecraft/modpacks/immersive-pixelmon-renewed",
-        "title": "Immersive Pixelmon - A New Pokemon Era (with Distant Horizons & Quests)",
-        "description": "Enjoy an exciting game of Minecraft surrounded by Pokemons, Quests and much more!",
-        "author": "Lupin",
-        "icon": "https://media.forgecdn.net/avatars/thumbnails/1344/889/256/256/638874109134852383.png",
-        "versions": "1.20.1 1.21.1",
-        "owner": "Mohiyo"
-    },
-    {
-        "url": "https://www.spigotmc.org/resources/securekids-ia.129545/",
-        "title": "SecureKids[IA]",
-        "description": "Haz que tus jugadores se sientan seguros. (MIRAR CONFIGURACION)",
-        "author": "ScratcherNoobYT",
-        "icon": "https://www.spigotmc.org/data/resource_icons/129/129545.jpg",
-        "versions": "1.21",
-        "owner": "Mohiyo"
-    },
-    {
-        "url": "https://www.curseforge.com/minecraft/mc-mods/scrap-tech-workshop",
-        "title": "Scrap Tech Workshop",
-        "description": "Build, craft and innovate with a mix of scrapyard engineering, neon-powered machinery and urban workshop tools.",
         "author": "Kaworru",
+        "description": "Build, craft and innovate with a mix of scrapyard engineering, neon-powered machinery and urban workshop tools.",
         "icon": "https://media.forgecdn.net/avatars/thumbnails/1477/261/256/256/638959016207095146.png",
+        "title": "Scrap Tech Workshop",
+        "url": "https://www.curseforge.com/minecraft/mc-mods/scrap-tech-workshop",
         "versions": "1.20.1",
-        "owner": "Mohiyo"
-    },
-    {
-        "url": "https://www.spigotmc.org/resources/weaponmaster.127725/",
-        "title": "WeaponMaster",
-        "description": "Custom weapons plugin adding 75 custom items and gameplay mechanics",
-        "author": "greateric",
-        "icon": "https://www.spigotmc.org/data/resource_icons/127/127725.jpg",
-        "versions": "1.21",
-        "owner": "Mohiyo"
+        "owner": "admin"
     }
 ]
