@@ -1,11 +1,11 @@
 [
     {
-        "author": "Oliver",
-        "description": "Simple, lightweight and fast NPC plugin using packets",
-        "icon": "https://cdn.modrinth.com/data/EeyAn23L/36f54e5fe22b6d6c23a72ebd589f78531e3ced51_96.webp",
-        "title": "FancyNpcs",
-        "url": "https://modrinth.com/plugin/fancynpcs",
-        "versions": "1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
+        "author": "xenondevs",
+        "description": "A server-side modding framework for Paper",
+        "icon": "https://hangarcdn.papermc.io/avatars/project/626.webp",
+        "title": "Nova",
+        "url": "https://hangar.papermc.io/xenondevs/Nova",
+        "versions": "1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.4 1.21.1 1.21.10 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
         "owner": "admin"
     },
     {
@@ -15,6 +15,15 @@
         "title": "Back",
         "url": "https://www.spigotmc.org/resources/back.94702/",
         "versions": "1.20 1.20.6 1.21",
+        "owner": "admin"
+    },
+    {
+        "author": "Oliver",
+        "description": "Simple, lightweight and fast NPC plugin using packets",
+        "icon": "https://cdn.modrinth.com/data/EeyAn23L/36f54e5fe22b6d6c23a72ebd589f78531e3ced51_96.webp",
+        "title": "FancyNpcs",
+        "url": "https://modrinth.com/plugin/fancynpcs",
+        "versions": "1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
         "owner": "admin"
     },
     {

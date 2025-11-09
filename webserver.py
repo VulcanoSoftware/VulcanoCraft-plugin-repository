@@ -447,6 +447,38 @@ def admin_delete_plugin(url):
         return jsonify({'success': True})
     return jsonify({'error': 'Plugin niet gevonden'}), 404
 
+@app.route('/admin/plugins/<path:url>/details', methods=['POST'])
+@require_co_admin
+def admin_update_plugin_details(url):
+    """Update plugin details (title, author)"""
+    try:
+        data = request.get_json()
+        new_title = data.get('title')
+        new_author = data.get('author')
+
+        if not new_title or not new_author:
+            return jsonify({'error': 'Titel en auteur zijn vereist'}), 400
+
+        plugins = load_plugins()
+        plugin_found = False
+        for plugin in plugins:
+            if plugin.get('url') == url:
+                plugin['title'] = new_title
+                plugin['author'] = new_author
+                plugin_found = True
+                break
+        
+        if plugin_found:
+            if save_plugins(plugins):
+                return jsonify({'success': True})
+            else:
+                return jsonify({'error': 'Fout bij opslaan van plugin details'}), 500
+        else:
+            return jsonify({'error': 'Plugin niet gevonden'}), 404
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/fetch_plugin', methods=['POST'])
 def fetch_plugin():
     """Haal plugin data op voor een gegeven URL"""

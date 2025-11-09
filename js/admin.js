@@ -173,12 +173,13 @@ function loadPlugins() {
                         "/images/plugin-placeholder.png"
                         }" style="width: 40px; height: 40px; margin-right: 10px;" alt="icon">
                                         <div>
-                                            <h6 class="mb-0">${plugin.title
-                        }</h6>
-                                            <small class="text-muted">door ${plugin.owner || "Onbekend"
-                        }</small>
+                                            <input type="text" class="form-control form-control-sm mb-1" value="${plugin.title}" id="pluginTitle-${plugin.url.replace(/[^a-zA-Z0-9]/g, '_')}">
+                                            <input type="text" class="form-control form-control-sm" value="${plugin.author || 'Onbekend'}" id="pluginAuthor-${plugin.url.replace(/[^a-zA-Z0-9]/g, '_')}">
                                         </div>
                                     </div>
+                                    <button class="btn btn-success btn-sm me-2" onclick="updatePluginDetails('${plugin.url}', '${plugin.url.replace(/[^a-zA-Z0-9]/g, '_')}')">
+                                        <i class="fas fa-save me-1"></i>Opslaan
+                                    </button>
                                     <button class="btn btn-danger btn-sm" onclick="deletePlugin('${plugin.url
                         }', '${plugin.title}')">
                                         <i class="fas fa-trash me-1"></i>Verwijderen
@@ -248,4 +249,30 @@ function deletePlugin(url, title) {
                 }
             });
     }
+}
+
+function updatePluginDetails(originalUrl, encodedUrl) {
+    const titleInput = document.getElementById(`pluginTitle-${encodedUrl}`);
+    const authorInput = document.getElementById(`pluginAuthor-${encodedUrl}`);
+    const newTitle = titleInput.value;
+    const newAuthor = authorInput.value;
+
+    fetch(`/admin/plugins/${encodeURIComponent(originalUrl)}/details`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: newTitle, author: newAuthor }),
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.success) {
+                alert("Plugin details succesvol bijgewerkt!");
+                loadPlugins();
+            } else {
+                alert("Fout bij bijwerken plugin details: " + data.error);
+            }
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+            alert("Fout bij bijwerken plugin details.");
+        });
 }
