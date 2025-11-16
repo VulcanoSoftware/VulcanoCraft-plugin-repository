@@ -198,6 +198,35 @@ def api_plugins_public():
     plugins = load_plugins()
     return jsonify(plugins)
 
+
+@app.route('/api/server_categories')
+def api_server_categories():
+    """API endpoint returning a list of server categories derived from plugins.json.
+
+    It collects values from possible fields: 'categories' (array), 'category' (string), and 'tags' (array).
+    Returns a sorted, unique array of category names.
+    """
+    try:
+        plugins = load_plugins()
+        categories = set()
+        for p in plugins:
+            if isinstance(p, dict):
+                if 'categories' in p and isinstance(p['categories'], list):
+                    for c in p['categories']:
+                        if c:
+                            categories.add(str(c).strip())
+                if 'category' in p and p['category']:
+                    categories.add(str(p['category']).strip())
+                if 'tags' in p and isinstance(p['tags'], list):
+                    for t in p['tags']:
+                        if t:
+                            categories.add(str(t).strip())
+
+        sorted_cats = sorted([c for c in categories if c])
+        return jsonify(sorted_cats)
+    except Exception as e:
+        return jsonify([])
+
 @app.route('/register', methods=['POST'])
 def register():
     """Registreer nieuwe gebruiker"""
