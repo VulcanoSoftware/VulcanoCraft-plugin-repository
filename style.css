@@ -1752,3 +1752,65 @@ body {
 .button-creative:hover {
   color: #070808;
 }
+
+/* Sidebar (Server categories) */
+.sidebar-card {
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.95) 100%);
+  backdrop-filter: blur(8px);
+}
+
+.category-list {
+  padding-left: 0;
+  margin: 0;
+}
+
+.category-item {
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  cursor: pointer;
+  color: #495057;
+  transition: all 0.25s ease;
+  font-weight: 600;
+}
+
+.category-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.category-item + .category-item {
+  margin-top: 0.4rem;
+}
+
+.category-item:hover {
+  transform: translateX(6px);
+  color: #ffffff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.category-item.active {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  color: #041418;
+  box-shadow: 0 8px 18px rgba(67,233,123,0.12);
+}
+
+.category-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.05);
+  object-fit: contain;
+}
+
+.category-text {
+  display: inline-block;
+}
+
+@media (max-width: 991px) {
+  .sidebar-card {
+    margin-bottom: 1rem;
+  }
+}
