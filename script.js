@@ -593,8 +593,10 @@ document.addEventListener("DOMContentLoaded", function () {
         allPlugins = plugins;
         filteredPlugins = plugins;
         populateVersionFilter(plugins);
+        populateCategorySidebar(plugins);
         originalRenderPlugins(plugins, isLoggedIn, userRole);
         setupFilterEventListeners(isLoggedIn, userRole);
+        setupCategoryListeners(isLoggedIn, userRole);
     };
 
     function populateVersionFilter(plugins) {
@@ -626,6 +628,149 @@ document.addEventListener("DOMContentLoaded", function () {
             option.value = version;
             option.textContent = version;
             versionFilter.appendChild(option);
+        });
+    }
+
+    // Populate categories sidebar based on plugin data
+    function populateCategorySidebar(plugins) {
+        const list = document.getElementById("categorySidebar");
+        if (!list) return;
+
+        // Prefer server_categories.json if available (loaded into window.serverCategoriesList)
+        if (window.serverCategoriesList && Array.isArray(window.serverCategoriesList) && window.serverCategoriesList.length > 0) {
+            // Reset list (keep 'Alles' as first)
+            list.innerHTML = '<li class="category-item active" data-category="">Alles</li>';
+            window.serverCategoriesList.forEach((cat) => {
+                const li = document.createElement('li');
+                li.className = 'category-item';
+                li.setAttribute('data-category', cat);
+                li.textContent = cat;
+                list.appendChild(li);
+            });
+            return;
+        }
+
+        const categories = new Map();
+
+        plugins.forEach((plugin) => {
+            // Try common fields for categories: categories (array), category (string), tags
+            if (plugin.categories && Array.isArray(plugin.categories)) {
+                plugin.categories.forEach((c) => {
+                    if (c && c.toString().trim()) categories.set(c.toString().trim(), true);
+                });
+            } else if (plugin.category && plugin.category.toString().trim()) {
+                categories.set(plugin.category.toString().trim(), true);
+            } else if (plugin.tags && Array.isArray(plugin.tags)) {
+                plugin.tags.forEach((t) => {
+                    if (t && t.toString().trim()) categories.set(t.toString().trim(), true);
+                });
+            }
+        });
+
+        // Convert to array and sort
+        const sorted = Array.from(categories.keys()).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+
+        // Reset list (keep 'Alles' as first)
+        list.innerHTML = '<li class="category-item active" data-category="">Alles</li>';
+
+        // If no categories found from plugins, fall back to defaults
+        const finalCategories = (sorted && sorted.length) ? sorted : (DEFAULT_SERVER_CATEGORIES || []);
+
+        finalCategories.forEach((cat) => {
+            const li = document.createElement('li');
+            li.className = 'category-item';
+            li.setAttribute('data-category', cat);
+
+            // Create icon image for category
+            const img = document.createElement('img');
+            img.className = 'category-icon';
+            // slugify category name for filename
+            const slug = cat.toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            img.src = `images/category-${slug}.svg`;
+            // fallback to default icon when not found
+            img.onerror = function () { this.onerror = null; this.src = 'images/category-default.svg'; };
+            img.alt = cat + ' icon';
+            img.width = 32;
+            img.height = 32;
+
+            const text = document.createElement('span');
+            text.textContent = cat;
+            text.className = 'category-text';
+
+            li.appendChild(img);
+            li.appendChild(text);
+            list.appendChild(li);
+        });
+    }
+
+    // Try to load categories dynamically from backend API first, then static JSON as fallback
+    function loadServerCategoriesConfig() {
+        // First try dynamic API endpoint
+        fetch('/api/server_categories')
+            .then((res) => {
+                if (!res.ok) throw new Error('No API categories');
+                return res.json();
+            })
+            .then((data) => {
+                if (Array.isArray(data) && data.length) {
+                    window.serverCategoriesList = data;
+                    if (allPlugins && allPlugins.length) {
+                        populateCategorySidebar(allPlugins);
+                        setupCategoryListeners();
+                    }
+                }
+            })
+            .catch(() => {
+                // If API fails, try static JSON fallback
+                fetch('/server_categories.json')
+                    .then((res) => {
+                        if (!res.ok) throw new Error('No static categories');
+                        return res.json();
+                    })
+                    .then((data) => {
+                        if (Array.isArray(data) && data.length) {
+                            window.serverCategoriesList = data;
+                            if (allPlugins && allPlugins.length) {
+                                populateCategorySidebar(allPlugins);
+                                setupCategoryListeners();
+                            }
+                        }
+                    })
+                    .catch(() => {
+                        // silent fallback to plugin-derived categories
+                        window.serverCategoriesList = null;
+                    });
+            });
+    }
+
+    // load config immediately (non-blocking)
+    loadServerCategoriesConfig();
+
+    // Default fallback categories (used if API/static/plugin-derived categories are empty)
+    const DEFAULT_SERVER_CATEGORIES = [
+        'Survival',
+        'Creative',
+        'PvP',
+        'Economy',
+        'Minigames',
+        'Roleplay',
+        'Adventure',
+        'Hubs'
+    ];
+
+    function setupCategoryListeners(isLoggedIn = false, userRole = 'user') {
+        const list = document.getElementById('categorySidebar');
+        if (!list) return;
+
+        list.querySelectorAll('.category-item').forEach((el) => {
+            el.addEventListener('click', function () {
+                // Toggle active class
+                list.querySelectorAll('.category-item').forEach((it) => it.classList.remove('active'));
+                this.classList.add('active');
+
+                // Re-apply filters using existing UI state
+                applyFilters(isLoggedIn, userRole);
+            });
         });
     }
 
@@ -672,6 +817,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const selectedPlatforms = Array.from(
             document.querySelectorAll(".platform-filter:checked")
         ).map((cb) => cb.value);
+        const selectedCategoryEl = document.querySelector('#categorySidebar .category-item.active');
+        const selectedCategory = selectedCategoryEl ? selectedCategoryEl.getAttribute('data-category') : '';
 
         filteredPlugins = allPlugins.filter((plugin) => {
             // Zoek filter
@@ -695,7 +842,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 selectedPlatforms.length === 0 ||
                 selectedPlatforms.includes(pluginPlatform);
 
-            return matchesSearch && matchesVersion && matchesPlatform;
+            // Category filter: check multiple possible fields
+            let pluginCategories = [];
+            if (plugin.categories && Array.isArray(plugin.categories)) pluginCategories = plugin.categories.map(c => c.toString());
+            else if (plugin.category) pluginCategories = [plugin.category.toString()];
+            else if (plugin.tags && Array.isArray(plugin.tags)) pluginCategories = plugin.tags.map(t => t.toString());
+
+            const matchesCategory = !selectedCategory || pluginCategories.some(pc => pc && pc.toLowerCase() === selectedCategory.toLowerCase());
+
+            return matchesSearch && matchesVersion && matchesPlatform && matchesCategory;
         });
 
         renderFilteredPlugins(isLoggedIn, userRole);
