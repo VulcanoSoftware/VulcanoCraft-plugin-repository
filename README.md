@@ -47,32 +47,32 @@ It includes a small web interface for viewing the collected data, but its main f
 ## 🛠️ Installation & Usage
 
 ### Requirements
-- Python 3.9+
-- pip (Python package manager)
+- Python 3.14
+- uv (Python package manager)
 
 ### Setup
 ```bash
 # Install dependencies
-pip install -r requirements.txt
+uv sync
 
 # Install Playwright browsers
 playwright install
 
 # Create admin account
-python create_admin.py
+uv run create_admin.py
 ```
 
 ### Running the Application
 
 **Start the web server:**
 ```bash
-python webserver.py
+uv run webserver.py
 ```
 Access at: `http://localhost:5000`
 
 **Start background updater (optional):**
 ```bash
-python cron.py
+uv run cron.py
 ```
 Updates all plugins every hour automatically.
 
