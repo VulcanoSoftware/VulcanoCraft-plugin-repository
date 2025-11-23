@@ -173,6 +173,15 @@ document.addEventListener("DOMContentLoaded", function () {
                     '<img src="images/loading-icon.gif" class="loading-icon me-2" alt="Laden"> Toevoegen...';
                 confirmYes.disabled = true;
 
+                // Check active category
+                const activeCategoryEl = document.querySelector('#categorySidebar .category-item.active');
+                if (activeCategoryEl) {
+                    const activeCategory = activeCategoryEl.getAttribute('data-category');
+                    if (activeCategory && activeCategory !== "") {
+                        cachedPluginData.category = activeCategory;
+                    }
+                }
+
                 // Voeg plugin toe via de server met cached data
                 fetch("/add_plugin", {
                     method: "POST",
