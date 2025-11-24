@@ -3,5 +3,5 @@ name = "VulcanoCraft-plugin-repository"
 version = "1.1.0"
 description = "A plugin repository system for VulcanoCraft, featuring a web-based interface, automated fetchers, and a lightweight Python backend."
 readme = "README.md"
-requires-python = "==3.14.0"
+requires-python = "==3.14"
 dependencies = ["flask==3.1.2", "requests==2.32.5", "playwright==1.56.0"]
