@@ -133,6 +133,24 @@ def save_settings(settings):
     except Exception:
         return False
 
+def load_server_categories():
+    """Laad server categorieën uit server_categories.json"""
+    try:
+        if os.path.exists('server_categories.json'):
+            with open('server_categories.json', 'r', encoding='utf-8') as f:
+                return json_module.load(f)
+        return []
+    except Exception:
+        return []
+
+def save_server_categories(categories):
+    """Sla server categorieën op in server_categories.json"""
+    try:
+        with open('server_categories.json', 'w', encoding='utf-8') as f:
+            json_module.dump(categories, f, indent=4, ensure_ascii=False)
+        return True
+    except Exception:
+        return False
 
 
 @app.route('/')
@@ -201,31 +219,9 @@ def api_plugins_public():
 
 @app.route('/api/server_categories')
 def api_server_categories():
-    """API endpoint returning a list of server categories derived from plugins.json.
-
-    It collects values from possible fields: 'categories' (array), 'category' (string), and 'tags' (array).
-    Returns a sorted, unique array of category names.
-    """
-    try:
-        plugins = load_plugins()
-        categories = set()
-        for p in plugins:
-            if isinstance(p, dict):
-                if 'categories' in p and isinstance(p['categories'], list):
-                    for c in p['categories']:
-                        if c:
-                            categories.add(str(c).strip())
-                if 'category' in p and p['category']:
-                    categories.add(str(p['category']).strip())
-                if 'tags' in p and isinstance(p['tags'], list):
-                    for t in p['tags']:
-                        if t:
-                            categories.add(str(t).strip())
-
-        sorted_cats = sorted([c for c in categories if c])
-        return jsonify(sorted_cats)
-    except Exception as e:
-        return jsonify([])
+    """API endpoint returning a list of server categories."""
+    categories = load_server_categories()
+    return jsonify(categories)
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -411,6 +407,78 @@ def admin_get_users():
     
     return jsonify(user_data)
 
+@app.route('/admin/categories', methods=['GET'])
+@require_co_admin
+def admin_get_categories():
+    """Haal alle categorieën op"""
+    return jsonify(load_server_categories())
+
+@app.route('/admin/categories', methods=['POST'])
+@require_co_admin
+def admin_add_category():
+    """Voeg categorie toe"""
+    data = request.get_json()
+    name = data.get('name')
+    if not name:
+        return jsonify({'error': 'Naam is vereist'}), 400
+
+    categories = load_server_categories()
+    if name in categories:
+        return jsonify({'error': 'Categorie bestaat al'}), 400
+
+    categories.append(name)
+    if save_server_categories(categories):
+        return jsonify({'success': True})
+    return jsonify({'error': 'Fout bij opslaan'}), 500
+
+@app.route('/admin/categories/<name>', methods=['PUT'])
+@require_co_admin
+def admin_rename_category(name):
+    """Hernoem categorie"""
+    data = request.get_json()
+    new_name = data.get('new_name')
+
+    if not new_name:
+        return jsonify({'error': 'Nieuwe naam is vereist'}), 400
+
+    categories = load_server_categories()
+    if name not in categories:
+        return jsonify({'error': 'Categorie niet gevonden'}), 404
+
+    if new_name in categories:
+        return jsonify({'error': 'Categorie naam bestaat al'}), 400
+
+    index = categories.index(name)
+    categories[index] = new_name
+
+    if save_server_categories(categories):
+        # Update plugins that used the old category name
+        plugins = load_plugins()
+        updated = False
+        for plugin in plugins:
+            if plugin.get('category') == name:
+                plugin['category'] = new_name
+                updated = True
+
+        if updated:
+            save_plugins(plugins)
+
+        return jsonify({'success': True})
+    return jsonify({'error': 'Fout bij opslaan'}), 500
+
+@app.route('/admin/categories/<name>', methods=['DELETE'])
+@require_co_admin
+def admin_delete_category(name):
+    """Verwijder categorie"""
+    categories = load_server_categories()
+    if name not in categories:
+        return jsonify({'error': 'Categorie niet gevonden'}), 404
+
+    categories.remove(name)
+    if save_server_categories(categories):
+        return jsonify({'success': True})
+    return jsonify({'error': 'Fout bij opslaan'}), 500
+
 @app.route('/admin/users/<username>', methods=['DELETE'])
 @require_admin
 def admin_delete_user(username):
@@ -479,11 +547,12 @@ def admin_delete_plugin(url):
 @app.route('/admin/plugins/<path:url>/details', methods=['POST'])
 @require_co_admin
 def admin_update_plugin_details(url):
-    """Update plugin details (title, author)"""
+    """Update plugin details (title, author, category)"""
     try:
         data = request.get_json()
         new_title = data.get('title')
         new_author = data.get('author')
+        new_category = data.get('category')
 
         if not new_title or not new_author:
             return jsonify({'error': 'Titel en auteur zijn vereist'}), 400
@@ -494,6 +563,8 @@ def admin_update_plugin_details(url):
             if plugin.get('url') == url:
                 plugin['title'] = new_title
                 plugin['author'] = new_author
+                if new_category is not None:
+                    plugin['category'] = new_category
                 plugin_found = True
                 break
         
