@@ -49,6 +49,7 @@ function showAdminPanel() {
         currentRole.toUpperCase();
     loadSettings();
     loadUsers();
+    loadCategories();
     loadPlugins();
     setupEventListeners();
 }
@@ -157,14 +158,107 @@ function loadUsers() {
         });
 }
 
-function loadPlugins() {
-    fetch("/admin/plugins")
+function loadCategories() {
+    fetch("/admin/categories")
         .then((response) => response.json())
-        .then((plugins) => {
+        .then((categories) => {
+            const grid = document.getElementById("categoriesGrid");
+            grid.innerHTML = categories
+                .map(
+                    (category) => `
+                        <div class="col-md-4 col-sm-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body d-flex justify-content-between align-items-center">
+                                    <input type="text" class="form-control form-control-sm me-2" value="${category}" id="cat-${category}">
+                                    <div>
+                                        <button class="btn btn-primary btn-sm me-1" onclick="renameCategory('${category}')">
+                                            <i class="fas fa-save"></i>
+                                        </button>
+                                        <button class="btn btn-danger btn-sm" onclick="deleteCategory('${category}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `
+                )
+                .join("");
+        });
+}
+
+function addCategory() {
+    const name = document.getElementById("newCategoryName").value.trim();
+    if (!name) return;
+
+    fetch("/admin/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.success) {
+                document.getElementById("newCategoryName").value = "";
+                loadCategories();
+                loadPlugins(); // Refresh dropdowns
+            } else {
+                alert("Fout bij toevoegen categorie: " + data.error);
+            }
+        });
+}
+
+function renameCategory(oldName) {
+    const newName = document.getElementById(`cat-${oldName}`).value.trim();
+    if (!newName || newName === oldName) return;
+
+    fetch(`/admin/categories/${oldName}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ new_name: newName }),
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.success) {
+                loadCategories();
+                loadPlugins(); // Refresh dropdowns
+            } else {
+                alert("Fout bij hernoemen categorie: " + data.error);
+            }
+        });
+}
+
+function deleteCategory(name) {
+    if (!confirm(`Weet je zeker dat je categorie "${name}" wilt verwijderen?`)) return;
+
+    fetch(`/admin/categories/${name}`, {
+        method: "DELETE",
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.success) {
+                loadCategories();
+                loadPlugins(); // Refresh dropdowns
+            } else {
+                alert("Fout bij verwijderen categorie: " + data.error);
+            }
+        });
+}
+
+function loadPlugins() {
+    // Need categories for the dropdown
+    Promise.all([
+        fetch("/admin/plugins").then((r) => r.json()),
+        fetch("/admin/categories").then((r) => r.json())
+    ]).then(([plugins, categories]) => {
             const grid = document.getElementById("pluginsGrid");
             grid.innerHTML = plugins
-                .map(
-                    (plugin) => `
+                .map((plugin) => {
+                    const categoryOptions = categories.map(cat =>
+                        `<option value="${cat}" ${plugin.category === cat ? 'selected' : ''}>${cat}</option>`
+                    ).join('');
+
+                    return `
                         <div class="col-md-6 mb-3">
                             <div class="card">
                                 <div class="card-body">
@@ -172,9 +266,13 @@ function loadPlugins() {
                                         <img src="${plugin.icon ||
                         "/images/plugin-placeholder.png"
                         }" style="width: 40px; height: 40px; margin-right: 10px;" alt="icon">
-                                        <div>
+                                        <div style="flex-grow: 1;">
                                             <input type="text" class="form-control form-control-sm mb-1" value="${plugin.title}" id="pluginTitle-${plugin.url.replace(/[^a-zA-Z0-9]/g, '_')}">
-                                            <input type="text" class="form-control form-control-sm" value="${plugin.author || 'Onbekend'}" id="pluginAuthor-${plugin.url.replace(/[^a-zA-Z0-9]/g, '_')}">
+                                            <input type="text" class="form-control form-control-sm mb-1" value="${plugin.author || 'Onbekend'}" id="pluginAuthor-${plugin.url.replace(/[^a-zA-Z0-9]/g, '_')}">
+                                            <select class="form-select form-select-sm" id="pluginCategory-${plugin.url.replace(/[^a-zA-Z0-9]/g, '_')}">
+                                                <option value="">Geen categorie</option>
+                                                ${categoryOptions}
+                                            </select>
                                         </div>
                                     </div>
                                     <button class="btn btn-success btn-sm me-2" onclick="updatePluginDetails('${plugin.url}', '${plugin.url.replace(/[^a-zA-Z0-9]/g, '_')}')">
@@ -187,8 +285,8 @@ function loadPlugins() {
                                 </div>
                             </div>
                         </div>
-                    `
-                )
+                    `;
+                })
                 .join("");
         });
 }
@@ -254,13 +352,16 @@ function deletePlugin(url, title) {
 function updatePluginDetails(originalUrl, encodedUrl) {
     const titleInput = document.getElementById(`pluginTitle-${encodedUrl}`);
     const authorInput = document.getElementById(`pluginAuthor-${encodedUrl}`);
+    const categoryInput = document.getElementById(`pluginCategory-${encodedUrl}`);
+
     const newTitle = titleInput.value;
     const newAuthor = authorInput.value;
+    const newCategory = categoryInput.value;
 
     fetch(`/admin/plugins/${encodeURIComponent(originalUrl)}/details`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: newTitle, author: newAuthor }),
+        body: JSON.stringify({ title: newTitle, author: newAuthor, category: newCategory }),
     })
         .then((response) => response.json())
         .then((data) => {
