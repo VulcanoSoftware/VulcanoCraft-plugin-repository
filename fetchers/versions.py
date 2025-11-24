@@ -18,11 +18,11 @@ def get_modrinth_server_game_versions(slug):
         game_versions_dict = {}
 
         for v in data:
-            loaders = [l.lower() for l in v.get("loaders", [])]
-            relevant_loaders = [l for l in loaders if l in server_platforms]
+            loaders = [loader.lower() for loader in v.get("loaders", [])]
+            relevant_loaders = [loader for loader in loaders if loader in server_platforms]
             if not relevant_loaders:
                 continue
-            best_loader = max(relevant_loaders, key=lambda l: platform_priority[l])
+            best_loader = max(relevant_loaders, key=lambda loader: platform_priority[loader])
             for gv in v.get("game_versions", []):
                 if gv in game_versions_dict:
                     if platform_priority[best_loader] > platform_priority[game_versions_dict[gv]]:
