@@ -12,8 +12,8 @@ def get_modrinth_server_game_versions(slug):
         response.raise_for_status()
         data = response.json()
 
-        server_platforms = {"purpur", "paper", "spigot", "bukkit"}
-        platform_priority = {"purpur": 4, "paper": 3, "spigot": 2, "bukkit": 1}
+        server_platforms = {"purpur", "paper", "spigot", "bukkit", "neoforge"}
+        platform_priority = {"purpur": 5, "paper": 4, "spigot": 3, "bukkit": 2, "neoforge": 1}
 
         game_versions_dict = {}
 
