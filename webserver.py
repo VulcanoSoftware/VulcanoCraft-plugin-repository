@@ -1,10 +1,10 @@
 from flask import Flask, jsonify, request, send_file, session
 import os
 import json as json_module
+import subprocess
 import sys
 import hashlib
 import secrets
-from fetchers.modrinth import search_for_projects
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
@@ -603,28 +603,6 @@ def fetch_plugin():
         
     except subprocess.CalledProcessError as e:
         return jsonify({'error': f'Fout bij ophalen plugin data: {e.stderr}'}), 500
-    except Exception as e:
-        return jsonify({'error': f'Onverwachte fout: {str(e)}'}), 500
-
-@app.route('/search_plugins', methods=['GET'])
-def search_plugins():
-    """Zoek naar plugins op Modrinth met een query en filters"""
-    try:
-        query = request.args.get('query')
-        loader = request.args.get('loader')
-        version = request.args.get('version')
-
-        if not query and not loader and not version:
-            return jsonify({'error': 'Geen zoekopdracht of filters opgegeven'}), 400
-
-        filters = {
-            'categories': loader,
-            'versions': version
-        }
-
-        plugin_data = search_for_projects(query, filters)
-        return jsonify(plugin_data)
-
     except Exception as e:
         return jsonify({'error': f'Onverwachte fout: {str(e)}'}), 500
 
