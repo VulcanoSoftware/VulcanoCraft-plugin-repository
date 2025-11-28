@@ -789,77 +789,45 @@ document.addEventListener("DOMContentLoaded", function () {
     ) {
         const searchInput = document.getElementById("searchInput");
         const versionFilter = document.getElementById("versionFilter");
+        const loaderFilter = document.getElementById("loaderFilter");
         const platformFilters = document.querySelectorAll(".platform-filter");
         const resetButton = document.getElementById("resetFilters");
 
-        // Zoek functionaliteit
-        searchInput.addEventListener(
-            "input",
-            debounce(() => applyFilters(isLoggedIn, userRole), 300)
-        );
+        const filterHandler = debounce(() => applyFilters(isLoggedIn, userRole), 300);
 
-        // Versie filter
-        versionFilter.addEventListener("change", () =>
-            applyFilters(isLoggedIn, userRole)
-        );
-
-        // Platform filters
+        searchInput.addEventListener("input", filterHandler);
+        versionFilter.addEventListener("change", filterHandler);
+        loaderFilter.addEventListener("change", filterHandler);
         platformFilters.forEach((filter) => {
-            filter.addEventListener("change", () =>
-                applyFilters(isLoggedIn, userRole)
-            );
+            filter.addEventListener("change", filterHandler);
         });
-
-        // Reset functionaliteit
-        resetButton.addEventListener("click", () =>
-            resetFilters(isLoggedIn, userRole)
-        );
+        resetButton.addEventListener("click", () => resetFilters(isLoggedIn, userRole));
     }
 
     function applyFilters(isLoggedIn = false, userRole = "user") {
-        const searchTerm = document
-            .getElementById("searchInput")
-            .value.toLowerCase()
-            .trim();
-        const selectedVersion =
-            document.getElementById("versionFilter").value;
-        const selectedPlatforms = Array.from(
-            document.querySelectorAll(".platform-filter:checked")
-        ).map((cb) => cb.value);
+        const searchTerm = document.getElementById("searchInput").value.toLowerCase().trim();
+        const selectedLoader = document.getElementById("loaderFilter").value;
+        const selectedVersion = document.getElementById("versionFilter").value;
+        const selectedPlatforms = Array.from(document.querySelectorAll(".platform-filter:checked")).map(cb => cb.value);
         const selectedCategoryEl = document.querySelector('#categorySidebar .category-item.active');
         const selectedCategory = selectedCategoryEl ? selectedCategoryEl.getAttribute('data-category') : '';
 
         filteredPlugins = allPlugins.filter((plugin) => {
-            // Zoek filter
-            const matchesSearch =
-                !searchTerm ||
-                (plugin.title &&
-                    plugin.title.toLowerCase().includes(searchTerm)) ||
-                (plugin.description &&
-                    plugin.description.toLowerCase().includes(searchTerm)) ||
-                (plugin.author &&
-                    plugin.author.toLowerCase().includes(searchTerm));
-
-            // Versie filter
-            const matchesVersion =
-                !selectedVersion ||
-                (plugin.versions && plugin.versions.includes(selectedVersion));
-
-            // Platform filter
+            const matchesSearch = !searchTerm ||
+                (plugin.title && plugin.title.toLowerCase().includes(searchTerm)) ||
+                (plugin.description && plugin.description.toLowerCase().includes(searchTerm)) ||
+                (plugin.author && plugin.author.toLowerCase().includes(searchTerm));
+            const matchesVersion = !selectedVersion || (plugin.versions && plugin.versions.includes(selectedVersion));
+            const matchesLoader = !selectedLoader || (plugin.loaders && plugin.loaders.toLowerCase().includes(selectedLoader.toLowerCase()));
             const pluginPlatform = getPlatformFromUrl(plugin.url);
-            const matchesPlatform =
-                selectedPlatforms.length === 0 ||
-                selectedPlatforms.includes(pluginPlatform);
-
-            // Category filter: check multiple possible fields
+            const matchesPlatform = selectedPlatforms.length === 0 || selectedPlatforms.includes(pluginPlatform);
             let pluginCategories = [];
             if (plugin.categories && Array.isArray(plugin.categories)) pluginCategories = plugin.categories.map(c => c.toString());
             else if (plugin.category) pluginCategories = [plugin.category.toString()];
             else if (plugin.tags && Array.isArray(plugin.tags)) pluginCategories = plugin.tags.map(t => t.toString());
-
             const matchesCategory = !selectedCategory || pluginCategories.some(pc => pc && pc.toLowerCase() === selectedCategory.toLowerCase());
 
-            return matchesSearch && matchesVersion && matchesPlatform && matchesCategory;
+            return matchesSearch && matchesVersion && matchesPlatform && matchesCategory && matchesLoader;
         });
 
         renderFilteredPlugins(isLoggedIn, userRole);
@@ -1025,10 +993,12 @@ document.addEventListener("DOMContentLoaded", function () {
     function resetFilters(isLoggedIn = false, userRole = "user") {
         document.getElementById("searchInput").value = "";
         document.getElementById("versionFilter").value = "";
+        document.getElementById("loaderFilter").value = "";
         document
             .querySelectorAll(".platform-filter")
             .forEach((cb) => (cb.checked = true));
 
+        // Herlaad de originele lijst met plugins
         filteredPlugins = allPlugins;
         renderFilteredPlugins(isLoggedIn, userRole);
         updateResultsCount();
