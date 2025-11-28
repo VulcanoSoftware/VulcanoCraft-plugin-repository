@@ -891,27 +891,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const searchTerm = document.getElementById("searchInput").value.toLowerCase().trim();
         const selectedLoader = document.getElementById("loaderFilter").value;
         const selectedVersion = document.getElementById("versionFilter").value;
-        const selectedPlatforms = Array.from(document.querySelectorAll(".platform-filter:checked")).map(cb => cb.value);
-        const selectedCategoryEl = document.querySelector('#categorySidebar .category-item.active');
-        const selectedCategory = selectedCategoryEl ? selectedCategoryEl.getAttribute('data-category') : '';
-
-        filteredPlugins = allPlugins.filter((plugin) => {
-            const matchesSearch = !searchTerm ||
-                (plugin.title && plugin.title.toLowerCase().includes(searchTerm)) ||
-                (plugin.description && plugin.description.toLowerCase().includes(searchTerm)) ||
-                (plugin.author && plugin.author.toLowerCase().includes(searchTerm));
-            const matchesVersion = !selectedVersion || (plugin.versions && plugin.versions.includes(selectedVersion));
-            const matchesLoader = !selectedLoader || (plugin.loaders && plugin.loaders.toLowerCase().includes(selectedLoader.toLowerCase()));
-            const pluginPlatform = getPlatformFromUrl(plugin.url);
-            const matchesPlatform = selectedPlatforms.length === 0 || selectedPlatforms.includes(pluginPlatform);
-            let pluginCategories = [];
-            if (plugin.categories && Array.isArray(plugin.categories)) pluginCategories = plugin.categories.map(c => c.toString());
-            else if (plugin.category) pluginCategories = [plugin.category.toString()];
-            else if (plugin.tags && Array.isArray(plugin.tags)) pluginCategories = plugin.tags.map(t => t.toString());
-            const matchesCategory = !selectedCategory || pluginCategories.some(pc => pc && pc.toLowerCase() === selectedCategory.toLowerCase());
-
-            return matchesSearch && matchesVersion && matchesPlatform && matchesCategory && matchesLoader;
-        });
 
         if (selectedLoader) {
             // Als een loader is geselecteerd, voer dan een Modrinth-zoekopdracht uit
