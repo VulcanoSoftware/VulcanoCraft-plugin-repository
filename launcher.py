@@ -29,8 +29,6 @@ def get_plugin_data(url):
     
     author = run_script('author', url)
     
-    loaders = run_script('loaders', url)
-
     # Maak plugin object
     plugin = {
         "url": url,
@@ -38,8 +36,7 @@ def get_plugin_data(url):
         "description": description,
         "author": author,
         "icon": icon,
-        "versions": versions,
-        "loaders": loaders
+        "versions": versions
     }
     
     return plugin
