@@ -608,6 +608,89 @@ document.addEventListener("DOMContentLoaded", function () {
         setupCategoryListeners(isLoggedIn, userRole);
     };
 
+    function renderModrinthSearchResults(plugins, isLoggedIn = false, userRole = "user") {
+    const pluginsContainer = document.getElementById("pluginsContainer");
+
+    if (plugins.length === 0) {
+        pluginsContainer.innerHTML = `
+                    <div class="col-12 text-center">
+                        <div class="alert alert-info d-flex align-items-center justify-content-center" role="alert">
+                            <img src="images/fetch-icon.png" class="warning-icon me-2" alt="Geen resultaten">
+                            Geen plugins gevonden op Modrinth voor deze zoekopdracht.
+                        </div>
+                    </div>
+                `;
+        return;
+    }
+
+    let pluginsHtml = "";
+    plugins.forEach((plugin) => {
+        const formattedVersions = formatVersions(plugin.versions || "");
+        const firstLetter = (plugin.title || "P")[0].toUpperCase();
+        const iconHtml = plugin.icon
+            ? `<img src="${plugin.icon}" alt="${plugin.title} icon" class="plugin-icon me-3" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="plugin-icon-letter me-3" style="display:none;">${firstLetter}</div>`
+            : `<div class="plugin-icon-letter me-3">${firstLetter}</div>`;
+
+        pluginsHtml += `
+                <div class="col-12 mb-4 plugin-card">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                ${iconHtml}
+                                <div>
+                                    <h5 class="card-title mb-0">${plugin.title || "Geen titel"}</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text description">${plugin.description || "Geen beschrijving beschikbaar"}</p>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="plugin-info">
+                                        <strong><img src="images/author-icon.png" class="info-icon" alt="Auteur"> Auteur:</strong>
+                                        <span class="author-badge">${plugin.author || "Onbekend"}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="versions-section">
+                                <strong><img src="images/version-icon.png" class="info-icon" alt="Versies"> Ondersteunde Versies:</strong>
+                                <div class="versions-container">
+                                    ${formattedVersions}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <button class="btn btn-success add-from-search-btn" data-url="${plugin.url}">
+                                    <img src="images/add-icon.png" class="btn-icon" alt="Toevoegen">
+                                    Toevoegen aan Repository
+                                </button>
+                                <a href="${plugin.url || "#"}" class="btn btn-primary" target="_blank">
+                                    <img src="images/external-link-icon.png" class="btn-icon" alt="Externe link">
+                                    Bekijk op Modrinth
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+    });
+
+    pluginsContainer.innerHTML = pluginsHtml;
+
+    // Add event listeners to the new "Toevoegen" buttons
+    document.querySelectorAll('.add-from-search-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const url = this.getAttribute('data-url');
+            const addModal = new bootstrap.Modal(document.getElementById('addPluginModal'));
+            document.getElementById('pluginUrl').value = url;
+            addModal.show();
+            // Optional: directly trigger fetch
+            document.getElementById('fetchButton').click();
+        });
+    });
+}
+
     function populateVersionFilter(plugins) {
         const versionFilter = document.getElementById("versionFilter");
         const allVersions = new Set();
@@ -789,81 +872,83 @@ document.addEventListener("DOMContentLoaded", function () {
     ) {
         const searchInput = document.getElementById("searchInput");
         const versionFilter = document.getElementById("versionFilter");
+        const loaderFilter = document.getElementById("loaderFilter");
         const platformFilters = document.querySelectorAll(".platform-filter");
         const resetButton = document.getElementById("resetFilters");
 
-        // Zoek functionaliteit
-        searchInput.addEventListener(
-            "input",
-            debounce(() => applyFilters(isLoggedIn, userRole), 300)
-        );
+        const filterHandler = debounce(() => applyFilters(isLoggedIn, userRole), 300);
 
-        // Versie filter
-        versionFilter.addEventListener("change", () =>
-            applyFilters(isLoggedIn, userRole)
-        );
-
-        // Platform filters
+        searchInput.addEventListener("input", filterHandler);
+        versionFilter.addEventListener("change", filterHandler);
+        loaderFilter.addEventListener("change", filterHandler);
         platformFilters.forEach((filter) => {
-            filter.addEventListener("change", () =>
-                applyFilters(isLoggedIn, userRole)
-            );
+            filter.addEventListener("change", filterHandler);
         });
-
-        // Reset functionaliteit
-        resetButton.addEventListener("click", () =>
-            resetFilters(isLoggedIn, userRole)
-        );
+        resetButton.addEventListener("click", () => resetFilters(isLoggedIn, userRole));
     }
 
     function applyFilters(isLoggedIn = false, userRole = "user") {
-        const searchTerm = document
-            .getElementById("searchInput")
-            .value.toLowerCase()
-            .trim();
-        const selectedVersion =
-            document.getElementById("versionFilter").value;
-        const selectedPlatforms = Array.from(
-            document.querySelectorAll(".platform-filter:checked")
-        ).map((cb) => cb.value);
-        const selectedCategoryEl = document.querySelector('#categorySidebar .category-item.active');
-        const selectedCategory = selectedCategoryEl ? selectedCategoryEl.getAttribute('data-category') : '';
+        const searchTerm = document.getElementById("searchInput").value.toLowerCase().trim();
+        const selectedLoader = document.getElementById("loaderFilter").value;
+        const selectedVersion = document.getElementById("versionFilter").value;
 
-        filteredPlugins = allPlugins.filter((plugin) => {
-            // Zoek filter
-            const matchesSearch =
-                !searchTerm ||
-                (plugin.title &&
-                    plugin.title.toLowerCase().includes(searchTerm)) ||
-                (plugin.description &&
-                    plugin.description.toLowerCase().includes(searchTerm)) ||
-                (plugin.author &&
-                    plugin.author.toLowerCase().includes(searchTerm));
+        if (selectedLoader) {
+            // Als een loader is geselecteerd, voer dan een Modrinth-zoekopdracht uit
+            let searchUrl = `/search_plugins?loader=${encodeURIComponent(selectedLoader)}`;
+            if (searchTerm) {
+                searchUrl += `&query=${encodeURIComponent(searchTerm)}`;
+            }
+            if (selectedVersion) {
+                searchUrl += `&version=${encodeURIComponent(selectedVersion)}`;
+            }
 
-            // Versie filter
-            const matchesVersion =
-                !selectedVersion ||
-                (plugin.versions && plugin.versions.includes(selectedVersion));
+            fetch(searchUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.hits) {
+                        const searchResults = data.hits.map(hit => ({
+                            url: `https://modrinth.com/plugin/${hit.slug}`,
+                            title: hit.title,
+                            description: hit.description,
+                            author: hit.author,
+                            icon: hit.icon_url,
+                            versions: hit.versions.join(' ')
+                        }));
+                        renderModrinthSearchResults(searchResults, isLoggedIn, userRole);
+                    } else {
+                        renderModrinthSearchResults([], isLoggedIn, userRole);
+                    }
+                })
+                .catch(error => {
+                    console.error("Fout bij het zoeken op Modrinth:", error);
+                    renderModrinthSearchResults([], isLoggedIn, userRole);
+                });
+        } else {
+            // Anders, filter de bestaande plugins
+            const selectedPlatforms = Array.from(document.querySelectorAll(".platform-filter:checked")).map(cb => cb.value);
+            const selectedCategoryEl = document.querySelector('#categorySidebar .category-item.active');
+            const selectedCategory = selectedCategoryEl ? selectedCategoryEl.getAttribute('data-category') : '';
 
-            // Platform filter
-            const pluginPlatform = getPlatformFromUrl(plugin.url);
-            const matchesPlatform =
-                selectedPlatforms.length === 0 ||
-                selectedPlatforms.includes(pluginPlatform);
+            filteredPlugins = allPlugins.filter((plugin) => {
+                const matchesSearch = !searchTerm ||
+                    (plugin.title && plugin.title.toLowerCase().includes(searchTerm)) ||
+                    (plugin.description && plugin.description.toLowerCase().includes(searchTerm)) ||
+                    (plugin.author && plugin.author.toLowerCase().includes(searchTerm));
+                const matchesVersion = !selectedVersion || (plugin.versions && plugin.versions.includes(selectedVersion));
+                const pluginPlatform = getPlatformFromUrl(plugin.url);
+                const matchesPlatform = selectedPlatforms.length === 0 || selectedPlatforms.includes(pluginPlatform);
+                let pluginCategories = [];
+                if (plugin.categories && Array.isArray(plugin.categories)) pluginCategories = plugin.categories.map(c => c.toString());
+                else if (plugin.category) pluginCategories = [plugin.category.toString()];
+                else if (plugin.tags && Array.isArray(plugin.tags)) pluginCategories = plugin.tags.map(t => t.toString());
+                const matchesCategory = !selectedCategory || pluginCategories.some(pc => pc && pc.toLowerCase() === selectedCategory.toLowerCase());
 
-            // Category filter: check multiple possible fields
-            let pluginCategories = [];
-            if (plugin.categories && Array.isArray(plugin.categories)) pluginCategories = plugin.categories.map(c => c.toString());
-            else if (plugin.category) pluginCategories = [plugin.category.toString()];
-            else if (plugin.tags && Array.isArray(plugin.tags)) pluginCategories = plugin.tags.map(t => t.toString());
+                return matchesSearch && matchesVersion && matchesPlatform && matchesCategory;
+            });
 
-            const matchesCategory = !selectedCategory || pluginCategories.some(pc => pc && pc.toLowerCase() === selectedCategory.toLowerCase());
-
-            return matchesSearch && matchesVersion && matchesPlatform && matchesCategory;
-        });
-
-        renderFilteredPlugins(isLoggedIn, userRole);
-        updateResultsCount();
+            renderFilteredPlugins(isLoggedIn, userRole);
+            updateResultsCount();
+        }
     }
 
     function getPlatformFromUrl(url) {
@@ -1025,10 +1110,12 @@ document.addEventListener("DOMContentLoaded", function () {
     function resetFilters(isLoggedIn = false, userRole = "user") {
         document.getElementById("searchInput").value = "";
         document.getElementById("versionFilter").value = "";
+        document.getElementById("loaderFilter").value = "";
         document
             .querySelectorAll(".platform-filter")
             .forEach((cb) => (cb.checked = true));
 
+        // Herlaad de originele lijst met plugins
         filteredPlugins = allPlugins;
         renderFilteredPlugins(isLoggedIn, userRole);
         updateResultsCount();
