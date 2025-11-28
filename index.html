@@ -173,20 +173,19 @@
         <!-- Auth buttons -->
         <div class="btn-container text-center">
           <div id="authButtons">
-            <a class="btn btn-outline-light" href="/login-page">
+            <a class="btn btn-secondary" href="/login-page">
               <i class="fas fa-sign-in-alt me-2"></i>Inloggen
             </a>
           </div>
           <div id="userButtons" style="display: none">
+            <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addPluginModal" type="button">
+              <i class="fas fa-plus-circle me-2"></i>Plugin Toevoegen
+            </button>
+            <a class="btn btn-info me-2" id="adminBtn" href="/admin" style="display: none">
+              <i class="fas fa-cog me-2"></i>Admin Panel
+            </a>
             <span class="text-light me-3">Welkom, <span id="username"></span></span>
             <a class="btn btn-outline-light me-2" href="/change_password">Wachtwoord Wijzigen</a>
-            <button class="btn button-creative btn-lg floating-add-btn me-2" data-bs-target="#addPluginModal" data-bs-toggle="modal" type="button">
-              <img class="btn-icon-lg" src="images/add-icon.png" alt="Toevoegen">
-              Toevoegen
-            </button>
-            <a class="btn btn-outline-warning me-2" id="adminBtn" href="/admin" style="display: none">
-              <i class="fas fa-cog me-2"></i>Admin
-            </a>
             <button class="btn btn-outline-light" id="logoutBtn" type="button">
               <i class="fas fa-sign-out-alt me-2"></i>Uitloggen
             </button>
@@ -325,15 +324,6 @@
           opacity: 0,
           duration: 1.2,
           ease: "power3.out",
-        });
-
-        // Animeer de floating add button
-        gsap.to(".floating-add-btn", {
-          y: -10,
-          duration: 1.5,
-          repeat: -1,
-          yoyo: true,
-          ease: "power1.inOut",
         });
 
         // Staggered animatie voor badges
