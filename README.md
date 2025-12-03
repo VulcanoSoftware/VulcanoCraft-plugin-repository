@@ -111,3 +111,4 @@ Updates all plugins every hour automatically.
 <p align="right">made possible by <code>_.g.a.u.t.a.m._</code> on discord.</p>
 <p align="right">made possible by <code>Swapnanilb</code> on https://github.com/Swapnanilb</p>
 <p align="right">made possible by <code>luxetidal</code> on https://github.com/luxetidal</p>
+<p align="right">made possible by <code>AlexTrinityBlock</code> on https://github.com/AlexTrinityBlock</p>
