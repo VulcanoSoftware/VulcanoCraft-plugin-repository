@@ -1302,6 +1302,13 @@ body {
   justify-content: center;
 }
 
+.loader-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
 .form-check-input {
   border-radius: 8px;
   border: 2px solid #e9ecef;
