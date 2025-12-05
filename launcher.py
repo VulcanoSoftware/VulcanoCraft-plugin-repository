@@ -5,9 +5,10 @@ import sys
 
 def run_script(script_name, url):
     """Voert een Python script uit uit de fetchers map met de gegeven URL en retourneert de output"""
+    python_executable = ".venv/bin/python" if os.path.exists(".venv/bin/python") else sys.executable
     try:
         result = subprocess.run(
-            [sys.executable, f'fetchers/{script_name}.py', url],
+            [python_executable, f'fetchers/{script_name}.py', url],
             capture_output=True,
             text=True,
             check=True
@@ -15,6 +16,7 @@ def run_script(script_name, url):
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
         print(f"Fout bij uitvoeren fetchers/{script_name}.py: {e}", file=sys.stderr)
+        print(f"Stderr: {e.stderr}", file=sys.stderr)
         return ""
 
 def get_plugin_data(url):
@@ -29,6 +31,12 @@ def get_plugin_data(url):
     
     author = run_script('author', url)
     
+    loaders_json = run_script('plugin_loaders', url)
+    try:
+        loaders = json.loads(loaders_json)
+    except json.JSONDecodeError:
+        loaders = []
+
     # Maak plugin object
     plugin = {
         "url": url,
@@ -36,7 +44,8 @@ def get_plugin_data(url):
         "description": description,
         "author": author,
         "icon": icon,
-        "versions": versions
+        "versions": versions,
+        "loaders": loaders
     }
     
     return plugin
