@@ -223,6 +223,19 @@ def api_server_categories():
     categories = load_server_categories()
     return jsonify(categories)
 
+@app.route('/api/loaders')
+def api_loaders():
+    """API endpoint for loaders data"""
+    try:
+        if os.path.exists('loaders.json'):
+            with open('loaders.json', 'r', encoding='utf-8') as f:
+                loaders = json_module.load(f)
+                return jsonify(loaders)
+        return jsonify([])
+    except Exception as e:
+        print(f"Fout bij het laden van loaders: {e}")
+        return jsonify({'error': 'Fout bij het laden van loaders'}), 500
+
 @app.route('/register', methods=['POST'])
 def register():
     """Registreer nieuwe gebruiker"""
