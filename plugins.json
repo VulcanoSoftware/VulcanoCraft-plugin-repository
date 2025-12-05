@@ -7,7 +7,9 @@
         "url": "https://hangar.papermc.io/xenondevs/Nova",
         "versions": "1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.4 1.21.1 1.21.10 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
         "owner": "admin",
-        "loaders": ["paper"]
+        "loaders": [
+            "paper"
+        ]
     },
     {
         "author": "GFelberg",
@@ -17,7 +19,9 @@
         "url": "https://www.spigotmc.org/resources/back.94702/",
         "versions": "1.20 1.20.6 1.21",
         "owner": "admin",
-        "loaders": ["spigot"]
+        "loaders": [
+            "spigot"
+        ]
     },
     {
         "author": "Kaworru",
@@ -27,7 +31,9 @@
         "url": "https://www.curseforge.com/minecraft/mc-mods/scrap-tech-workshop",
         "versions": "1.20.1",
         "owner": "admin",
-        "loaders": ["forge"]
+        "loaders": [
+            "forge"
+        ]
     },
     {
         "author": "Oliver",
@@ -37,17 +43,11 @@
         "url": "https://modrinth.com/plugin/fancyholograms",
         "versions": "1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.11-pre3 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
         "owner": "admin",
-        "loaders": ["paper", "spigot", "bukkit"]
-    },
-    {
-        "author": "pop4959",
-        "description": "Pre-generates chunks, quickly and efficiently",
-        "icon": "https://cdn.modrinth.com/data/fALzjamp/e1954413665e57b7bae1feef44eda530270c7d47_96.webp",
-        "title": "Chunky",
-        "url": "https://modrinth.com/plugin/chunky",
-        "versions": "1.13.2 1.14 1.14.1 1.14.2 1.14.3 1.14.4 1.15 1.15.1 1.15.2 1.16 1.16.1 1.16.2 1.16.3 1.16.4 1.16.5 1.17 1.17.1 1.18 1.18.1 1.18.2 1.19 1.19.1 1.19.2 1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
-        "owner": "admin",
-        "loaders": ["spigot", "paper"]
+        "loaders": [
+            "paper",
+            "spigot",
+            "bukkit"
+        ]
     },
     {
         "author": "gamer_752",
@@ -57,7 +57,9 @@
         "url": "https://modrinth.com/plugin/colorspeak",
         "versions": "1.21.1 1.21.10 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
         "owner": "admin",
-        "loaders": ["paper"]
+        "loaders": [
+            "paper"
+        ]
     },
     {
         "author": "simibubi",
@@ -67,6 +69,27 @@
         "url": "https://modrinth.com/mod/create",
         "versions": "1.20.1 1.21.1",
         "owner": "admin",
-        "loaders": ["fabric", "forge"]
+        "loaders": [
+            "fabric",
+            "forge"
+        ]
+    },
+    {
+        "url": "https://modrinth.com/plugin/chunky",
+        "title": "Chunky",
+        "description": "Pre-generates chunks, quickly and efficiently",
+        "author": "pop4959",
+        "icon": "https://cdn.modrinth.com/data/fALzjamp/e1954413665e57b7bae1feef44eda530270c7d47_96.webp",
+        "versions": "1.13.2 1.14 1.14.1 1.14.2 1.14.3 1.14.4 1.15 1.15.1 1.15.2 1.16 1.16.1 1.16.2 1.16.3 1.16.4 1.16.5 1.17 1.17.1 1.18 1.18.1 1.18.2 1.19 1.19.1 1.19.2 1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
+        "loaders": [
+            "bukkit",
+            "fabric",
+            "folia",
+            "forge",
+            "neoforge",
+            "paper",
+            "spigot",
+            "sponge"
+        ]
     }
 ]
