@@ -602,11 +602,30 @@ document.addEventListener("DOMContentLoaded", function () {
         allPlugins = plugins;
         filteredPlugins = plugins;
         populateVersionFilter(plugins);
+        populateLoaderFilter();
         populateCategorySidebar(plugins);
         originalRenderPlugins(plugins, isLoggedIn, userRole);
         setupFilterEventListeners(isLoggedIn, userRole);
         setupCategoryListeners(isLoggedIn, userRole);
     };
+
+    function populateLoaderFilter() {
+        const loaderFilters = document.getElementById("loaderFilters");
+        fetch("/api/loaders")
+            .then((response) => response.json())
+            .then((loaders) => {
+                loaderFilters.innerHTML = "";
+                loaders.forEach((loader) => {
+                    const div = document.createElement("div");
+                    div.className = "form-check form-check-inline";
+                    div.innerHTML = `
+                        <input class="form-check-input loader-filter" id="loader-${loader.name}" type="checkbox" value="${loader.name}" checked>
+                        <label class="form-check-label" for="loader-${loader.name}">${loader.name}</label>
+                    `;
+                    loaderFilters.appendChild(div);
+                });
+            });
+    }
 
     function populateVersionFilter(plugins) {
         const versionFilter = document.getElementById("versionFilter");
@@ -790,6 +809,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const searchInput = document.getElementById("searchInput");
         const versionFilter = document.getElementById("versionFilter");
         const platformFilters = document.querySelectorAll(".platform-filter");
+        const loaderFilters = document.querySelectorAll(".loader-filter");
         const resetButton = document.getElementById("resetFilters");
 
         // Zoek functionaliteit
@@ -810,6 +830,13 @@ document.addEventListener("DOMContentLoaded", function () {
             );
         });
 
+        // Loader filters
+        document.getElementById("loaderFilters").addEventListener("change", (event) => {
+            if (event.target.classList.contains("loader-filter")) {
+                applyFilters(isLoggedIn, userRole);
+            }
+        });
+
         // Reset functionaliteit
         resetButton.addEventListener("click", () =>
             resetFilters(isLoggedIn, userRole)
@@ -825,6 +852,9 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("versionFilter").value;
         const selectedPlatforms = Array.from(
             document.querySelectorAll(".platform-filter:checked")
+        ).map((cb) => cb.value);
+        const selectedLoaders = Array.from(
+            document.querySelectorAll(".loader-filter:checked")
         ).map((cb) => cb.value);
         const selectedCategoryEl = document.querySelector('#categorySidebar .category-item.active');
         const selectedCategory = selectedCategoryEl ? selectedCategoryEl.getAttribute('data-category') : '';
@@ -851,6 +881,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 selectedPlatforms.length === 0 ||
                 selectedPlatforms.includes(pluginPlatform);
 
+            // Loader filter
+            const matchesLoader =
+                selectedLoaders.length === 0 ||
+                (plugin.loaders &&
+                    plugin.loaders.some((loader) => selectedLoaders.includes(loader)));
+
             // Category filter: check multiple possible fields
             let pluginCategories = [];
             if (plugin.categories && Array.isArray(plugin.categories)) pluginCategories = plugin.categories.map(c => c.toString());
@@ -859,7 +895,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const matchesCategory = !selectedCategory || pluginCategories.some(pc => pc && pc.toLowerCase() === selectedCategory.toLowerCase());
 
-            return matchesSearch && matchesVersion && matchesPlatform && matchesCategory;
+            return matchesSearch && matchesVersion && matchesPlatform && matchesLoader && matchesCategory;
         });
 
         renderFilteredPlugins(isLoggedIn, userRole);
@@ -1027,6 +1063,9 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("versionFilter").value = "";
         document
             .querySelectorAll(".platform-filter")
+            .forEach((cb) => (cb.checked = true));
+        document
+            .querySelectorAll(".loader-filter")
             .forEach((cb) => (cb.checked = true));
 
         filteredPlugins = allPlugins;
