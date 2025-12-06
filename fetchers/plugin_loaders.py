@@ -40,30 +40,49 @@ def get_hangar_loaders(author, slug):
         print(f"Fout bij het ophalen van Hangar-projectgegevens: {e}", file=sys.stderr)
         return []
 
-def get_curseforge_loaders(project_id):
+def get_curseforge_loaders(url, api_key):
     """Haalt de loaders voor een specifiek CurseForge-project op."""
-    api_key = os.environ.get("CURSEFORGE_API_KEY")
-    if not api_key:
-        print("Fout: CURSEFORGE_API_KEY omgevingsvariabele niet ingesteld.", file=sys.stderr)
-        return []
-    try:
-        headers = {'x-api-key': api_key}
-        # The API doesn't seem to use the project_id directly, so we search by slug
-        response = requests.get(f"https://api.curseforge.com/v1/mods/{project_id}", headers=headers)
+    if "bukkit-plugins" in url:
+        return ["Bukkit", "Spigot", "Paper"]
 
-        response.raise_for_status()
-        mod_data = response.json().get('data', {})
+    headers = {'x-api-key': api_key}
+    slug = url.rstrip('/').split('/')[-1]
+
+    try:
+        params = {'gameId': 432, 'slug': slug, 'classId': 6} # classId 6 is for Mods
+        search_response = requests.get("https://api.curseforge.com/v1/mods/search", headers=headers, params=params)
+        search_response.raise_for_status()
+        search_data = search_response.json().get('data', [])
+
+        if not search_data:
+            return []
+
+        mod_id = search_data[0]['id']
+        mod_response = requests.get(f"https://api.curseforge.com/v1/mods/{mod_id}", headers=headers)
+        mod_response.raise_for_status()
+        mod_data = mod_response.json().get('data', {})
+
         loaders = set()
         if 'latestFilesIndexes' in mod_data:
             for file_index in mod_data['latestFilesIndexes']:
+                # Fabric/Quilt/Forge
                 if 'modLoader' in file_index and file_index['modLoader'] is not None:
                     modloader_map = {0: "Any", 1: "Forge", 2: "Cauldron", 3: "LiteLoader", 4: "Fabric", 5: "Quilt", 6: "NeoForge"}
-                    loaders.add(modloader_map.get(file_index['modLoader'], "Unknown"))
-        if not loaders and 'latestFiles' in mod_data:
-            for file in mod_data['latestFiles']:
-                if 'bukkit' in file['fileName'].lower():
-                    return ["Bukkit", "Spigot", "Paper"]
-        return list(loaders) if loaders else ["Unknown"]
+                    if file_index['modLoader'] in modloader_map:
+                        loaders.add(modloader_map[file_index['modLoader']])
+
+        # Fallback for mods that don't have the modLoader field populated
+        if not loaders and 'categories' in mod_data:
+            for category in mod_data['categories']:
+                if category['slug'] == 'fabric':
+                    loaders.add('Fabric')
+                elif category['slug'] == 'forge':
+                    loaders.add('Forge')
+                elif category['slug'] == 'quilt':
+                    loaders.add('Quilt')
+
+
+        return list(loaders) if loaders else []
     except requests.exceptions.RequestException as e:
         print(f"Fout bij het ophalen van CurseForge-projectgegevens: {e}", file=sys.stderr)
         return []
@@ -97,34 +116,9 @@ def main():
         if not api_key:
             print("Fout: CURSEFORGE_API_KEY omgevingsvariabele niet ingesteld.", file=sys.stderr)
             sys.exit(1)
-        headers = {'x-api-key': api_key}
-        slug = url.rstrip('/').split('/')[-1]
-        class_id = 5 if "bukkit-plugins" in url else None
-        try:
-            params = {'gameId': 432, 'slug': slug}
-            if class_id:
-                params['classId'] = class_id
-            search_response = requests.get("https://api.curseforge.com/v1/mods/search", headers=headers, params=params)
-            search_response.raise_for_status()
-            search_data = search_response.json().get('data', [])
-            project_id = None
-            if search_data:
-                if class_id:
-                    for project in search_data:
-                        if project.get('classId') == class_id:
-                            project_id = project['id']
-                            break
-                if not project_id:
-                    project_id = search_data[0]['id']
 
-            if project_id:
-                loaders = get_curseforge_loaders(project_id)
-                print(json.dumps(loaders))
-            else:
-                print(json.dumps([]))
-        except requests.exceptions.RequestException as e:
-            print(f"Fout bij het zoeken naar CurseForge-project: {e}", file=sys.stderr)
-            print(json.dumps([]))
+        loaders = get_curseforge_loaders(url, api_key)
+        print(json.dumps(loaders))
     else:
         print(json.dumps([]))
 
