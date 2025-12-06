@@ -17,10 +17,10 @@ def get_modrinth_loaders(project_id):
 def get_spigotmc_loaders(resource_id):
     """Haalt de loaders voor een specifiek SpigotMC-resource op."""
     try:
+        # We still ping the API to ensure the resource exists, but the loaders are hardcoded.
         response = requests.get(f"https://api.spiget.org/v2/resources/{resource_id}")
         response.raise_for_status()
-        resource_data = response.json()
-        return resource_data.get("testedVersions", [])
+        return ["Spigot", "Paper", "Bukkit"]
     except requests.exceptions.RequestException as e:
         print(f"Fout bij het ophalen van SpigotMC-resourcegegevens: {e}", file=sys.stderr)
         return []
@@ -48,16 +48,22 @@ def get_curseforge_loaders(project_id):
         return []
     try:
         headers = {'x-api-key': api_key}
+        # The API doesn't seem to use the project_id directly, so we search by slug
         response = requests.get(f"https://api.curseforge.com/v1/mods/{project_id}", headers=headers)
+
         response.raise_for_status()
         mod_data = response.json().get('data', {})
         loaders = set()
         if 'latestFilesIndexes' in mod_data:
             for file_index in mod_data['latestFilesIndexes']:
-                if 'modLoader' in file_index:
+                if 'modLoader' in file_index and file_index['modLoader'] is not None:
                     modloader_map = {0: "Any", 1: "Forge", 2: "Cauldron", 3: "LiteLoader", 4: "Fabric", 5: "Quilt", 6: "NeoForge"}
                     loaders.add(modloader_map.get(file_index['modLoader'], "Unknown"))
-        return list(loaders)
+        if not loaders and 'latestFiles' in mod_data:
+            for file in mod_data['latestFiles']:
+                if 'bukkit' in file['fileName'].lower():
+                    return ["Bukkit", "Spigot", "Paper"]
+        return list(loaders) if loaders else ["Unknown"]
     except requests.exceptions.RequestException as e:
         print(f"Fout bij het ophalen van CurseForge-projectgegevens: {e}", file=sys.stderr)
         return []
@@ -93,12 +99,25 @@ def main():
             sys.exit(1)
         headers = {'x-api-key': api_key}
         slug = url.rstrip('/').split('/')[-1]
+        class_id = 5 if "bukkit-plugins" in url else None
         try:
-            search_response = requests.get(f"https://api.curseforge.com/v1/mods/search?gameId=432&slug={slug}", headers=headers)
+            params = {'gameId': 432, 'slug': slug}
+            if class_id:
+                params['classId'] = class_id
+            search_response = requests.get("https://api.curseforge.com/v1/mods/search", headers=headers, params=params)
             search_response.raise_for_status()
             search_data = search_response.json().get('data', [])
+            project_id = None
             if search_data:
-                project_id = search_data[0]['id']
+                if class_id:
+                    for project in search_data:
+                        if project.get('classId') == class_id:
+                            project_id = project['id']
+                            break
+                if not project_id:
+                    project_id = search_data[0]['id']
+
+            if project_id:
                 loaders = get_curseforge_loaders(project_id)
                 print(json.dumps(loaders))
             else:
