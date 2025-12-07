@@ -40,19 +40,24 @@ def get_hangar_loaders(author, slug):
         print(f"Fout bij het ophalen van Hangar-projectgegevens: {e}", file=sys.stderr)
         return []
 
+import re
+
 def get_curseforge_loaders(url, api_key):
     """Haalt de loaders voor een specifiek CurseForge-project op."""
     if "bukkit-plugins" in url:
         return ["Bukkit", "Spigot", "Paper"]
 
+    slug = extract_slug_from_url(url)
+    if not slug:
+        return []
+
     headers = {
         'x-api-key': api_key,
         'Accept': 'application/json',
     }
-    slug = url.rstrip('/').split('/')[-1]
 
     try:
-        # Stap 1: Zoek de mod via de slug (zonder classId)
+        # Stap 1: Zoek de mod via de slug
         params = {'gameId': 432, 'slug': slug}
         search_response = requests.get("https://api.curseforge.com/v1/mods/search", headers=headers, params=params)
         search_response.raise_for_status()
@@ -61,62 +66,60 @@ def get_curseforge_loaders(url, api_key):
         if not search_data:
             return []
 
-        # Omdat de API soms meerdere resultaten geeft, filteren we op classId
         mod_info = None
-        if "bukkit-plugins" in url:
-            for item in search_data:
-                if item.get('slug') == slug and item.get('classId') == 5:
-                    mod_info = item
-                    break
-        else:
-            for item in search_data:
-                if item.get('slug') == slug and item.get('classId') == 6:
-                    mod_info = item
-                    break
+        for item in search_data:
+            if item.get('slug') == slug:
+                mod_info = item
+                break
 
         if not mod_info:
-            # Fallback naar het eerste resultaat als er geen exacte match is
-            if search_data:
-                mod_info = search_data[0]
-            else:
-                return []
+            mod_info = search_data[0]
 
         mod_id = mod_info['id']
-        class_id = mod_info['classId']
 
-        # Stap 2: Controleer de classId en retourneer specifieke loaders
-        # 5 = Bukkit Plugins
-        if class_id == 5:
-            return ["Bukkit", "Spigot", "Paper"]
+        # Stap 2: Haal bestanden op
+        files_response = requests.get(f"https://api.curseforge.com/v1/mods/{mod_id}/files", headers=headers)
+        files_response.raise_for_status()
+        files_data = files_response.json().get('data', [])
 
-        # Stap 3: Haal gedetailleerde mod-informatie op
-        mod_response = requests.get(f"https://api.curseforge.com/v1/mods/{mod_id}", headers=headers)
-        mod_response.raise_for_status()
-        mod_data = mod_response.json().get('data', {})
+        if not files_data:
+            return []
 
+        # Stap 3: Extraheer loaders
         loaders = set()
-        if 'latestFilesIndexes' in mod_data:
-            for file_index in mod_data['latestFilesIndexes']:
-                if 'modLoader' in file_index and file_index['modLoader'] is not None:
-                    modloader_map = {
-                        0: "Any", 1: "Forge", 2: "Cauldron", 3: "LiteLoader",
-                        4: "Fabric", 5: "Quilt", 6: "NeoForge"
-                    }
-                    loader = modloader_map.get(file_index['modLoader'])
-                    if loader:
-                        loaders.add(loader)
-
-        # Fallback: controleer de categorieën als er geen loaders zijn gevonden
-        if not loaders and 'categories' in mod_data:
-            for category in mod_data['categories']:
-                if category['slug'] in ['fabric', 'forge', 'quilt', 'neoforge']:
-                    loaders.add(category['slug'].capitalize())
+        for file in files_data:
+            if 'gameVersions' in file:
+                for version in file['gameVersions']:
+                    v = version.lower()
+                    if "forge" in v:
+                        loaders.add("Forge")
+                    elif "fabric" in v:
+                        loaders.add("Fabric")
+                    elif "quilt" in v:
+                        loaders.add("Quilt")
+                    elif "neoforge" in v:
+                        loaders.add("NeoForge")
 
         return list(loaders) if loaders else []
 
     except requests.exceptions.RequestException as e:
         print(f"Fout bij het ophalen van CurseForge-projectgegevens: {e}", file=sys.stderr)
         return []
+
+def extract_slug_from_url(url):
+    """Haal de exacte slug uit de URL."""
+    patterns = [
+        r"mc-mods/([^/]+)",
+        r"modpacks/([^/]+)",
+        r"texture-packs/([^/]+)",
+        r"worlds/([^/]+)"
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, url)
+        if match:
+            return match.group(1)
+    return None
 
 def main():
     if len(sys.argv) < 2:
