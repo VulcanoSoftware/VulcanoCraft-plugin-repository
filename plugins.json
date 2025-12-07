@@ -24,18 +24,6 @@
         ]
     },
     {
-        "author": "Kaworru",
-        "description": "Build, craft and innovate with a mix of scrapyard engineering, neon-powered machinery and urban workshop tools.",
-        "icon": "https://media.forgecdn.net/avatars/thumbnails/1477/261/256/256/638959016207095146.png",
-        "title": "Scrap Tech Workshop",
-        "url": "https://www.curseforge.com/minecraft/mc-mods/scrap-tech-workshop",
-        "versions": "1.20.1",
-        "owner": "admin",
-        "loaders": [
-            "forge"
-        ]
-    },
-    {
         "author": "Oliver",
         "description": "Create fancy looking text, item or block holograms with the new 1.19.4 text display entities",
         "icon": "https://cdn.modrinth.com/data/5QNgOj66/cc884d7e7e8e5f2febaff17898b3a6af9397060e_96.webp",
@@ -91,5 +79,19 @@
             "spigot",
             "sponge"
         ]
+    },
+    {
+        "url": "https://www.curseforge.com/minecraft/mc-mods/scrap-tech-workshop",
+        "title": "Scrap Tech Workshop",
+        "description": "Build, craft and innovate with a mix of scrapyard engineering, neon-powered machinery and urban workshop tools.",
+        "author": "Kaworru",
+        "icon": "https://media.forgecdn.net/avatars/thumbnails/1477/261/256/256/638959016207095146.png",
+        "versions": "1.20.1",
+        "loaders": [
+            "Forge",
+            "Quilt",
+            "Fabric"
+        ],
+        "owner": "admin"
     }
 ]
