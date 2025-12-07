@@ -45,7 +45,10 @@ def get_curseforge_loaders(url, api_key):
     if "bukkit-plugins" in url:
         return ["Bukkit", "Spigot", "Paper"]
 
-    headers = {'x-api-key': api_key}
+    headers = {
+        'x-api-key': api_key,
+        'Accept': 'application/json',
+    }
     slug = url.rstrip('/').split('/')[-1]
 
     try:
