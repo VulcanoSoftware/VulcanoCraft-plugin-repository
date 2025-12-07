@@ -58,7 +58,7 @@ def get_curseforge_loaders(url, api_key):
 
     try:
         # Stap 1: Zoek de mod via de slug
-        params = {'gameId': 432, 'slug': slug}
+        params = {'gameId': 432, 'slug': slug, 'classId': 6}
         search_response = requests.get("https://api.curseforge.com/v1/mods/search", headers=headers, params=params)
         search_response.raise_for_status()
         search_data = search_response.json().get('data', [])
@@ -66,16 +66,16 @@ def get_curseforge_loaders(url, api_key):
         if not search_data:
             return []
 
-        mod_info = None
-        for item in search_data:
-            if item.get('slug') == slug:
-                mod_info = item
+        # Find the correct mod_id, as slugs can be ambiguous
+        mod_id = None
+        for mod in search_data:
+            if mod.get('slug') == slug:
+                mod_id = mod['id']
                 break
 
-        if not mod_info:
-            mod_info = search_data[0]
+        if not mod_id:
+            return []
 
-        mod_id = mod_info['id']
 
         # Stap 2: Haal bestanden op
         files_response = requests.get(f"https://api.curseforge.com/v1/mods/{mod_id}/files", headers=headers)
@@ -88,7 +88,11 @@ def get_curseforge_loaders(url, api_key):
         # Stap 3: Extraheer loaders
         loaders = set()
         for file in files_data:
-            if 'gameVersions' in file:
+            # Check for both 'loaders' and 'gameVersions'
+            if 'loaders' in file and file['loaders']:
+                for loader in file['loaders']:
+                    loaders.add(loader.capitalize())
+            elif 'gameVersions' in file:
                 for version in file['gameVersions']:
                     v = version.lower()
                     if "forge" in v:
