@@ -52,23 +52,24 @@ def get_plugin_data(url):
 
 def save_to_file(plugin):
     """Slaat een plugin op in het plugins.json bestand"""
-    # Lees bestaande data of initialiseer lege lijst
+    plugins = []
     if os.path.exists('plugins.json'):
         with open('plugins.json', 'r', encoding='utf-8') as f:
             try:
                 plugins = json.load(f)
             except json.JSONDecodeError:
-                plugins = []
-    else:
-        plugins = []
-    
-    # Verwijder bestaande plugin met dezelfde URL
-    plugins = [p for p in plugins if p['url'] != plugin['url']]
-    
-    # Voeg nieuwe plugin toe
+                pass  # Start met een lege lijst als het bestand leeg of corrupt is
+
+    # Zoek de bestaande plugin en behoud de 'owner'
+    existing_plugin = next((p for p in plugins if p.get('url') == plugin['url']), None)
+    if existing_plugin and 'owner' in existing_plugin:
+        plugin['owner'] = existing_plugin['owner']
+
+    # Verwijder de oude plugin (indien aanwezig) en voeg de nieuwe toe
+    plugins = [p for p in plugins if p.get('url') != plugin['url']]
     plugins.append(plugin)
-    
-    # Schrijf terug naar bestand
+
+    # Schrijf de bijgewerkte lijst terug naar het bestand
     with open('plugins.json', 'w', encoding='utf-8') as f:
         json.dump(plugins, f, indent=4, ensure_ascii=False)
     
