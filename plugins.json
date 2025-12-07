@@ -88,8 +88,8 @@
         "icon": "https://media.forgecdn.net/avatars/thumbnails/1477/261/256/256/638959016207095146.png",
         "versions": "1.20.1",
         "loaders": [
-            "Forge",
             "Quilt",
+            "Forge",
             "Fabric"
         ],
         "owner": "admin"
