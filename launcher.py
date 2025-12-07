@@ -11,7 +11,8 @@ def run_script(script_name, url):
             [python_executable, f'fetchers/{script_name}.py', url],
             capture_output=True,
             text=True,
-            check=True
+            check=True,
+            env=os.environ.copy()
         )
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
