@@ -49,7 +49,8 @@ def get_curseforge_loaders(url, api_key):
     slug = url.rstrip('/').split('/')[-1]
 
     try:
-        params = {'gameId': 432, 'slug': slug, 'classId': 6} # classId 6 is for Mods
+        # Stap 1: Zoek de mod via de slug (zonder classId)
+        params = {'gameId': 432, 'slug': slug}
         search_response = requests.get("https://api.curseforge.com/v1/mods/search", headers=headers, params=params)
         search_response.raise_for_status()
         search_data = search_response.json().get('data', [])
@@ -57,7 +58,35 @@ def get_curseforge_loaders(url, api_key):
         if not search_data:
             return []
 
-        mod_id = search_data[0]['id']
+        # Omdat de API soms meerdere resultaten geeft, filteren we op classId
+        mod_info = None
+        if "bukkit-plugins" in url:
+            for item in search_data:
+                if item.get('slug') == slug and item.get('classId') == 5:
+                    mod_info = item
+                    break
+        else:
+            for item in search_data:
+                if item.get('slug') == slug and item.get('classId') == 6:
+                    mod_info = item
+                    break
+
+        if not mod_info:
+            # Fallback naar het eerste resultaat als er geen exacte match is
+            if search_data:
+                mod_info = search_data[0]
+            else:
+                return []
+
+        mod_id = mod_info['id']
+        class_id = mod_info['classId']
+
+        # Stap 2: Controleer de classId en retourneer specifieke loaders
+        # 5 = Bukkit Plugins
+        if class_id == 5:
+            return ["Bukkit", "Spigot", "Paper"]
+
+        # Stap 3: Haal gedetailleerde mod-informatie op
         mod_response = requests.get(f"https://api.curseforge.com/v1/mods/{mod_id}", headers=headers)
         mod_response.raise_for_status()
         mod_data = mod_response.json().get('data', {})
@@ -65,24 +94,23 @@ def get_curseforge_loaders(url, api_key):
         loaders = set()
         if 'latestFilesIndexes' in mod_data:
             for file_index in mod_data['latestFilesIndexes']:
-                # Fabric/Quilt/Forge
                 if 'modLoader' in file_index and file_index['modLoader'] is not None:
-                    modloader_map = {0: "Any", 1: "Forge", 2: "Cauldron", 3: "LiteLoader", 4: "Fabric", 5: "Quilt", 6: "NeoForge"}
-                    if file_index['modLoader'] in modloader_map:
-                        loaders.add(modloader_map[file_index['modLoader']])
+                    modloader_map = {
+                        0: "Any", 1: "Forge", 2: "Cauldron", 3: "LiteLoader",
+                        4: "Fabric", 5: "Quilt", 6: "NeoForge"
+                    }
+                    loader = modloader_map.get(file_index['modLoader'])
+                    if loader:
+                        loaders.add(loader)
 
-        # Fallback for mods that don't have the modLoader field populated
+        # Fallback: controleer de categorieën als er geen loaders zijn gevonden
         if not loaders and 'categories' in mod_data:
             for category in mod_data['categories']:
-                if category['slug'] == 'fabric':
-                    loaders.add('Fabric')
-                elif category['slug'] == 'forge':
-                    loaders.add('Forge')
-                elif category['slug'] == 'quilt':
-                    loaders.add('Quilt')
-
+                if category['slug'] in ['fabric', 'forge', 'quilt', 'neoforge']:
+                    loaders.add(category['slug'].capitalize())
 
         return list(loaders) if loaders else []
+
     except requests.exceptions.RequestException as e:
         print(f"Fout bij het ophalen van CurseForge-projectgegevens: {e}", file=sys.stderr)
         return []
