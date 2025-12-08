@@ -847,6 +847,21 @@ document.addEventListener("DOMContentLoaded", function () {
         resetButton.addEventListener("click", () =>
             resetFilters(isLoggedIn, userRole)
         );
+
+        // Check All / Uncheck All functionality
+        document.getElementById("checkAllLoaders").addEventListener("click", () => {
+            document.querySelectorAll(".loader-filter").forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            applyFilters(isLoggedIn, userRole);
+        });
+
+        document.getElementById("uncheckAllLoaders").addEventListener("click", () => {
+            document.querySelectorAll(".loader-filter").forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            applyFilters(isLoggedIn, userRole);
+        });
     }
 
     function applyFilters(isLoggedIn = false, userRole = "user") {
