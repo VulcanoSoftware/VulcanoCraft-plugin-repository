@@ -602,29 +602,35 @@ document.addEventListener("DOMContentLoaded", function () {
         allPlugins = plugins;
         filteredPlugins = plugins;
         populateVersionFilter(plugins);
-        populateLoaderFilter();
+        populateLoaderFilter(plugins);
         populateCategorySidebar(plugins);
         originalRenderPlugins(plugins, isLoggedIn, userRole);
         setupFilterEventListeners(isLoggedIn, userRole);
         setupCategoryListeners(isLoggedIn, userRole);
     };
 
-    function populateLoaderFilter() {
+    function populateLoaderFilter(plugins) {
         const loaderFilters = document.getElementById("loaderFilters");
-        fetch("/api/loaders")
-            .then((response) => response.json())
-            .then((loaders) => {
-                loaderFilters.innerHTML = "";
-                loaders.forEach((loader) => {
-                    const div = document.createElement("div");
-                    div.className = "form-check form-check-inline";
-                    div.innerHTML = `
-                        <input class="form-check-input loader-filter" id="loader-${loader.name}" type="checkbox" value="${loader.name}" checked>
-                        <label class="form-check-label" for="loader-${loader.name}">${loader.name}</label>
-                    `;
-                    loaderFilters.appendChild(div);
-                });
-            });
+        const allLoaders = new Set();
+
+        plugins.forEach((plugin) => {
+            if (plugin.loaders && Array.isArray(plugin.loaders)) {
+                plugin.loaders.forEach((loader) => allLoaders.add(loader.trim()));
+            }
+        });
+
+        const sortedLoaders = Array.from(allLoaders).sort((a, b) => a.localeCompare(b));
+
+        loaderFilters.innerHTML = "";
+        sortedLoaders.forEach((loader) => {
+            const div = document.createElement("div");
+            div.className = "form-check form-check-inline";
+            div.innerHTML = `
+                <input class="form-check-input loader-filter" id="loader-${loader}" type="checkbox" value="${loader}" checked>
+                <label class="form-check-label" for="loader-${loader}">${loader}</label>
+            `;
+            loaderFilters.appendChild(div);
+        });
     }
 
     function populateVersionFilter(plugins) {
