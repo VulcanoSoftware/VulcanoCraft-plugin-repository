@@ -862,6 +862,20 @@ document.addEventListener("DOMContentLoaded", function () {
             });
             applyFilters(isLoggedIn, userRole);
         });
+
+        document.getElementById("checkAllPlatforms").addEventListener("click", () => {
+            document.querySelectorAll(".platform-filter").forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            applyFilters(isLoggedIn, userRole);
+        });
+
+        document.getElementById("uncheckAllPlatforms").addEventListener("click", () => {
+            document.querySelectorAll(".platform-filter").forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            applyFilters(isLoggedIn, userRole);
+        });
     }
 
     function applyFilters(isLoggedIn = false, userRole = "user") {
