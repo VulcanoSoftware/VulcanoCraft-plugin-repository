@@ -850,10 +850,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Check All / Uncheck All functionality
         document.getElementById("checkAllLoaders").addEventListener("click", () => {
-            document.querySelectorAll(".loader-filter").forEach(checkbox => {
-                checkbox.checked = true;
+            document.querySelectorAll(".loader-filter:not(:checked)").forEach(checkbox => {
+                checkbox.click();
             });
-            applyFilters(isLoggedIn, userRole);
         });
 
         document.getElementById("uncheckAllLoaders").addEventListener("click", () => {
