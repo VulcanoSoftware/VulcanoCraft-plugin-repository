@@ -3,95 +3,52 @@
         "author": "xenondevs",
         "description": "A server-side modding framework for Paper",
         "icon": "https://hangarcdn.papermc.io/avatars/project/626.webp",
+        "loaders": [
+            "paper"
+        ],
         "title": "Nova",
         "url": "https://hangar.papermc.io/xenondevs/Nova",
         "versions": "1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.4 1.21.1 1.21.10 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
-        "owner": "admin",
-        "loaders": [
-            "paper"
-        ]
+        "owner": "admin"
     },
     {
         "author": "GFelberg",
         "description": "Teleport to your last location after your death",
         "icon": "https://www.spigotmc.org/data/resource_icons/94/94702.jpg",
+        "loaders": [
+            "spigot",
+            "bukkit"
+        ],
         "title": "Back",
         "url": "https://www.spigotmc.org/resources/back.94702/",
         "versions": "1.20 1.20.6 1.21",
-        "owner": "admin",
-        "loaders": [
-            "spigot"
-        ]
+        "owner": "admin"
     },
     {
         "author": "Oliver",
         "description": "Create fancy looking text, item or block holograms with the new 1.19.4 text display entities",
         "icon": "https://cdn.modrinth.com/data/5QNgOj66/cc884d7e7e8e5f2febaff17898b3a6af9397060e_96.webp",
+        "loaders": [
+            "folia",
+            "paper"
+        ],
         "title": "FancyHolograms",
         "url": "https://modrinth.com/plugin/fancyholograms",
-        "versions": "1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.11-pre3 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
-        "owner": "admin",
-        "loaders": [
-            "paper",
-            "spigot",
-            "bukkit"
-        ]
+        "versions": "1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.11-pre3 1.21.11-pre4 1.21.11-pre5 1.21.11-rc2 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
+        "owner": "admin"
     },
     {
-        "author": "gamer_752",
-        "description": "This plugin lets players insert codes like g/red or g/blue directly into their chat messages to color only specific parts of the text. It gives players full control to style their messages with custom colors.",
-        "icon": "https://cdn.modrinth.com/data/QVpB88mt/b65195f21875aae744cdb1c1057029143b295458_96.webp",
-        "title": "ColorSpeak",
-        "url": "https://modrinth.com/plugin/colorspeak",
-        "versions": "1.21.1 1.21.10 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
-        "owner": "admin",
-        "loaders": [
-            "paper"
-        ]
-    },
-    {
-        "author": "simibubi",
-        "description": "Aesthetic Technology that empowers the Player",
-        "icon": "https://cdn.modrinth.com/data/LNytGWDc/61d716699bcf1ec42ed4926a9e1c7311be6087e2_96.webp",
-        "title": "Create",
-        "url": "https://modrinth.com/mod/create",
-        "versions": "1.20.1 1.21.1",
-        "owner": "admin",
-        "loaders": [
-            "fabric",
-            "forge"
-        ]
-    },
-    {
-        "url": "https://modrinth.com/plugin/chunky",
-        "title": "Chunky",
-        "description": "Pre-generates chunks, quickly and efficiently",
-        "author": "pop4959",
-        "icon": "https://cdn.modrinth.com/data/fALzjamp/e1954413665e57b7bae1feef44eda530270c7d47_96.webp",
-        "versions": "1.13.2 1.14 1.14.1 1.14.2 1.14.3 1.14.4 1.15 1.15.1 1.15.2 1.16 1.16.1 1.16.2 1.16.3 1.16.4 1.16.5 1.17 1.17.1 1.18 1.18.1 1.18.2 1.19 1.19.1 1.19.2 1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
-        "loaders": [
-            "bukkit",
-            "fabric",
-            "folia",
-            "forge",
-            "neoforge",
-            "paper",
-            "spigot",
-            "sponge"
-        ]
-    },
-    {
-        "url": "https://www.curseforge.com/minecraft/mc-mods/scrap-tech-workshop",
-        "title": "Scrap Tech Workshop",
-        "description": "Build, craft and innovate with a mix of scrapyard engineering, neon-powered machinery and urban workshop tools.",
         "author": "Kaworru",
+        "description": "Build, craft and innovate with a mix of scrapyard engineering, neon-powered machinery and urban workshop tools.",
         "icon": "https://media.forgecdn.net/avatars/thumbnails/1477/261/256/256/638959016207095146.png",
-        "versions": "1.20.1",
         "loaders": [
-            "Forge",
-            "Fabric",
-            "Quilt"
+            "fabric",
+            "quilt",
+            "forge"
         ],
+        "title": "Scrap Tech Workshop",
+        "url": "https://www.curseforge.com/minecraft/mc-mods/scrap-tech-workshop",
+        "versions": "1.20.1",
         "owner": "admin"
     }
 ]

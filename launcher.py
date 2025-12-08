@@ -32,7 +32,7 @@ def get_plugin_data(url):
     
     author = run_script('author', url)
     
-    loaders_json = run_script('plugin_loaders', url)
+    loaders_json = run_script('loaders', url)
     try:
         loaders = json.loads(loaders_json)
     except json.JSONDecodeError:
