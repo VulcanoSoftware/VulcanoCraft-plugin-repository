@@ -1,9 +1,37 @@
 [
-    "Survival Main Server",
-    "VulcanoTechCraft",
-    "Velocity",
-    "Lobby",
-    "Oneblock",
-    "Bedwars",
-    "Klokrise"
+    {
+        "name": "Survival Main Server",
+        "image_url": "",
+        "show_image": false
+    },
+    {
+        "name": "VulcanoTechCraft",
+        "image_url": "",
+        "show_image": false
+    },
+    {
+        "name": "Velocity",
+        "image_url": "",
+        "show_image": false
+    },
+    {
+        "name": "Lobby",
+        "image_url": "",
+        "show_image": false
+    },
+    {
+        "name": "Oneblock",
+        "image_url": "",
+        "show_image": false
+    },
+    {
+        "name": "Bedwars",
+        "image_url": "",
+        "show_image": false
+    },
+    {
+        "name": "Klokrise",
+        "image_url": "",
+        "show_image": false
+    }
 ]

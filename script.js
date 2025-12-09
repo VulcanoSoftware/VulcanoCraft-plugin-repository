@@ -716,33 +716,50 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Build and append list items
         finalCategories.forEach((cat) => {
+            const isObject = typeof cat === 'object' && cat !== null;
+            const categoryName = isObject ? cat.name : cat;
+
             const li = document.createElement('li');
             li.className = 'category-item';
-            li.setAttribute('data-category', cat);
+            li.setAttribute('data-category', categoryName);
 
-            // Create icon image for category
-            const img = document.createElement('img');
-            img.className = 'category-icon';
-            const slug = cat.toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-            img.src = `images/category-${slug}.svg`;
-            img.onerror = function () { this.onerror = null; this.src = 'images/category-default.svg'; };
-            img.alt = cat + ' icon';
-            img.width = 32;
-            img.height = 32;
+            // Image logic
+            if (isObject) {
+                if (cat.show_image && cat.image_url) {
+                    const img = document.createElement('img');
+                    img.className = 'category-icon';
+                    img.src = cat.image_url;
+                    img.onerror = function () { this.style.display = 'none'; };
+                    img.alt = categoryName + ' icon';
+                    img.width = 32;
+                    img.height = 32;
+                    li.appendChild(img);
+                }
+            } else {
+                // Fallback for string-based categories (old logic)
+                const img = document.createElement('img');
+                img.className = 'category-icon';
+                const slug = categoryName.toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                img.src = `images/category-${slug}.svg`;
+                img.onerror = function () { this.onerror = null; this.src = 'images/category-default.svg'; };
+                img.alt = categoryName + ' icon';
+                img.width = 32;
+                img.height = 32;
+                li.appendChild(img);
+            }
 
             const text = document.createElement('span');
-            text.textContent = cat;
+            text.textContent = categoryName;
             text.className = 'category-text';
 
             const badge = document.createElement('span');
             badge.className = 'badge bg-primary rounded-pill ms-auto';
             badge.textContent = '0';
 
-            li.appendChild(img);
             li.appendChild(text);
             li.appendChild(badge);
 
-            const info = serverInfo[cat] || { software: '', version: '' };
+            const info = serverInfo[categoryName] || { software: '', version: '' };
             if (info.software || info.version) {
                 const serverInfoEl = document.createElement('small');
                 serverInfoEl.className = 'server-info';

@@ -460,46 +460,54 @@ def admin_add_category():
         return jsonify({'error': 'Naam is vereist'}), 400
 
     categories = load_server_categories()
-    if name in categories:
+    if any(c.get('name') == name for c in categories):
         return jsonify({'error': 'Categorie bestaat al'}), 400
 
-    categories.append(name)
+    categories.append({
+        'name': name,
+        'image_url': '',
+        'show_image': False
+    })
     if save_server_categories(categories):
         return jsonify({'success': True})
     return jsonify({'error': 'Fout bij opslaan'}), 500
 
 @app.route('/admin/categories/<name>', methods=['PUT'])
 @require_co_admin
-def admin_rename_category(name):
+def admin_update_category(name):
     """Hernoem categorie"""
     data = request.get_json()
     new_name = data.get('new_name')
-
-    if not new_name:
-        return jsonify({'error': 'Nieuwe naam is vereist'}), 400
+    image_url = data.get('image_url')
+    show_image = data.get('show_image')
 
     categories = load_server_categories()
-    if name not in categories:
+
+    category_to_update = next((c for c in categories if c.get('name') == name), None)
+    if not category_to_update:
         return jsonify({'error': 'Categorie niet gevonden'}), 404
 
-    if new_name in categories:
-        return jsonify({'error': 'Categorie naam bestaat al'}), 400
+    if new_name and new_name != name:
+        if any(c.get('name') == new_name for c in categories):
+            return jsonify({'error': 'Categorie naam bestaat al'}), 400
+        category_to_update['name'] = new_name
 
-    index = categories.index(name)
-    categories[index] = new_name
+    if image_url is not None:
+        category_to_update['image_url'] = image_url
+
+    if show_image is not None:
+        category_to_update['show_image'] = show_image
 
     if save_server_categories(categories):
-        # Update plugins that used the old category name
-        plugins = load_plugins()
-        updated = False
-        for plugin in plugins:
-            if plugin.get('category') == name:
-                plugin['category'] = new_name
-                updated = True
-
-        if updated:
-            save_plugins(plugins)
-
+        if new_name and new_name != name:
+            plugins = load_plugins()
+            updated = False
+            for plugin in plugins:
+                if plugin.get('category') == name:
+                    plugin['category'] = new_name
+                    updated = True
+            if updated:
+                save_plugins(plugins)
         return jsonify({'success': True})
     return jsonify({'error': 'Fout bij opslaan'}), 500
 
@@ -508,10 +516,13 @@ def admin_rename_category(name):
 def admin_delete_category(name):
     """Verwijder categorie"""
     categories = load_server_categories()
-    if name not in categories:
+
+    original_count = len(categories)
+    categories = [c for c in categories if c.get('name') != name]
+
+    if len(categories) == original_count:
         return jsonify({'error': 'Categorie niet gevonden'}), 404
 
-    categories.remove(name)
     if save_server_categories(categories):
         return jsonify({'success': True})
     return jsonify({'error': 'Fout bij opslaan'}), 500
