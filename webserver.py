@@ -152,6 +152,25 @@ def save_server_categories(categories):
     except Exception:
         return False
 
+def load_server_info():
+    """Laad server informatie uit server_info.json"""
+    try:
+        if os.path.exists('server_info.json'):
+            with open('server_info.json', 'r', encoding='utf-8') as f:
+                return json_module.load(f)
+        return {}
+    except Exception:
+        return {}
+
+def save_server_info(info):
+    """Sla server informatie op in server_info.json"""
+    try:
+        with open('server_info.json', 'w', encoding='utf-8') as f:
+            json_module.dump(info, f, indent=4, ensure_ascii=False)
+        return True
+    except Exception:
+        return False
+
 
 @app.route('/')
 def index():
@@ -222,6 +241,12 @@ def api_server_categories():
     """API endpoint returning a list of server categories."""
     categories = load_server_categories()
     return jsonify(categories)
+
+@app.route('/api/server_info')
+def api_server_info():
+    """API endpoint for server info"""
+    info = load_server_info()
+    return jsonify(info)
 
 @app.route('/api/loaders')
 def api_loaders():
@@ -476,6 +501,21 @@ def admin_rename_category(name):
         if updated:
             save_plugins(plugins)
 
+        return jsonify({'success': True})
+    return jsonify({'error': 'Fout bij opslaan'}), 500
+
+@app.route('/admin/server_info', methods=['GET'])
+@require_co_admin
+def admin_get_server_info():
+    """Haal server info op"""
+    return jsonify(load_server_info())
+
+@app.route('/admin/server_info', methods=['POST'])
+@require_co_admin
+def admin_update_server_info():
+    """Update server info"""
+    data = request.get_json()
+    if save_server_info(data):
         return jsonify({'success': True})
     return jsonify({'error': 'Fout bij opslaan'}), 500
 
