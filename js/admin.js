@@ -50,7 +50,6 @@ function showAdminPanel() {
     loadSettings();
     loadUsers();
     loadCategories();
-    loadServerInfo();
     loadPlugins();
     setupEventListeners();
 }
@@ -88,86 +87,7 @@ function setupEventListeners() {
                     }
                 });
         });
-
-    document.getElementById('save-server-info').addEventListener('click', saveServerInfo);
 }
-
-let serverCategoriesCache = [];
-
-function loadServerInfo() {
-    const serverInfoContainer = document.getElementById('server-info-container');
-    serverInfoContainer.innerHTML = '<div class="col-12 text-center"><p>Laden...</p></div>';
-
-    Promise.all([
-        fetch('/admin/categories').then(res => res.json()),
-        fetch('/admin/server_info').then(res => res.json())
-    ]).then(([categories, serverInfo]) => {
-        serverCategoriesCache = categories.map(c => c.name);
-        serverInfoContainer.innerHTML = '';
-
-        if (categories.length === 0) {
-            serverInfoContainer.innerHTML = '<p>Voeg eerst categorieën toe om serverinformatie te kunnen beheren.</p>';
-            return;
-        }
-
-        categories.forEach(category => {
-            const categoryName = category.name;
-            const info = serverInfo[categoryName] || { software: '', version: '' };
-            const formGroup = document.createElement('div');
-            formGroup.classList.add('form-group', 'mb-3');
-            formGroup.innerHTML = `
-                <label for="${categoryName}-software" class="form-label"><strong>${categoryName}</strong></label>
-                <div class="row g-2">
-                    <div class="col">
-                        <input type="text" id="${categoryName}-software" class="form-control" placeholder="Software" value="${info.software || ''}">
-                    </div>
-                    <div class="col">
-                        <input type="text" id="${categoryName}-version" class="form-control" placeholder="Versie" value="${info.version || ''}">
-                    </div>
-                </div>
-            `;
-            serverInfoContainer.appendChild(formGroup);
-        });
-    }).catch(error => {
-        console.error('Fout bij het laden van server info:', error);
-        serverInfoContainer.innerHTML = '<p class="text-danger">Er is een fout opgetreden bij het laden van de serverinformatie.</p>';
-    });
-}
-
-function saveServerInfo() {
-    const newServerInfo = {};
-    serverCategoriesCache.forEach(categoryName => {
-        const softwareInput = document.getElementById(`${categoryName}-software`);
-        const versionInput = document.getElementById(`${categoryName}-version`);
-        if (softwareInput && versionInput) {
-            const software = softwareInput.value.trim();
-            const version = versionInput.value.trim();
-            newServerInfo[categoryName] = { software, version };
-        }
-    });
-
-    fetch('/admin/server_info', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(newServerInfo)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Server info succesvol opgeslagen!');
-            loadServerInfo();
-        } else {
-            alert('Fout bij het opslaan van server info: ' + (data.error || 'Onbekende fout'));
-        }
-    })
-    .catch(error => {
-        console.error('Fout bij het opslaan van server info:', error);
-        alert('Er is een netwerkfout opgetreden bij het opslaan van de serverinformatie.');
-    });
-}
-
 
 function loadSettings() {
     fetch("/admin/settings")
@@ -263,9 +183,19 @@ function loadCategories() {
                                     <label for="cat-image-${category.name}" class="form-label-sm">Afbeelding URL</label>
                                     <input type="text" class="form-control form-control-sm" value="${category.image_url || ''}" id="cat-image-${category.name}" onchange="updateCategory('${safeCatName}')">
                                 </div>
-                                <div class="form-check form-switch">
+                                <div class="form-check form-switch mb-2">
                                     <input class="form-check-input" type="checkbox" id="cat-show-${category.name}" ${category.show_image ? 'checked' : ''} onchange="updateCategory('${safeCatName}')">
                                     <label class="form-check-label" for="cat-show-${category.name}">Afbeelding tonen</label>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col">
+                                        <label for="cat-software-${category.name}" class="form-label-sm">Software</label>
+                                        <input type="text" class="form-control form-control-sm" value="${category.software || ''}" id="cat-software-${category.name}" onchange="updateCategory('${safeCatName}')">
+                                    </div>
+                                    <div class="col">
+                                        <label for="cat-version-${category.name}" class="form-label-sm">Versie</label>
+                                        <input type="text" class="form-control form-control-sm" value="${category.version || ''}" id="cat-version-${category.name}" onchange="updateCategory('${safeCatName}')">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -300,6 +230,8 @@ function updateCategory(oldName) {
     const newName = document.getElementById(`cat-name-${oldName}`).value.trim();
     const imageUrl = document.getElementById(`cat-image-${oldName}`).value.trim();
     const showImage = document.getElementById(`cat-show-${oldName}`).checked;
+    const software = document.getElementById(`cat-software-${oldName}`).value.trim();
+    const version = document.getElementById(`cat-version-${oldName}`).value.trim();
 
     if (!newName) {
         alert("Categorie naam mag niet leeg zijn.");
@@ -311,6 +243,8 @@ function updateCategory(oldName) {
         new_name: newName,
         image_url: imageUrl,
         show_image: showImage,
+        software: software,
+        version: version,
     };
 
     fetch(`/admin/categories/${oldName}`, {
