@@ -676,6 +676,73 @@ body {
   margin-top: 1rem;
 }
 
+/* ==========================================================================
+   Responsive Media Queries
+   ========================================================================== */
+
+/* Extra small devices (phones, up to 767px) */
+@media (max-width: 767px) {
+  header h1 .letters {
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+
+  .lead {
+    font-size: 1rem;
+  }
+
+  .btn-container, #userButtons {
+      flex-direction: column;
+      gap: 0.75rem;
+      align-items: center;
+  }
+
+  .filters-section .card-body .row > div {
+    margin-bottom: 1rem;
+    width: 100%;
+    text-align: center;
+  }
+
+  .filters-section .form-label {
+    justify-content: center;
+  }
+
+  .platform-filters, .loader-filters {
+    justify-content: center;
+  }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) and (max-width: 991px) {
+  .row.gy-4 > * {
+    width: 100%;
+  }
+
+  .col-lg-3, .col-lg-9 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  .card-header {
+    padding: 1.2rem;
+  }
+
+  .card-body {
+    padding: 1.2rem;
+  }
+
+  h1.letters {
+    font-size: 2.2rem;
+  }
+}
+
+/* Large devices (laptops/desktops, 992px and up) */
+@media (min-width: 992px) {
+    header h1 .letters {
+        font-size: 2.8rem;
+    }
+}
+
 /* Plugin info container - align author icon and badge properly */
 .plugin-info {
   display: flex;
