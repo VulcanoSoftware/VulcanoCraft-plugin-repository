@@ -102,7 +102,7 @@ function loadServerInfo() {
         fetch('/admin/categories').then(res => res.json()),
         fetch('/admin/server_info').then(res => res.json())
     ]).then(([categories, serverInfo]) => {
-        serverCategoriesCache = categories;
+        serverCategoriesCache = categories.map(c => c.name);
         serverInfoContainer.innerHTML = '';
 
         if (categories.length === 0) {
@@ -111,17 +111,18 @@ function loadServerInfo() {
         }
 
         categories.forEach(category => {
-            const info = serverInfo[category] || { software: '', version: '' };
+            const categoryName = category.name;
+            const info = serverInfo[categoryName] || { software: '', version: '' };
             const formGroup = document.createElement('div');
             formGroup.classList.add('form-group', 'mb-3');
             formGroup.innerHTML = `
-                <label for="${category}-software" class="form-label"><strong>${category}</strong></label>
+                <label for="${categoryName}-software" class="form-label"><strong>${categoryName}</strong></label>
                 <div class="row g-2">
                     <div class="col">
-                        <input type="text" id="${category}-software" class="form-control" placeholder="Software" value="${info.software || ''}">
+                        <input type="text" id="${categoryName}-software" class="form-control" placeholder="Software" value="${info.software || ''}">
                     </div>
                     <div class="col">
-                        <input type="text" id="${category}-version" class="form-control" placeholder="Versie" value="${info.version || ''}">
+                        <input type="text" id="${categoryName}-version" class="form-control" placeholder="Versie" value="${info.version || ''}">
                     </div>
                 </div>
             `;
@@ -135,13 +136,13 @@ function loadServerInfo() {
 
 function saveServerInfo() {
     const newServerInfo = {};
-    serverCategoriesCache.forEach(category => {
-        const softwareInput = document.getElementById(`${category}-software`);
-        const versionInput = document.getElementById(`${category}-version`);
+    serverCategoriesCache.forEach(categoryName => {
+        const softwareInput = document.getElementById(`${categoryName}-software`);
+        const versionInput = document.getElementById(`${categoryName}-version`);
         if (softwareInput && versionInput) {
             const software = softwareInput.value.trim();
             const version = versionInput.value.trim();
-            newServerInfo[category] = { software, version };
+            newServerInfo[categoryName] = { software, version };
         }
     });
 
@@ -242,24 +243,35 @@ function loadCategories() {
         .then((response) => response.json())
         .then((categories) => {
             const grid = document.getElementById("categoriesGrid");
-            grid.innerHTML = categories
-                .map(
-                    (category) => `
-                        <div class="col-md-4 col-sm-6 mb-3">
-                            <div class="card h-100">
-                                <div class="card-body d-flex justify-content-between align-items-center">
-                                    <input type="text" class="form-control form-control-sm me-2" value="${category}" id="cat-${category}" onchange="renameCategory('${category}')">
-                                    <div>
-                                        <button class="btn btn-danger btn-sm" onclick="deleteCategory('${category}')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
+            grid.innerHTML = categories.map((category) => {
+                const safeCatName = category.name.replace(/'/g, "\\'");
+                return `
+                    <div class="col-lg-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="card-title mb-0">${category.name}</h5>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteCategory('${safeCatName}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                                <div class="mb-2">
+                                    <label for="cat-name-${category.name}" class="form-label-sm">Naam</label>
+                                    <input type="text" class="form-control form-control-sm" value="${category.name}" id="cat-name-${category.name}" onchange="updateCategory('${safeCatName}')">
+                                </div>
+                                <div class="mb-2">
+                                    <label for="cat-image-${category.name}" class="form-label-sm">Afbeelding URL</label>
+                                    <input type="text" class="form-control form-control-sm" value="${category.image_url || ''}" id="cat-image-${category.name}" onchange="updateCategory('${safeCatName}')">
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="cat-show-${category.name}" ${category.show_image ? 'checked' : ''} onchange="updateCategory('${safeCatName}')">
+                                    <label class="form-check-label" for="cat-show-${category.name}">Afbeelding tonen</label>
                                 </div>
                             </div>
                         </div>
-                    `
-                )
-                .join("");
+                    </div>
+                `
+            }).join("");
         });
 }
 
@@ -284,22 +296,35 @@ function addCategory() {
         });
 }
 
-function renameCategory(oldName) {
-    const newName = document.getElementById(`cat-${oldName}`).value.trim();
-    if (!newName || newName === oldName) return;
+function updateCategory(oldName) {
+    const newName = document.getElementById(`cat-name-${oldName}`).value.trim();
+    const imageUrl = document.getElementById(`cat-image-${oldName}`).value.trim();
+    const showImage = document.getElementById(`cat-show-${oldName}`).checked;
+
+    if (!newName) {
+        alert("Categorie naam mag niet leeg zijn.");
+        loadCategories(); // revert
+        return;
+    }
+
+    const body = {
+        new_name: newName,
+        image_url: imageUrl,
+        show_image: showImage,
+    };
 
     fetch(`/admin/categories/${oldName}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ new_name: newName }),
+        body: JSON.stringify(body),
     })
         .then((response) => response.json())
         .then((data) => {
             if (data.success) {
                 loadCategories();
-                loadPlugins(); // Refresh dropdowns
+                loadPlugins();
             } else {
-                alert("Fout bij hernoemen categorie: " + data.error);
+                alert("Fout bij bijwerken categorie: " + data.error);
             }
         });
 }
@@ -331,7 +356,7 @@ function loadPlugins() {
             grid.innerHTML = plugins
                 .map((plugin) => {
                     const categoryOptions = categories.map(cat =>
-                        `<option value="${cat}" ${plugin.category === cat ? 'selected' : ''}>${cat}</option>`
+                        `<option value="${cat.name}" ${plugin.category === cat.name ? 'selected' : ''}>${cat.name}</option>`
                     ).join('');
 
                     return `
