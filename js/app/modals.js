@@ -1,208 +1,192 @@
-// This file contains modal dialog handlers for the Vulcano plugin manager
+import API from './api.js';
+import UI from './ui.js';
 
-// Modal for adding a new plugin
-const addPluginModal = {
-    element: null,
-    form: null,
-    submitButton: null,
-    cancelButton: null,
-    
-    init() {
-        this.element = document.getElementById('addPluginModal');
-        this.form = document.getElementById('addPluginForm');
-        this.submitButton = this.form.querySelector('button[type="submit"]');
-        this.cancelButton = this.form.querySelector('button[type="reset"]');
-        
-        if (this.form) {
-            this.form.addEventListener('submit', (e) => this.handleSubmit(e));
-        }
-        
-        if (this.cancelButton) {
-            this.cancelButton.addEventListener('click', () => this.close());
-        }
-    },
-    
-    open() {
-        if (this.element) {
-            this.element.style.display = 'block';
-            this.form?.reset();
-        }
-    },
-    
-    close() {
-        if (this.element) {
-            this.element.style.display = 'none';
-        }
-    },
-    
-    async handleSubmit(e) {
-        e.preventDefault();
-        
-        if (!this.form) return;
-        
-        const formData = new FormData(this.form);
-        const pluginName = formData.get('pluginName');
-        const pluginUrl = formData.get('pluginUrl');
-        const pluginVersion = formData.get('pluginVersion');
-        const pluginDescription = formData.get('pluginDescription');
-        
-        // Validate inputs
-        if (!pluginName || !pluginUrl || !pluginVersion) {
-            alert('Please fill in all required fields');
+class Modals {
+    constructor() {
+        this.addModalEl = document.getElementById('addPluginModal');
+        this.deleteModalEl = document.getElementById('deleteConfirmModal');
+        this.addModal = new bootstrap.Modal(this.addModalEl);
+        this.deleteModal = new bootstrap.Modal(this.deleteModalEl);
+
+        this.pluginUrlInput = document.getElementById('pluginUrl');
+        this.fetchButton = document.getElementById('fetchButton');
+        this.confirmYes = document.getElementById('confirmYes');
+        this.confirmNo = document.getElementById('confirmNo');
+        this.confirmDeleteButton = document.getElementById('confirmDeleteButton');
+        this.errorMessage = document.getElementById('errorMessage');
+
+        this.steps = {
+            1: document.getElementById('step1'),
+            2: document.getElementById('step2'),
+            3: document.getElementById('step3'),
+        };
+
+        this.cachedPluginData = null;
+        this.currentDeleteUrl = null;
+
+        this._addEventListeners();
+    }
+
+    _addEventListeners() {
+        this.fetchButton.addEventListener('click', () => this.handleFetch());
+        this.confirmYes.addEventListener('click', () => this.handleAddConfirm());
+        this.confirmNo.addEventListener('click', () => this.handleAddCancel());
+        this.confirmDeleteButton.addEventListener('click', () => this.handleDeleteConfirm());
+
+        this.addModalEl.addEventListener('hidden.bs.modal', () => this.resetAddModal());
+        this.deleteModalEl.addEventListener('shown.bs.modal', () => this.startDeleteAnimation());
+    }
+
+    async handleFetch() {
+        const url = this.pluginUrlInput.value.trim();
+        if (!url) {
+            this.showError('Vul een URL in');
             return;
         }
-        
+
+        this.showStep(2);
+        this.hideError();
+
         try {
-            this.submitButton.disabled = true;
-            this.submitButton.textContent = 'Adding...';
-            
-            const response = await fetch('/api/plugins', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    name: pluginName,
-                    url: pluginUrl,
-                    version: pluginVersion,
-                    description: pluginDescription
-                })
-            });
-            
-            if (!response.ok) {
-                throw new Error(`Failed to add plugin: ${response.statusText}`);
-            }
-            
-            const result = await response.json();
-            
-            // Reset form
-            this.form.reset();
-            
-            // Reset cachedPluginData to trigger reload detection in main.js
-            if (typeof window.cachedPluginData !== 'undefined') {
-                window.cachedPluginData = null;
-            }
-            
-            // Set success flag to indicate successful addition
-            window.pluginAddedSuccessfully = true;
-            
-            // Hide the modal
-            this.close();
-            
-            // Show success message
-            alert('Plugin added successfully!');
-            
-            // Trigger reload by setting cachedPluginData to a non-null value
-            // This allows the event listener in main.js to detect the change
-            setTimeout(() => {
-                window.cachedPluginData = { reloadTriggered: true, timestamp: Date.now() };
-            }, 100);
-            
+            const plugin = await API.fetchPlugin(url);
+            this.cachedPluginData = plugin;
+            this.updateAddModalPreview(plugin);
+            this.showStep(3);
+            this._toggleAddModalButtons(false);
+            this._setModalStatic(true);
         } catch (error) {
-            console.error('Error adding plugin:', error);
-            alert(`Error: ${error.message}`);
-        } finally {
-            this.submitButton.disabled = false;
-            this.submitButton.textContent = 'Add Plugin';
+            this.showError(`Fout bij ophalen plugin: ${error.message}`);
+            this.showStep(1);
         }
     }
-};
 
-// Modal for editing a plugin
-const editPluginModal = {
-    element: null,
-    form: null,
-    pluginId: null,
-    submitButton: null,
-    cancelButton: null,
-    
-    init() {
-        this.element = document.getElementById('editPluginModal');
-        this.form = document.getElementById('editPluginForm');
-        this.submitButton = this.form.querySelector('button[type="submit"]');
-        this.cancelButton = this.form.querySelector('button[type="reset"]');
-        
-        if (this.form) {
-            this.form.addEventListener('submit', (e) => this.handleSubmit(e));
-        }
-        
-        if (this.cancelButton) {
-            this.cancelButton.addEventListener('click', () => this.close());
-        }
-    },
-    
-    open(pluginId) {
-        this.pluginId = pluginId;
-        if (this.element) {
-            this.element.style.display = 'block';
-        }
-    },
-    
-    close() {
-        if (this.element) {
-            this.element.style.display = 'none';
-        }
-    },
-    
-    async handleSubmit(e) {
-        e.preventDefault();
-        
-        if (!this.form || !this.pluginId) return;
-        
-        const formData = new FormData(this.form);
-        const pluginName = formData.get('editPluginName');
-        const pluginUrl = formData.get('editPluginUrl');
-        const pluginVersion = formData.get('editPluginVersion');
-        const pluginDescription = formData.get('editPluginDescription');
-        
+    async handleAddConfirm() {
         try {
-            this.submitButton.disabled = true;
-            this.submitButton.textContent = 'Updating...';
-            
-            const response = await fetch(`/api/plugins/${this.pluginId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    name: pluginName,
-                    url: pluginUrl,
-                    version: pluginVersion,
-                    description: pluginDescription
-                })
-            });
-            
-            if (!response.ok) {
-                throw new Error(`Failed to update plugin: ${response.statusText}`);
+            const authData = await API.getAuthStatus();
+            if (!authData.logged_in) {
+                this.showError('Je moet ingelogd zijn om plugins toe te voegen.');
+                return;
             }
-            
-            // Reset cachedPluginData to trigger reload
-            if (typeof window.cachedPluginData !== 'undefined') {
-                window.cachedPluginData = null;
+
+            this._setConfirmYesLoading(true);
+
+            const activeCategory = document.querySelector('#categorySidebar .category-item.active')?.dataset.category;
+            if (activeCategory) {
+                this.cachedPluginData.category = activeCategory;
             }
-            
-            this.form.reset();
-            this.close();
-            
-            alert('Plugin updated successfully!');
-            
-            // Trigger reload
-            setTimeout(() => {
-                window.cachedPluginData = { reloadTriggered: true, timestamp: Date.now() };
-            }, 100);
-            
+
+            const data = await API.addPlugin(this.cachedPluginData);
+            if (data.success) {
+                UI.showSuccessMessage('Plugin succesvol toegevoegd!');
+                this.addModal.hide();
+                // Mark that a plugin was successfully added so main.js knows to reload
+                this.pluginAddedSuccessfully = true;
+            } else {
+                this.showError(`Fout bij toevoegen: ${data.error}`);
+            }
         } catch (error) {
-            console.error('Error updating plugin:', error);
-            alert(`Error: ${error.message}`);
+            this.showError(`Fout bij toevoegen: ${error.message}`);
         } finally {
-            this.submitButton.disabled = false;
-            this.submitButton.textContent = 'Update Plugin';
+            this._setConfirmYesLoading(false);
         }
     }
-};
 
-// Initialize modals when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    addPluginModal.init();
-    editPluginModal.init();
-});
+    handleAddCancel() {
+        this.showStep(1);
+        this.pluginUrlInput.value = '';
+        this.pluginUrlInput.focus();
+        this._toggleAddModalButtons(true);
+        this._setModalStatic(false);
+    }
+
+    async handleDeleteConfirm() {
+        const pluginTitle = document.getElementById('pluginToDeleteTitle').textContent;
+        try {
+            const data = await API.deletePlugin(this.currentDeleteUrl);
+            if (data.success) {
+                UI.showSuccessMessage(`Plugin "${pluginTitle}" succesvol verwijderd!`);
+                this.deleteModal.hide();
+            } else {
+                this.showError(`Fout bij verwijderen: ${data.error}`);
+            }
+        } catch (error) {
+            this.showError(`Fout bij verwijderen: ${error.message}`);
+        }
+    }
+
+    showDeleteModal(url, title) {
+        document.getElementById('pluginToDeleteTitle').textContent = title;
+        this.currentDeleteUrl = url;
+        this.deleteModal.show();
+    }
+
+    updateAddModalPreview(plugin) {
+        document.getElementById('previewTitle').textContent = plugin.title || 'Geen titel';
+        document.getElementById('previewDescription').textContent = plugin.description || 'Geen beschrijving beschikbaar';
+        document.getElementById('previewAuthor').textContent = plugin.author || 'Onbekend';
+        document.getElementById('previewIcon').src = plugin.icon || 'images/plugin-placeholder.png';
+
+        const versionsContainer = document.getElementById('previewVersions');
+        versionsContainer.innerHTML = (plugin.versions)
+            ? plugin.versions.split(' ').map((v, i) => `<span class="version-badge" style="animation-delay: ${i*100}ms">${v}</span>`).join('')
+            : '<span class="badge bg-secondary">Geen versies</span>';
+    }
+
+    resetAddModal() {
+        this.showStep(1);
+        this.hideError();
+        this.pluginUrlInput.value = '';
+        this.cachedPluginData = null;
+        this.pluginAddedSuccessfully = false;
+        this._toggleAddModalButtons(true);
+        this._setConfirmYesLoading(false);
+        this._setModalStatic(false);
+    }
+
+    startDeleteAnimation() {
+        const deleteIcon = this.deleteModalEl.querySelector('.delete-modal-icon');
+        if (deleteIcon) {
+            deleteIcon.style.animation = 'none';
+            void deleteIcon.offsetWidth; // Trigger reflow
+            deleteIcon.style.animation = 'wiggle 1.2s ease-in-out';
+        }
+    }
+
+    showStep(stepNum) {
+        for (const key in this.steps) {
+            this.steps[key].style.display = (key == stepNum) ? 'block' : 'none';
+        }
+    }
+
+    showError(message) {
+        this.errorMessage.querySelector('span').textContent = message;
+        this.errorMessage.style.display = 'flex';
+    }
+
+    hideError() {
+        this.errorMessage.style.display = 'none';
+    }
+
+    _toggleAddModalButtons(showMain) {
+        this.fetchButton.style.display = showMain ? 'inline-block' : 'none';
+        this.addModalEl.querySelector('.modal-footer .btn-secondary').style.display = showMain ? 'inline-block' : 'none';
+    }
+
+    _setConfirmYesLoading(isLoading) {
+        const btn = this.confirmYes;
+        if (isLoading) {
+            btn.innerHTML = '<img src="images/loading-icon.gif" class="loading-icon me-2" alt="Laden"> Toevoegen...';
+            btn.disabled = true;
+        } else {
+            btn.innerHTML = '<img src="images/confirm-icon.png" class="btn-icon" alt="Ja"> Ja';
+            btn.disabled = false;
+        }
+    }
+
+    _setModalStatic(isStatic) {
+        this.addModalEl.dataset.bsBackdrop = isStatic ? 'static' : 'true';
+        this.addModalEl.dataset.bsKeyboard = isStatic ? 'false' : 'true';
+    }
+}
+
+export default new Modals();
