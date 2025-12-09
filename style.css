@@ -1883,6 +1883,10 @@ body {
   display: inline-block;
 }
 
+.category-item .badge {
+    transition: background-color 0.3s ease;
+}
+
 @media (max-width: 991px) {
   .sidebar-card {
     margin-bottom: 1rem;
