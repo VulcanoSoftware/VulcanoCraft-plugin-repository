@@ -686,51 +686,35 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Populate categories sidebar based on plugin data
-    function populateCategorySidebar(plugins) {
+    // A single, refactored function to build the category sidebar
+    function buildCategorySidebar(plugins, serverInfo = {}) {
         const list = document.getElementById("categorySidebar");
         if (!list) return;
 
-        // Prefer server_categories.json if available (loaded into window.serverCategoriesList)
+        // Determine the list of categories
+        let finalCategories = [];
         if (window.serverCategoriesList && Array.isArray(window.serverCategoriesList) && window.serverCategoriesList.length > 0) {
-            // Reset list (keep 'Alles' as first)
-            list.innerHTML = '<li class="category-item active" data-category="">Alles <span class="badge bg-primary rounded-pill ms-auto">0</span></li>';
-            window.serverCategoriesList.forEach((cat) => {
-                const li = document.createElement('li');
-                li.className = 'category-item';
-                li.setAttribute('data-category', cat);
-                li.innerHTML = `${cat} <span class="badge bg-primary rounded-pill ms-auto">0</span>`;
-                list.appendChild(li);
+            finalCategories = window.serverCategoriesList;
+        } else {
+            const categories = new Map();
+            plugins.forEach((plugin) => {
+                if (plugin.categories && Array.isArray(plugin.categories)) {
+                    plugin.categories.forEach((c) => { if (c && c.toString().trim()) categories.set(c.toString().trim(), true); });
+                } else if (plugin.category && plugin.category.toString().trim()) {
+                    categories.set(plugin.category.toString().trim(), true);
+                } else if (plugin.tags && Array.isArray(plugin.tags)) {
+                    plugin.tags.forEach((t) => { if (t && t.toString().trim()) categories.set(t.toString().trim(), true); });
+                }
             });
-            return;
+
+            const sorted = Array.from(categories.keys()).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+            finalCategories = (sorted && sorted.length) ? sorted : (DEFAULT_SERVER_CATEGORIES || []);
         }
-
-        const categories = new Map();
-
-        plugins.forEach((plugin) => {
-            // Try common fields for categories: categories (array), category (string), tags
-            if (plugin.categories && Array.isArray(plugin.categories)) {
-                plugin.categories.forEach((c) => {
-                    if (c && c.toString().trim()) categories.set(c.toString().trim(), true);
-                });
-            } else if (plugin.category && plugin.category.toString().trim()) {
-                categories.set(plugin.category.toString().trim(), true);
-            } else if (plugin.tags && Array.isArray(plugin.tags)) {
-                plugin.tags.forEach((t) => {
-                    if (t && t.toString().trim()) categories.set(t.toString().trim(), true);
-                });
-            }
-        });
-
-        // Convert to array and sort
-        const sorted = Array.from(categories.keys()).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
 
         // Reset list (keep 'Alles' as first)
         list.innerHTML = '<li class="category-item active" data-category="">Alles <span class="badge bg-primary rounded-pill ms-auto">0</span></li>';
 
-        // If no categories found from plugins, fall back to defaults
-        const finalCategories = (sorted && sorted.length) ? sorted : (DEFAULT_SERVER_CATEGORIES || []);
-
+        // Build and append list items
         finalCategories.forEach((cat) => {
             const li = document.createElement('li');
             li.className = 'category-item';
@@ -739,10 +723,8 @@ document.addEventListener("DOMContentLoaded", function () {
             // Create icon image for category
             const img = document.createElement('img');
             img.className = 'category-icon';
-            // slugify category name for filename
             const slug = cat.toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
             img.src = `images/category-${slug}.svg`;
-            // fallback to default icon when not found
             img.onerror = function () { this.onerror = null; this.src = 'images/category-default.svg'; };
             img.alt = cat + ' icon';
             img.width = 32;
@@ -759,8 +741,37 @@ document.addEventListener("DOMContentLoaded", function () {
             li.appendChild(img);
             li.appendChild(text);
             li.appendChild(badge);
+
+            const info = serverInfo[cat] || { software: '', version: '' };
+            if (info.software || info.version) {
+                const serverInfoEl = document.createElement('small');
+                serverInfoEl.className = 'server-info';
+                serverInfoEl.textContent = `${info.software} ${info.version}`.trim();
+                li.appendChild(serverInfoEl);
+            }
+
             list.appendChild(li);
         });
+    }
+
+    // Populate categories sidebar based on plugin data
+    function populateCategorySidebar(plugins) {
+        fetch('/api/server_info')
+            .then(response => {
+                if (!response.ok) {
+                    // If the response is not ok (e.g., 404), proceed without server info.
+                    return {};
+                }
+                return response.json();
+            })
+            .then(serverInfo => {
+                buildCategorySidebar(plugins, serverInfo);
+            })
+            .catch(error => {
+                console.error('Fout bij het laden van server info:', error);
+                // Fallback to building the sidebar without server info
+                buildCategorySidebar(plugins, {});
+            });
     }
 
     // Try to load categories dynamically from backend API first, then static JSON as fallback
