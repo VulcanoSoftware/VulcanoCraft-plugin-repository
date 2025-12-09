@@ -450,6 +450,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         plugins.forEach((plugin) => {
             const formattedVersions = formatVersions(plugin.versions || "");
+            const formattedLoaders = formatLoaders(plugin.loaders);
             const domain = getDomainFromUrl(plugin.url || "");
             const ownerInfo = plugin.owner
                 ? `<small class="text-muted ms-2">door ${plugin.owner}</small>`
@@ -504,6 +505,12 @@ document.addEventListener("DOMContentLoaded", function () {
                                     <strong><img src="images/version-icon.png" class="info-icon" alt="Versies"> Ondersteunde Versies:</strong>
                                     <div class="versions-container">
                                         ${formattedVersions}
+                                    </div>
+                                </div>
+                                <div class="loaders-section mt-3">
+                                    <strong><img src="images/plugin-repo-icon.png" class="info-icon" alt="Loaders"> Ondersteunde Loaders:</strong>
+                                    <div class="loaders-container">
+                                        ${formattedLoaders}
                                     </div>
                                 </div>
                             </div>
@@ -568,6 +575,19 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         return versionBadges;
+    }
+
+    function formatLoaders(loaders) {
+        if (!loaders || loaders.length === 0) {
+            return '<span class="badge bg-secondary">Geen loaders</span>';
+        }
+
+        let loaderBadges = "";
+        loaders.forEach((loader) => {
+            loaderBadges += `<span class="loader-badge">${loader}</span>`;
+        });
+
+        return loaderBadges;
     }
 
     function getDomainFromUrl(url) {
@@ -969,6 +989,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         filteredPlugins.forEach((plugin) => {
             const formattedVersions = formatVersions(plugin.versions || "");
+            const formattedLoaders = formatLoaders(plugin.loaders);
             const domain = getDomainFromUrl(plugin.url || "");
             const ownerInfo = plugin.owner
                 ? `<small class="text-muted ms-2">door ${plugin.owner}</small>`
@@ -1023,6 +1044,12 @@ document.addEventListener("DOMContentLoaded", function () {
                                     <strong><img src="images/version-icon.png" class="info-icon" alt="Versies"> Ondersteunde Versies:</strong>
                                     <div class="versions-container">
                                         ${formattedVersions}
+                                    </div>
+                                </div>
+                                <div class="loaders-section mt-3">
+                                    <strong><img src="images/plugin-repo-icon.png" class="info-icon" alt="Loaders"> Ondersteunde Loaders:</strong>
+                                    <div class="loaders-container">
+                                        ${formattedLoaders}
                                     </div>
                                 </div>
                             </div>
