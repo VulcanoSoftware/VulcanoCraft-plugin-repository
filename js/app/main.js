@@ -52,7 +52,7 @@ class App {
         // Reload plugins when a plugin is successfully added or deleted
         Modals.addModalEl.addEventListener('hidden.bs.modal', async (event) => {
             // Check if the modal was closed after a successful add operation
-            if (Modals.cachedPluginData) {
+            if (Modals.pluginAddedSuccessfully) {
                 await this.loadPluginData();
                 this.filters.allPlugins = this.allPlugins;
                 this.filters.applyFilters();
