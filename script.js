@@ -373,12 +373,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function loadPlugins() {
-        const cacheBuster = `?_=${new Date().getTime()}`;
         fetch("/auth-status")
             .then((response) => response.json())
             .then((authData) => {
                 // Haal alle plugins op voor alle gebruikers
-                fetch(`/api/plugins/public${cacheBuster}`)
+                fetch("/api/plugins/public")
                     .then((response) => response.json())
                     .then((plugins) => {
                         renderPlugins(plugins, authData.logged_in, authData.role);
