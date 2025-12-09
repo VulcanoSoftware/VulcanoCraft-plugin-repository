@@ -23,6 +23,7 @@ class Modals {
 
         this.cachedPluginData = null;
         this.currentDeleteUrl = null;
+        this.addSuccess = false;
 
         this._addEventListeners();
     }
@@ -33,7 +34,6 @@ class Modals {
         this.confirmNo.addEventListener('click', () => this.handleAddCancel());
         this.confirmDeleteButton.addEventListener('click', () => this.handleDeleteConfirm());
 
-        this.addModalEl.addEventListener('hidden.bs.modal', () => this.resetAddModal());
         this.deleteModalEl.addEventListener('shown.bs.modal', () => this.startDeleteAnimation());
     }
 
@@ -77,6 +77,7 @@ class Modals {
 
             const data = await API.addPlugin(this.cachedPluginData);
             if (data.success) {
+                this.addSuccess = true;
                 UI.showSuccessMessage('Plugin succesvol toegevoegd!');
                 this.addModal.hide();
                 // The main controller will listen for the modal close and reload plugins.
@@ -136,6 +137,7 @@ class Modals {
         this.hideError();
         this.pluginUrlInput.value = '';
         this.cachedPluginData = null;
+        this.addSuccess = false;
         this._toggleAddModalButtons(true);
         this._setConfirmYesLoading(false);
         this._setModalStatic(false);
