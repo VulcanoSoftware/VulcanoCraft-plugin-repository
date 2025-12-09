@@ -152,26 +152,6 @@ def save_server_categories(categories):
     except Exception:
         return False
 
-def load_server_info():
-    """Laad server info uit server_info.json"""
-    try:
-        if os.path.exists('server_info.json'):
-            with open('server_info.json', 'r', encoding='utf-8') as f:
-                return json_module.load(f)
-        return {}
-    except Exception:
-        return {}
-
-def save_server_info(info):
-    """Sla server info op in server_info.json"""
-    try:
-        with open('server_info.json', 'w', encoding='utf-8') as f:
-            json_module.dump(info, f, indent=4, ensure_ascii=False)
-        return True
-    except Exception:
-        return False
-
-
 @app.route('/')
 def index():
     """Serveer de index.html pagina"""
@@ -241,11 +221,6 @@ def api_server_categories():
     """API endpoint returning a list of server categories."""
     categories = load_server_categories()
     return jsonify(categories)
-
-@app.route('/api/server_info')
-def api_server_info():
-    """API endpoint for server info"""
-    return jsonify(load_server_info())
 
 @app.route('/api/loaders')
 def api_loaders():
@@ -466,7 +441,9 @@ def admin_add_category():
     categories.append({
         'name': name,
         'image_url': '',
-        'show_image': False
+        'show_image': False,
+        'software': '',
+        'version': ''
     })
     if save_server_categories(categories):
         return jsonify({'success': True})
@@ -480,6 +457,8 @@ def admin_update_category(name):
     new_name = data.get('new_name')
     image_url = data.get('image_url')
     show_image = data.get('show_image')
+    software = data.get('software')
+    version = data.get('version')
 
     categories = load_server_categories()
 
@@ -497,6 +476,12 @@ def admin_update_category(name):
 
     if show_image is not None:
         category_to_update['show_image'] = show_image
+
+    if software is not None:
+        category_to_update['software'] = software
+
+    if version is not None:
+        category_to_update['version'] = version
 
     if save_server_categories(categories):
         if new_name and new_name != name:
@@ -524,21 +509,6 @@ def admin_delete_category(name):
         return jsonify({'error': 'Categorie niet gevonden'}), 404
 
     if save_server_categories(categories):
-        return jsonify({'success': True})
-    return jsonify({'error': 'Fout bij opslaan'}), 500
-
-@app.route('/admin/server_info', methods=['GET'])
-@require_co_admin
-def admin_get_server_info():
-    """Haal server info op"""
-    return jsonify(load_server_info())
-
-@app.route('/admin/server_info', methods=['POST'])
-@require_co_admin
-def admin_update_server_info():
-    """Update server info"""
-    data = request.get_json()
-    if save_server_info(data):
         return jsonify({'success': True})
     return jsonify({'error': 'Fout bij opslaan'}), 500
 
