@@ -222,6 +222,19 @@ def api_server_categories():
     categories = load_server_categories()
     return jsonify(categories)
 
+@app.route('/api/server_info')
+def api_server_info():
+    """API endpoint for server software and version info for categories."""
+    categories = load_server_categories()
+    server_info = {}
+    for category in categories:
+        if 'name' in category:
+            server_info[category['name']] = {
+                'software': category.get('software', ''),
+                'version': category.get('version', '')
+            }
+    return jsonify(server_info)
+
 @app.route('/api/loaders')
 def api_loaders():
     """API endpoint for loaders data"""
