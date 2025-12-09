@@ -666,7 +666,13 @@ def add_plugin():
         username = session['user']
         
         if add_user_plugin(username, plugin_data):
-            return jsonify({'success': True, 'message': 'Plugin succesvol toegevoegd'})
+            # After adding, load the complete and updated list of plugins
+            all_plugins = load_plugins()
+            return jsonify({
+                'success': True,
+                'message': 'Plugin succesvol toegevoegd',
+                'plugins': all_plugins  # Return the full list
+            })
         else:
             return jsonify({'error': 'Fout bij opslaan plugin'}), 500
         
