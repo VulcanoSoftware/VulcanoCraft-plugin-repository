@@ -255,10 +255,14 @@ function updateCategory(oldName) {
         .then((response) => response.json())
         .then((data) => {
             if (data.success) {
-                loadCategories();
-                loadPlugins();
+                // Only reload if the name has changed, as it affects the DOM element IDs
+                if (oldName !== newName) {
+                    loadCategories();
+                    loadPlugins();
+                }
             } else {
                 alert("Fout bij bijwerken categorie: " + data.error);
+                loadCategories(); // Revert on failure
             }
         });
 }
@@ -397,11 +401,11 @@ function updatePluginDetails(originalUrl, encodedUrl) {
     })
         .then((response) => response.json())
         .then((data) => {
-            if (data.success) {
-                loadPlugins();
-            } else {
+            if (!data.success) {
                 alert("Fout bij bijwerken plugin details: " + data.error);
+                loadPlugins(); // Revert on error
             }
+            // No reload on success to prevent jarring UX
         })
         .catch((error) => {
             console.error("Error:", error);
