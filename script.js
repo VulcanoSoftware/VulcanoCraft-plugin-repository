@@ -626,7 +626,6 @@ document.addEventListener("DOMContentLoaded", function () {
         populateCategorySidebar(plugins);
         originalRenderPlugins(plugins, isLoggedIn, userRole);
         setupFilterEventListeners(isLoggedIn, userRole);
-        updateCategoryCounts();
     };
 
     function populateLoaderFilter(plugins) {
@@ -785,11 +784,13 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .then(serverInfo => {
                 buildCategorySidebar(plugins, serverInfo);
+                updateCategoryCounts(); // Update counts after building
             })
             .catch(error => {
                 console.error('Fout bij het laden van server info:', error);
                 // Fallback to building the sidebar without server info
                 buildCategorySidebar(plugins, {});
+                updateCategoryCounts(); // Also update counts in case of error
             });
     }
 
