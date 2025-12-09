@@ -154,17 +154,17 @@ class Modals {
 
     showStep(stepNum) {
         for (const key in this.steps) {
-            this.steps[key].style.display = (key == stepNum) ? 'block' : 'none';
+            this.steps[key].classList.toggle('hidden', key != stepNum);
         }
     }
 
     showError(message) {
         this.errorMessage.querySelector('span').textContent = message;
-        this.errorMessage.style.display = 'flex';
+        this.errorMessage.classList.remove('hidden');
     }
 
     hideError() {
-        this.errorMessage.style.display = 'none';
+        this.errorMessage.classList.add('hidden');
     }
 
     _toggleAddModalButtons(showMain) {
