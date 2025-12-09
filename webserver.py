@@ -432,60 +432,49 @@ def admin_add_category():
     """Voeg categorie toe"""
     data = request.get_json()
     name = data.get('name')
-    software = data.get('software', '')
-    version = data.get('version', '')
-
     if not name:
         return jsonify({'error': 'Naam is vereist'}), 400
 
     categories = load_server_categories()
-    if any(c['name'] == name for c in categories):
+    if name in categories:
         return jsonify({'error': 'Categorie bestaat al'}), 400
 
-    new_category = {'name': name, 'software': software, 'version': version}
-    categories.append(new_category)
-
+    categories.append(name)
     if save_server_categories(categories):
         return jsonify({'success': True})
     return jsonify({'error': 'Fout bij opslaan'}), 500
 
 @app.route('/admin/categories/<name>', methods=['PUT'])
 @require_co_admin
-def admin_update_category(name):
-    """Werk categorie bij"""
+def admin_rename_category(name):
+    """Hernoem categorie"""
     data = request.get_json()
-    new_name = data.get('name')
-    software = data.get('software', '')
-    version = data.get('version', '')
+    new_name = data.get('new_name')
 
     if not new_name:
         return jsonify({'error': 'Nieuwe naam is vereist'}), 400
 
     categories = load_server_categories()
-
-    category_to_update = next((c for c in categories if c['name'] == name), None)
-
-    if not category_to_update:
+    if name not in categories:
         return jsonify({'error': 'Categorie niet gevonden'}), 404
 
-    if new_name != name and any(c['name'] == new_name for c in categories):
+    if new_name in categories:
         return jsonify({'error': 'Categorie naam bestaat al'}), 400
 
-    category_to_update['name'] = new_name
-    category_to_update['software'] = software
-    category_to_update['version'] = version
+    index = categories.index(name)
+    categories[index] = new_name
 
     if save_server_categories(categories):
-        if name != new_name:
-            plugins = load_plugins()
-            updated = False
-            for plugin in plugins:
-                if plugin.get('category') == name:
-                    plugin['category'] = new_name
-                    updated = True
+        # Update plugins that used the old category name
+        plugins = load_plugins()
+        updated = False
+        for plugin in plugins:
+            if plugin.get('category') == name:
+                plugin['category'] = new_name
+                updated = True
 
-            if updated:
-                save_plugins(plugins)
+        if updated:
+            save_plugins(plugins)
 
         return jsonify({'success': True})
     return jsonify({'error': 'Fout bij opslaan'}), 500
@@ -495,12 +484,10 @@ def admin_update_category(name):
 def admin_delete_category(name):
     """Verwijder categorie"""
     categories = load_server_categories()
-    original_length = len(categories)
-    categories = [c for c in categories if c.get('name') != name]
-
-    if len(categories) == original_length:
+    if name not in categories:
         return jsonify({'error': 'Categorie niet gevonden'}), 404
 
+    categories.remove(name)
     if save_server_categories(categories):
         return jsonify({'success': True})
     return jsonify({'error': 'Fout bij opslaan'}), 500
