@@ -1870,6 +1870,20 @@ body {
   box-shadow: 0 8px 18px rgba(67,233,123,0.12);
 }
 
+.server-info {
+    display: block;
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-left: calc(36px + 0.75rem); /* Align with text, considering icon width and gap */
+    margin-top: -0.4rem;
+    margin-bottom: 0.4rem;
+}
+
+.category-item:hover .server-info,
+.category-item.active .server-info {
+    color: #fff;
+}
+
 .category-icon {
   width: 36px;
   height: 36px;
