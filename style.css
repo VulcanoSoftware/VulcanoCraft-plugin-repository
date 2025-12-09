@@ -1848,13 +1848,6 @@ body {
   font-weight: 600;
 }
 
-#serverInfo {
-  color: white;
-  padding-top: 1rem;
-  text-align: center;
-  font-weight: bold;
-}
-
 .category-item {
   display: flex;
   align-items: center;
