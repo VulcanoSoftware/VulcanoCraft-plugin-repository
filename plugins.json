@@ -54,18 +54,5 @@
         "versions": "1.20.1",
         "owner": "admin",
         "category": "VulcanoTechCraft"
-    },
-    {
-        "author": "md678685",
-        "description": "The modern Essentials suite for Spigot and Paper.",
-        "icon": "https://www.spigotmc.org/data/resource_icons/9/9089.jpg",
-        "loaders": [
-            "spigot",
-            "bukkit"
-        ],
-        "title": "EssentialsX",
-        "url": "https://www.spigotmc.org/resources/essentialsx.9089/",
-        "versions": "1.10 1.11 1.12 1.13 1.14 1.15 1.16 1.17 1.18 1.19 1.20 1.21 1.8 1.9",
-        "owner": "admin"
     }
 ]
