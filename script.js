@@ -210,13 +210,8 @@ document.addEventListener("DOMContentLoaded", function () {
                                 .querySelector(".container-fluid")
                                 .prepend(successAlert);
 
-                            // Render the updated list of plugins directly from the server's response
-                            if (data.plugins) {
-                                renderPlugins(data.plugins, authData.logged_in, authData.role);
-                            } else {
-                                // Fallback for safety, though the server should always return plugins now
-                                loadPlugins();
-                            }
+                            // Herlaad plugins
+                            loadPlugins();
 
                             addModal.hide();
                         } else {
