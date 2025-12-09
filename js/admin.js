@@ -169,11 +169,8 @@ function loadCategories() {
                         <div class="col-md-4 col-sm-6 mb-3">
                             <div class="card h-100">
                                 <div class="card-body d-flex justify-content-between align-items-center">
-                                    <input type="text" class="form-control form-control-sm me-2" value="${category}" id="cat-${category}">
+                                    <input type="text" class="form-control form-control-sm me-2" value="${category}" id="cat-${category}" onchange="renameCategory('${category}')">
                                     <div>
-                                        <button class="btn btn-primary btn-sm me-1" onclick="renameCategory('${category}')">
-                                            <i class="fas fa-save"></i>
-                                        </button>
                                         <button class="btn btn-danger btn-sm" onclick="deleteCategory('${category}')">
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -267,17 +264,14 @@ function loadPlugins() {
                         "/images/plugin-placeholder.png"
                         }" style="width: 40px; height: 40px; margin-right: 10px;" alt="icon">
                                         <div style="flex-grow: 1;">
-                                            <input type="text" class="form-control form-control-sm mb-1" value="${plugin.title}" id="pluginTitle-${plugin.url.replace(/[^a-zA-Z0-9]/g, '_')}">
-                                            <input type="text" class="form-control form-control-sm mb-1" value="${plugin.author || 'Onbekend'}" id="pluginAuthor-${plugin.url.replace(/[^a-zA-Z0-9]/g, '_')}">
-                                            <select class="form-select form-select-sm" id="pluginCategory-${plugin.url.replace(/[^a-zA-Z0-9]/g, '_')}">
+                                            <input type="text" class="form-control form-control-sm mb-1" value="${plugin.title}" id="pluginTitle-${plugin.url.replace(/[^a-zA-Z0-9]/g, '_')}" onchange="updatePluginDetails('${plugin.url}', '${plugin.url.replace(/[^a-zA-Z0-9]/g, '_')}')">
+                                            <input type="text" class="form-control form-control-sm mb-1" value="${plugin.author || 'Onbekend'}" id="pluginAuthor-${plugin.url.replace(/[^a-zA-Z0-9]/g, '_')}" onchange="updatePluginDetails('${plugin.url}', '${plugin.url.replace(/[^a-zA-Z0-9]/g, '_')}')">
+                                            <select class="form-select form-select-sm" id="pluginCategory-${plugin.url.replace(/[^a-zA-Z0-9]/g, '_')}" onchange="updatePluginDetails('${plugin.url}', '${plugin.url.replace(/[^a-zA-Z0-9]/g, '_')}')">
                                                 <option value="">Geen categorie</option>
                                                 ${categoryOptions}
                                             </select>
                                         </div>
                                     </div>
-                                    <button class="btn btn-success btn-sm me-2" onclick="updatePluginDetails('${plugin.url}', '${plugin.url.replace(/[^a-zA-Z0-9]/g, '_')}')">
-                                        <i class="fas fa-save me-1"></i>Opslaan
-                                    </button>
                                     <button class="btn btn-danger btn-sm" onclick="deletePlugin('${plugin.url
                         }', '${plugin.title}')">
                                         <i class="fas fa-trash me-1"></i>Verwijderen
