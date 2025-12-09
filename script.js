@@ -755,7 +755,6 @@ document.addEventListener("DOMContentLoaded", function () {
             badge.textContent = '0';
 
             li.appendChild(text);
-            li.appendChild(badge);
 
             const info = serverInfo[categoryName] || { software: '', version: '' };
             if (info.software || info.version) {
@@ -764,6 +763,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 serverInfoEl.textContent = `${info.software} ${info.version}`.trim();
                 li.appendChild(serverInfoEl);
             }
+
+            li.appendChild(badge);
 
             list.appendChild(li);
         });
