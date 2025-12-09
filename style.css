@@ -1821,3 +1821,34 @@ body {
     margin-bottom: 1rem;
   }
 }
+/* Loader badges */
+.loader-badge {
+  background: linear-gradient(135deg, #8A2BE2 0%, #DA70D6 100%); /* Purple gradient */
+  color: white;
+  padding: 0.6rem 1.2rem;
+  border-radius: 15px;
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: 0 3px 10px rgba(138, 43, 226, 0.25);
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: inline-block;
+  animation: badgeAppear 0.5s ease-out;
+  margin: 0.3rem;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.loader-badge:hover {
+  transform: translateY(-5px) scale(1.1);
+  box-shadow: 0 12px 25px rgba(138, 43, 226, 0.5);
+  background: linear-gradient(135deg, #9400D3 0%, #BA55D3 100%); /* Darker purple on hover */
+}
+
+/* Loader container */
+.loaders-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+}
