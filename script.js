@@ -627,6 +627,7 @@ document.addEventListener("DOMContentLoaded", function () {
         originalRenderPlugins(plugins, isLoggedIn, userRole);
         setupFilterEventListeners(isLoggedIn, userRole);
         setupCategoryListeners(isLoggedIn, userRole);
+        updateCategoryCounts();
     };
 
     function populateLoaderFilter(plugins) {
@@ -693,12 +694,12 @@ document.addEventListener("DOMContentLoaded", function () {
         // Prefer server_categories.json if available (loaded into window.serverCategoriesList)
         if (window.serverCategoriesList && Array.isArray(window.serverCategoriesList) && window.serverCategoriesList.length > 0) {
             // Reset list (keep 'Alles' as first)
-            list.innerHTML = '<li class="category-item active" data-category="">Alles</li>';
+            list.innerHTML = '<li class="category-item active" data-category="">Alles <span class="badge bg-primary rounded-pill ms-auto">0</span></li>';
             window.serverCategoriesList.forEach((cat) => {
                 const li = document.createElement('li');
                 li.className = 'category-item';
                 li.setAttribute('data-category', cat);
-                li.textContent = cat;
+                li.innerHTML = `${cat} <span class="badge bg-primary rounded-pill ms-auto">0</span>`;
                 list.appendChild(li);
             });
             return;
@@ -725,7 +726,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const sorted = Array.from(categories.keys()).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
 
         // Reset list (keep 'Alles' as first)
-        list.innerHTML = '<li class="category-item active" data-category="">Alles</li>';
+        list.innerHTML = '<li class="category-item active" data-category="">Alles <span class="badge bg-primary rounded-pill ms-auto">0</span></li>';
 
         // If no categories found from plugins, fall back to defaults
         const finalCategories = (sorted && sorted.length) ? sorted : (DEFAULT_SERVER_CATEGORIES || []);
@@ -751,8 +752,13 @@ document.addEventListener("DOMContentLoaded", function () {
             text.textContent = cat;
             text.className = 'category-text';
 
+            const badge = document.createElement('span');
+            badge.className = 'badge bg-primary rounded-pill ms-auto';
+            badge.textContent = '0';
+
             li.appendChild(img);
             li.appendChild(text);
+            li.appendChild(badge);
             list.appendChild(li);
         });
     }
@@ -837,6 +843,15 @@ document.addEventListener("DOMContentLoaded", function () {
         const platformFilters = document.querySelectorAll(".platform-filter");
         const loaderFilters = document.querySelectorAll(".loader-filter");
         const resetButton = document.getElementById("resetFilters");
+        const includeExcludeSwitch = document.getElementById("includeExcludeSwitch");
+
+        includeExcludeSwitch.addEventListener("change", () => {
+            const label = document.querySelector(`label[for=${includeExcludeSwitch.id}]`);
+            if (label) {
+                label.textContent = includeExcludeSwitch.checked ? 'Include' : 'Exclude';
+            }
+            applyFilters(isLoggedIn, userRole);
+        });
 
         // Zoek functionaliteit
         searchInput.addEventListener(
@@ -913,6 +928,7 @@ document.addEventListener("DOMContentLoaded", function () {
         ).map((cb) => cb.value);
         const selectedCategoryEl = document.querySelector('#categorySidebar .category-item.active');
         const selectedCategory = selectedCategoryEl ? selectedCategoryEl.getAttribute('data-category') : '';
+        const include = document.getElementById("includeExcludeSwitch").checked;
 
         filteredPlugins = allPlugins.filter((plugin) => {
             // Zoek filter
@@ -950,11 +966,57 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const matchesCategory = !selectedCategory || pluginCategories.some(pc => pc && pc.toLowerCase() === selectedCategory.toLowerCase());
 
-            return matchesSearch && matchesVersion && matchesPlatform && matchesLoader && matchesCategory;
+            const match = matchesSearch && matchesVersion && matchesPlatform && matchesLoader && matchesCategory;
+            return include ? match : !match;
         });
 
         renderFilteredPlugins(isLoggedIn, userRole);
         updateResultsCount();
+        updateCategoryCounts();
+    }
+
+    function updateCategoryCounts() {
+        const categoryCounts = {};
+
+        // Initialize counts for all known categories to 0
+        document.querySelectorAll('#categorySidebar .category-item').forEach(item => {
+            const categoryName = item.getAttribute('data-category');
+            if (categoryName && categoryName !== "") {
+                categoryCounts[categoryName] = 0;
+            }
+        });
+
+        // Count all plugins based on their categories
+        allPlugins.forEach(plugin => {
+            let pluginCategories = [];
+            if (plugin.categories && Array.isArray(plugin.categories)) {
+                pluginCategories = plugin.categories.map(c => c.toString());
+            } else if (plugin.category) {
+                pluginCategories = [plugin.category.toString()];
+            } else if (plugin.tags && Array.isArray(plugin.tags)) {
+                pluginCategories = plugin.tags.map(t => t.toString());
+            }
+
+            const uniqueCategories = new Set(pluginCategories);
+            uniqueCategories.forEach(cat => {
+                if (cat in categoryCounts) {
+                    categoryCounts[cat]++;
+                }
+            });
+        });
+
+        // Update the UI
+        document.querySelectorAll('#categorySidebar .category-item').forEach(item => {
+            const categoryName = item.getAttribute('data-category');
+            const badge = item.querySelector('.badge');
+            if (badge) {
+                if (categoryName === "") { // 'Alles' category
+                    badge.textContent = allPlugins.length;
+                } else {
+                    badge.textContent = categoryCounts[categoryName] || 0;
+                }
+            }
+        });
     }
 
     function getPlatformFromUrl(url) {
