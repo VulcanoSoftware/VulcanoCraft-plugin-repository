@@ -360,7 +360,6 @@ function updatePluginDetails(originalUrl, encodedUrl) {
         .then((response) => response.json())
         .then((data) => {
             if (data.success) {
-                alert("Plugin details succesvol bijgewerkt!");
                 loadPlugins();
             } else {
                 alert("Fout bij bijwerken plugin details: " + data.error);
