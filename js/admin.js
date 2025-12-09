@@ -168,13 +168,13 @@ function loadCategories() {
                     (category) => `
                         <div class="col-md-4 col-sm-6 mb-3">
                             <div class="card h-100">
-                                <div class="card-body d-flex justify-content-between align-items-center">
-                                    <input type="text" class="form-control form-control-sm me-2" value="${category}" id="cat-${category}" onchange="renameCategory('${category}')">
-                                    <div>
-                                        <button class="btn btn-danger btn-sm" onclick="deleteCategory('${category}')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
+                                <div class="card-body">
+                                    <input type="text" class="form-control form-control-sm mb-2" value="${category.name}" id="cat-name-${category.name}" onchange="updateCategory('${category.name}')">
+                                    <input type="text" class="form-control form-control-sm mb-2" value="${category.software || ''}" placeholder="Software" id="cat-software-${category.name}" onchange="updateCategory('${category.name}')">
+                                    <input type="text" class="form-control form-control-sm mb-2" value="${category.version || ''}" placeholder="Versie" id="cat-version-${category.name}" onchange="updateCategory('${category.name}')">
+                                    <button class="btn btn-danger btn-sm" onclick="deleteCategory('${category.name}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -186,17 +186,21 @@ function loadCategories() {
 
 function addCategory() {
     const name = document.getElementById("newCategoryName").value.trim();
+    const software = document.getElementById("newCategorySoftware").value.trim();
+    const version = document.getElementById("newCategoryVersion").value.trim();
     if (!name) return;
 
     fetch("/admin/categories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, software, version }),
     })
         .then((response) => response.json())
         .then((data) => {
             if (data.success) {
                 document.getElementById("newCategoryName").value = "";
+                document.getElementById("newCategorySoftware").value = "";
+                document.getElementById("newCategoryVersion").value = "";
                 loadCategories();
                 loadPlugins(); // Refresh dropdowns
             } else {
@@ -205,22 +209,25 @@ function addCategory() {
         });
 }
 
-function renameCategory(oldName) {
-    const newName = document.getElementById(`cat-${oldName}`).value.trim();
-    if (!newName || newName === oldName) return;
+function updateCategory(oldName) {
+    const newName = document.getElementById(`cat-name-${oldName}`).value.trim();
+    const software = document.getElementById(`cat-software-${oldName}`).value.trim();
+    const version = document.getElementById(`cat-version-${oldName}`).value.trim();
+
+    if (!newName) return;
 
     fetch(`/admin/categories/${oldName}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ new_name: newName }),
+        body: JSON.stringify({ name: newName, software, version }),
     })
         .then((response) => response.json())
         .then((data) => {
             if (data.success) {
                 loadCategories();
-                loadPlugins(); // Refresh dropdowns
+                loadPlugins();
             } else {
-                alert("Fout bij hernoemen categorie: " + data.error);
+                alert("Fout bij bijwerken categorie: " + data.error);
             }
         });
 }
