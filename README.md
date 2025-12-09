@@ -1,5 +1,7 @@
 # VulcanoCraft Plugin Repository Tool
 
+[![CodeFactor](https://www.codefactor.io/repository/github/vulcanosoftware/vulcanocraft-plugin-repository/badge)](https://www.codefactor.io/repository/github/vulcanosoftware/vulcanocraft-plugin-repository)
+
 This repository contains a **Python-based tool** that automatically **fetches plugin information** and keeps it up to date.  
 It includes a small web interface for viewing the collected data, but its main focus is background automation.
 
