@@ -48,6 +48,7 @@ function showAdminPanel() {
     document.getElementById("adminRole").textContent =
         currentRole.toUpperCase();
     loadSettings();
+    loadServerInfo();
     loadUsers();
     loadCategories();
     loadPlugins();
@@ -95,6 +96,34 @@ function loadSettings() {
         .then((data) => {
             document.getElementById("registrationToggle").checked =
                 data.registration_enabled;
+        });
+}
+
+function loadServerInfo() {
+    fetch("/admin/server_info")
+        .then((response) => response.json())
+        .then((data) => {
+            document.getElementById("serverSoftware").value = data.software || "";
+            document.getElementById("serverVersion").value = data.version || "";
+        });
+}
+
+function saveServerInfo() {
+    const software = document.getElementById("serverSoftware").value;
+    const version = document.getElementById("serverVersion").value;
+
+    fetch("/admin/server_info", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ software, version }),
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.success) {
+                alert("Server informatie opgeslagen!");
+            } else {
+                alert("Fout bij opslaan server informatie: " + data.error);
+            }
         });
 }
 

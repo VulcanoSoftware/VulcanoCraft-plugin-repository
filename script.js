@@ -1221,4 +1221,19 @@ document.addEventListener("DOMContentLoaded", function () {
 document.addEventListener("DOMContentLoaded", function () {
     const currentYear = new Date().getFullYear();
     document.getElementById("currentYear").textContent = currentYear;
+    loadServerInfo();
 });
+
+function loadServerInfo() {
+    fetch('/api/server_info')
+        .then(response => response.json())
+        .then(data => {
+            const serverInfoDiv = document.getElementById('serverInfo');
+            if (data.software && data.version) {
+                serverInfoDiv.innerHTML = `
+                    <p class="text-center"><strong>Server Software:</strong> ${data.software}</p>
+                    <p class="text-center"><strong>Versie:</strong> ${data.version}</p>
+                `;
+            }
+        });
+}
