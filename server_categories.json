@@ -1,37 +1,9 @@
 [
-    {
-        "name": "Survival Main Server",
-        "software": "",
-        "version": ""
-    },
-    {
-        "name": "VulcanoTechCraft",
-        "software": "",
-        "version": ""
-    },
-    {
-        "name": "Velocity",
-        "software": "",
-        "version": ""
-    },
-    {
-        "name": "Lobby",
-        "software": "",
-        "version": ""
-    },
-    {
-        "name": "Oneblock",
-        "software": "",
-        "version": ""
-    },
-    {
-        "name": "Bedwars",
-        "software": "",
-        "version": ""
-    },
-    {
-        "name": "Klokrise",
-        "software": "",
-        "version": ""
-    }
+    "Survival Main Server",
+    "VulcanoTechCraft",
+    "Velocity",
+    "Lobby",
+    "Oneblock",
+    "Bedwars",
+    "Klokrise"
 ]

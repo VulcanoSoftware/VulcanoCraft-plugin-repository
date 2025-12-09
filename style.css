@@ -1879,28 +1879,8 @@ body {
   object-fit: contain;
 }
 
-.category-text-container {
-  display: flex;
-  flex-grow: 1;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
 .category-text {
   display: inline-block;
-  font-weight: 600;
-}
-
-.category-software {
-  font-size: 0.8em;
-  color: #6c757d;
-  font-weight: 400;
-}
-
-.category-item:hover .category-software,
-.category-item.active .category-software {
-  color: #fff;
 }
 
 .category-item .badge {
