@@ -626,7 +626,6 @@ document.addEventListener("DOMContentLoaded", function () {
         populateCategorySidebar(plugins);
         originalRenderPlugins(plugins, isLoggedIn, userRole);
         setupFilterEventListeners(isLoggedIn, userRole);
-        setupCategoryListeners(isLoggedIn, userRole);
         updateCategoryCounts();
     };
 
@@ -769,6 +768,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
             list.appendChild(li);
         });
+
+        // Ensure listeners are always attached after the sidebar is built
+        setupCategoryListeners();
     }
 
     // Populate categories sidebar based on plugin data
@@ -804,7 +806,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     window.serverCategoriesList = data;
                     if (allPlugins && allPlugins.length) {
                         populateCategorySidebar(allPlugins);
-                        setupCategoryListeners();
                     }
                 }
             })
