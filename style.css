@@ -314,7 +314,7 @@ body {
 
 /* Card animations */
 .card {
-  transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   border: none;
   border-radius: 18px;
   overflow: hidden;
@@ -325,6 +325,7 @@ body {
   transform: translateY(30px);
   animation: cardAppear 0.8s forwards;
   position: relative;
+  will-change: transform, box-shadow;
 }
 
 .card::before {
@@ -589,13 +590,14 @@ body {
   font-size: 1rem;
   font-weight: 600;
   box-shadow: 0 3px 10px rgba(79, 172, 254, 0.25);
-  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   display: inline-block;
   animation: badgeAppear 0.5s ease-out;
   margin: 0.3rem;
   position: relative;
   overflow: hidden;
   cursor: pointer;
+  will-change: transform, box-shadow, background;
 }
 
 .version-badge::before {
