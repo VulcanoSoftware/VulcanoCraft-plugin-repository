@@ -48,14 +48,14 @@
               </div>
             </div>
 
-            <div id="step2" style="display: none">
+            <div id="step2" class="hidden">
               <div class="alert alert-info d-flex align-items-center">
                 <img class="loading-icon me-2" src="images/loading-icon.gif" alt="Laden">
                 <span>Plugin informatie wordt opgehaald...</span>
               </div>
             </div>
 
-            <div id="step3" style="display: none">
+            <div id="step3" class="hidden">
               <h5>
                 <img class="modal-icon" src="images/details-icon.png" alt="Info">
                 Plugin details
@@ -101,7 +101,7 @@
               </div>
             </div>
 
-            <div class="alert alert-danger d-flex align-items-center mt-3" id="errorMessage" style="display: none">
+            <div class="alert alert-danger d-flex align-items-center mt-3 hidden" id="errorMessage">
               <img class="error-icon me-2" src="images/error-icon.png" alt="Fout">
               <span></span>
             </div>
@@ -177,14 +177,14 @@
               <i class="fas fa-sign-in-alt me-2"></i>Inloggen
             </a>
           </div>
-          <div id="userButtons" style="display: none">
+          <div id="userButtons" class="hidden d-flex">
             <span class="text-light me-3">Welkom, <span id="username"></span></span>
             <a class="btn btn-outline-light me-2" href="/change_password">Wachtwoord Wijzigen</a>
             <button class="btn button-creative btn-lg floating-add-btn me-2" data-bs-target="#addPluginModal" data-bs-toggle="modal" type="button">
               <img class="btn-icon-lg" src="images/add-icon.png" alt="Toevoegen">
               Toevoegen
             </button>
-            <a class="btn btn-outline-warning me-2" id="adminBtn" href="/admin" style="display: none">
+            <a class="btn btn-outline-warning me-2 hidden" id="adminBtn" href="/admin">
               <i class="fas fa-cog me-2"></i>Admin
             </a>
             <button class="btn btn-outline-light" id="logoutBtn" type="button">
@@ -324,188 +324,6 @@
 
     <!-- AOS Initialisatie -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script>
-      // AOS initialisatie
-      document.addEventListener("DOMContentLoaded", function () {
-        AOS.init({
-          duration: 1000,
-          easing: "ease-in-out",
-          once: false,
-          mirror: true,
-          offset: 100,
-        });
-
-        // GSAP animaties
-        initGSAPAnimations();
-
-        // Extra interactieve animaties
-        initInteractiveAnimations();
-      });
-
-      // GSAP animaties
-      function initGSAPAnimations() {
-        // Animeer de header
-        gsap.from(".navbar", {
-          y: -100,
-          opacity: 0,
-          duration: 1.2,
-          ease: "power3.out",
-        });
-
-        // Animeer de floating add button
-        gsap.to(".floating-add-btn", {
-          y: -10,
-          duration: 1.5,
-          repeat: -1,
-          yoyo: true,
-          ease: "power1.inOut",
-        });
-
-        // Staggered animatie voor badges
-        gsap.from(".version-badge", {
-          scale: 0,
-          opacity: 0,
-          stagger: 0.1,
-          duration: 0.5,
-          ease: "back.out(1.7)",
-          scrollTrigger: {
-            trigger: ".versions-container",
-            start: "top bottom-=100",
-            toggleActions: "play none none none",
-          },
-        });
-      }
-
-      // Interactieve animaties
-      function initInteractiveAnimations() {
-        // Plugin iconen animatie bij hover
-        const pluginIcons = document.querySelectorAll(".plugin-icon");
-        pluginIcons.forEach((icon) => {
-          icon.addEventListener("mouseover", function () {
-            gsap.to(this, {
-              rotation: 10,
-              scale: 1.15,
-              duration: 0.3,
-              ease: "power2.out",
-            });
-          });
-
-          icon.addEventListener("mouseout", function () {
-            gsap.to(this, {
-              rotation: 0,
-              scale: 1,
-              duration: 0.3,
-              ease: "power2.out",
-            });
-          });
-        });
-
-        // Animatie voor knoppen
-        const buttons = document.querySelectorAll(".btn");
-        buttons.forEach((btn) => {
-          btn.addEventListener("mouseover", function () {
-            gsap.to(this, {
-              scale: 1.03,
-              duration: 0.3,
-              ease: "power2.out",
-            });
-          });
-
-          btn.addEventListener("mouseout", function () {
-            gsap.to(this, {
-              scale: 1,
-              duration: 0.28,
-              ease: "power2.inOut",
-            });
-          });
-
-          btn.addEventListener("mousedown", function () {
-            gsap.to(this, {
-              scale: 0.97,
-              duration: 0.12,
-              ease: "power2.out",
-            });
-          });
-
-          btn.addEventListener("mouseup", function () {
-            gsap.to(this, {
-              scale: 1.03,
-              duration: 0.16,
-              ease: "power2.out",
-            });
-          });
-        });
-
-        // Animatie voor kaarten bij verschijnen
-        const cards = document.querySelectorAll(".card");
-        cards.forEach((card, index) => {
-          card.style.animationDelay = `${index * 0.1}s`;
-        });
-
-        // Animatie voor floating elementen bij klikken
-        const floatingElements = document.querySelectorAll(".floating-element");
-        floatingElements.forEach((element) => {
-          element.addEventListener("click", function () {
-            gsap.to(this, {
-              scale: 1.2,
-              rotation: "+=20",
-              duration: 0.5,
-              ease: "elastic.out(1, 0.3)",
-            });
-
-            setTimeout(() => {
-              gsap.to(this, {
-                scale: 1,
-                rotation: "-=20",
-                duration: 1,
-                ease: "elastic.out(1, 0.3)",
-              });
-            }, 500);
-          });
-        });
-      }
-    </script>
-    <script>
-      // Wrap every letter in a span
-      var textWrapper = document.querySelector(".ml9 .letters");
-      textWrapper.innerHTML = textWrapper.textContent.replace(
-        /\S/g,
-        "<span class='letter'>$&</span>"
-      );
-
-      anime
-        .timeline({ loop: true })
-        .add({
-          targets: ".ml9 .letter",
-          scale: [0, 1],
-          duration: 1500,
-          elasticity: 600,
-          delay: (el, i) => 45 * (i + 1),
-        })
-        .add({
-          targets: ".ml9",
-          opacity: 1,
-          duration: 1000,
-          easing: "easeOutExpo",
-          delay: 1000,
-        });
-
-      //add-plugin animation
-      const button = document.querySelector(".button-creative");
-      const glow = button.querySelector("::before");
-
-      button.addEventListener("mousemove", (e) => {
-        const rect = button.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        button.style.setProperty("--x", `${x}px`);
-        button.style.setProperty("--y", `${y}px`);
-      });
-    </script>
-
-
-
     </div>
 </body>
 </html>
