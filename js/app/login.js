@@ -26,8 +26,8 @@ class LoginPage {
         try {
             const data = await ApiAuth.checkRegistrationStatus();
             if (data.enabled) {
-                this.loginForm.classList.add('hidden');
-                this.registerForm.classList.remove('hidden');
+                this.loginForm.style.display = 'none';
+                this.registerForm.style.display = 'block';
             } else {
                 this._showRegistrationDisabledMessage();
             }
@@ -38,14 +38,14 @@ class LoginPage {
 
     showLoginForm(e) {
         e.preventDefault();
-        this.registerForm.classList.add('hidden');
-        this.loginForm.classList.remove('hidden');
+        this.registerForm.style.display = 'none';
+        this.loginForm.style.display = 'block';
     }
 
     async handleLogin() {
         const username = document.getElementById('loginUsername').value;
         const password = document.getElementById('loginPassword').value;
-        this.loginError.classList.add('hidden');
+        this.loginError.style.display = 'none';
 
         try {
             const data = await ApiAuth.login(username, password);
@@ -53,40 +53,40 @@ class LoginPage {
                 window.location.href = '/';
             } else {
                 this.loginError.textContent = data.error;
-                this.loginError.classList.remove('hidden');
+                this.loginError.style.display = 'block';
             }
         } catch (error) {
             this.loginError.textContent = 'Fout bij inloggen';
-            this.loginError.classList.remove('hidden');
+            this.loginError.style.display = 'block';
         }
     }
 
     async handleRegister() {
         const username = document.getElementById('registerUsername').value;
         const password = document.getElementById('registerPassword').value;
-        this.registerError.classList.add('hidden');
+        this.registerError.style.display = 'none';
 
         try {
             const data = await ApiAuth.register(username, password);
             if (data.success) {
                 this._showSuccessMessage('Registratie succesvol! Je kunt nu inloggen.');
                 setTimeout(() => {
-                    this.registerForm.classList.add('hidden');
-                    this.loginForm.classList.remove('hidden');
+                    this.registerForm.style.display = 'none';
+                    this.loginForm.style.display = 'block';
                 }, 2000);
             } else {
                 this.registerError.textContent = data.error;
-                this.registerError.classList.remove('hidden');
+                this.registerError.style.display = 'block';
             }
         } catch (error) {
             this.registerError.textContent = 'Fout bij registreren';
-            this.registerError.classList.remove('hidden');
+            this.registerError.style.display = 'block';
         }
     }
 
     _showRegistrationDisabledMessage() {
         const overlay = this._createOverlay(`
-            <div class="registration-disabled-message">
+            <div style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);">
                 <i class="fas fa-user-slash"></i>
                 <h4>Registratie Uitgeschakeld</h4>
                 <p>Nieuwe registraties zijn momenteel niet toegestaan.</p>
@@ -98,7 +98,7 @@ class LoginPage {
 
     _showSuccessMessage(message) {
         const overlay = this._createOverlay(`
-            <div class="success-message">
+            <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
                 <i class="fas fa-check-circle"></i>
                 <h4>Succes!</h4>
                 <p>${message}</p>
