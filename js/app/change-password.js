@@ -38,7 +38,7 @@ class ChangePasswordPage {
     _showMessage(message, type) {
         this.passwordChangeMessage.textContent = message;
         this.passwordChangeMessage.className = `alert alert-${type}`;
-        this.passwordChangeMessage.style.display = 'block';
+        this.passwordChangeMessage.classList.remove('hidden');
     }
 }
 

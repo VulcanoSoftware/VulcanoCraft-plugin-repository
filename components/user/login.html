@@ -17,19 +17,12 @@
       <div class="floating-element el-5"></div>
     </div>
 
-    <div class="d-flex align-items-center justify-content-center" style="min-height: 100vh">
+    <div class="d-flex align-items-center justify-content-center login-container">
       <div class="col-md-5 col-lg-4">
-        <div class="card shadow-lg border-0" style="
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-          ">
+        <div class="card shadow-lg border-0 login-card">
           <div class="card-body text-center p-5">
             <div class="mb-4">
-              <img class="mb-3" src="../../images/plugin-repo-icon.png" alt="Login" style="
-                  width: 80px;
-                  height: 80px;
-                  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
-                ">
+              <img class="mb-3 login-icon" src="../../images/plugin-repo-icon.png" alt="Login">
               <h2 class="fw-bold text-primary mb-3">Welkom!</h2>
               <p class="text-muted mb-4">Log in of maak een account aan</p>
             </div>
@@ -43,7 +36,7 @@
               <div class="mb-3">
                 <input class="form-control form-control-lg" id="loginPassword" type="password" placeholder="Wachtwoord">
               </div>
-              <div class="alert alert-danger" id="loginError" style="display: none"></div>
+              <div class="alert alert-danger hidden" id="loginError"></div>
               <button class="btn btn-primary btn-lg w-100 mb-3" id="loginBtn" type="button">
                 <i class="fas fa-sign-in-alt me-2"></i>Inloggen
               </button>
@@ -53,7 +46,7 @@
             </div>
 
             <!-- Register Form -->
-            <div id="registerForm" style="display: none">
+            <div id="registerForm" class="hidden">
               <h4 class="mb-3">Account Aanmaken</h4>
               <div class="mb-3">
                 <input class="form-control form-control-lg" id="registerUsername" type="text" placeholder="Gebruikersnaam">
@@ -61,7 +54,7 @@
               <div class="mb-3">
                 <input class="form-control form-control-lg" id="registerPassword" type="password" placeholder="Wachtwoord">
               </div>
-              <div class="alert alert-danger" id="registerError" style="display: none"></div>
+              <div class="alert alert-danger hidden" id="registerError"></div>
               <button class="btn btn-primary btn-lg w-100 mb-3" id="registerBtn" type="button">
                 <i class="fas fa-user-plus me-2"></i>Account Aanmaken
               </button>
