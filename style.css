@@ -42,7 +42,8 @@ body {
   animation: float 15s infinite ease-in-out;
   box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
   backdrop-filter: blur(5px);
-  transition: all 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  transition: filter 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55), transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55), box-shadow 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  will-change: transform, filter, box-shadow;
 }
 
 .floating-element:hover {
@@ -421,12 +422,13 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   background: white;
   padding: 4px;
-  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   transform-origin: center;
   position: relative;
   z-index: 1;
   cursor: pointer;
   filter: saturate(0.9);
+  will-change: transform, box-shadow, filter;
 }
 
 .plugin-icon-letter {
@@ -441,8 +443,9 @@ body {
   font-size: 32px;
   font-weight: bold;
   color: white;
-  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   cursor: pointer;
+  will-change: transform;
 }
 
 .plugin-icon::after {
@@ -458,7 +461,7 @@ body {
   z-index: -1;
   opacity: 0;
   transform: scale(0.8);
-  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: opacity 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   animation: gradientBorder 4s ease infinite;
 }
 
@@ -476,7 +479,7 @@ body {
   z-index: 2;
   opacity: 0;
   transform: scale(0.5);
-  transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  transition: opacity 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55), transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
   pointer-events: none;
 }
 
@@ -549,7 +552,7 @@ body {
   border-radius: 8px;
   padding: 0;
   box-shadow: 0 3px 8px rgba(255, 107, 107, 0.3);
-  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -557,6 +560,7 @@ body {
   height: 36px;
   margin-left: 0.8rem;
   transform-origin: center;
+  will-change: transform, box-shadow, background;
 }
 
 .btn-delete:hover {
@@ -794,6 +798,7 @@ body {
   /* Consistent height */
   white-space: nowrap;
   /* Prevent text wrapping */
+  will-change: padding, transform, box-shadow, background;
 }
 
 .author-badge::before {
@@ -904,6 +909,7 @@ body {
   /* prevent text wrapping */
   line-height: 1.5;
   /* proper line height for text alignment */
+  will-change: transform, box-shadow, background-color, color;
 }
 
 /* Ensure all button content is properly aligned */
@@ -1014,7 +1020,7 @@ body {
   position: relative;
   z-index: 1;
   overflow: hidden;
-  transition: all 0.5s ease;
+  transition: color 0.5s ease, background-color 0.5s ease, border-color 0.5s ease;
 }
 
 .btn-primary::after,
@@ -1043,7 +1049,7 @@ body {
   width: 0%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.15);
-  transition: all 0.7s cubic-bezier(0.2, 0, 0, 1);
+  transition: width 0.7s cubic-bezier(0.2, 0, 0, 1);
   z-index: -1;
 }
 
@@ -1140,7 +1146,7 @@ body {
   padding: 0.8rem 1.2rem;
   border: 2px solid #e9ecef;
   font-size: 1rem;
-  transition: all 0.3s ease;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .form-control:focus {
@@ -1306,7 +1312,7 @@ body {
       rgba(248, 249, 250, 0.95) 100%);
   backdrop-filter: blur(10px);
   border-radius: 20px;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   position: relative;
   overflow: hidden;
 }
@@ -1338,7 +1344,7 @@ body {
   border-radius: 15px;
   border: 2px solid #e9ecef;
   padding: 0.75rem 1.2rem;
-  transition: all 0.3s ease;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, background 0.3s ease;
   background: rgba(255, 255, 255, 0.8);
 }
 
@@ -1353,7 +1359,7 @@ body {
   border-radius: 15px;
   border: 2px solid #e9ecef;
   padding: 0.75rem 1.2rem;
-  transition: all 0.3s ease;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, background 0.3s ease;
   background: rgba(255, 255, 255, 0.8);
 }
 
@@ -1381,7 +1387,7 @@ body {
 .form-check-input {
   border-radius: 8px;
   border: 2px solid #e9ecef;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
 }
 
 .form-check-input:checked {
@@ -1405,7 +1411,7 @@ body {
 .reset-filters-btn {
   border-radius: 15px;
   border: 2px solid #6c757d;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: background 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   font-weight: 500;
   display: inline-flex;
   align-items: center;
@@ -1416,6 +1422,7 @@ body {
 .reset-filters-btn:hover {
   background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
   border-color: #495057;
+  color: white;
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
 }
@@ -1660,7 +1667,7 @@ body {
 
 /* Animaties voor plugin cards */
 .plugin-card {
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .plugin-card:hover .plugin-icon {
@@ -1846,7 +1853,7 @@ body {
   border-radius: 10px;
   cursor: pointer;
   color: #495057;
-  transition: all 0.25s ease;
+  transition: transform 0.25s ease, color 0.25s ease, background 0.25s ease;
   font-weight: 600;
 }
 
@@ -1917,13 +1924,14 @@ body {
   font-size: 1rem;
   font-weight: 600;
   box-shadow: 0 3px 10px rgba(138, 43, 226, 0.25);
-  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   display: inline-block;
   animation: badgeAppear 0.5s ease-out;
   margin: 0.3rem;
   position: relative;
   overflow: hidden;
   cursor: pointer;
+  will-change: transform, box-shadow, background;
 }
 
 .loader-badge:hover {
