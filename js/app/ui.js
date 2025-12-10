@@ -233,13 +233,13 @@ class UI {
 
     updateAuthUI(authData) {
         if (authData.logged_in) {
-            this.authButtons.classList.add('hidden');
-            this.userButtons.classList.remove('hidden');
+            this.authButtons.style.display = 'none';
+            this.userButtons.style.display = 'flex';
             this.username.textContent = authData.username;
-            this.adminBtn.classList.toggle('hidden', !(authData.role === 'admin' || authData.role === 'co-admin'));
+            this.adminBtn.style.display = (authData.role === 'admin' || authData.role === 'co-admin') ? 'inline-block' : 'none';
         } else {
-            this.authButtons.classList.remove('hidden');
-            this.userButtons.classList.add('hidden');
+            this.authButtons.style.display = 'block';
+            this.userButtons.style.display = 'none';
         }
     }
 
