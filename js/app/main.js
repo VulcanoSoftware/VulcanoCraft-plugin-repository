@@ -3,7 +3,6 @@ import UI from './ui.js';
 import Modals from './modals.js';
 import Filters from './filters.js';
 import Auth from './auth.js';
-import { initializeAnimations } from './animations.js';
 
 class App {
     constructor() {
@@ -12,7 +11,6 @@ class App {
     }
 
     async init() {
-        initializeAnimations();
         document.getElementById('currentYear').textContent = new Date().getFullYear();
 
         this.authStatus = await Auth.checkStatus();
