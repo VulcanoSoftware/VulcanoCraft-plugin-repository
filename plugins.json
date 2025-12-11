@@ -1,0 +1,58 @@
+[
+    {
+        "author": "xenondevs",
+        "description": "A server-side modding framework for Paper",
+        "icon": "https://hangarcdn.papermc.io/avatars/project/626.webp",
+        "loaders": [
+            "paper"
+        ],
+        "title": "Nova",
+        "url": "https://hangar.papermc.io/xenondevs/Nova",
+        "versions": "1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.4 1.21.1 1.21.10 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
+        "owner": "admin",
+        "category": "Survival Main Server"
+    },
+    {
+        "author": "GFelbergruck",
+        "description": "Teleport to your last location after your death",
+        "icon": "https://www.spigotmc.org/data/resource_icons/94/94702.jpg",
+        "loaders": [
+            "spigot",
+            "bukkit"
+        ],
+        "title": "Back",
+        "url": "https://www.spigotmc.org/resources/back.94702/",
+        "versions": "1.20 1.20.6 1.21",
+        "owner": "admin",
+        "category": "VulcanoTechCraft"
+    },
+    {
+        "author": "Oliver",
+        "description": "Create fancy looking text, item or block holograms with the new 1.19.4 text display entities",
+        "icon": "https://cdn.modrinth.com/data/5QNgOj66/cc884d7e7e8e5f2febaff17898b3a6af9397060e_96.webp",
+        "loaders": [
+            "folia",
+            "paper"
+        ],
+        "title": "FancyHolograms",
+        "url": "https://modrinth.com/plugin/fancyholograms",
+        "versions": "1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.11-pre3 1.21.11-pre4 1.21.11-pre5 1.21.11-rc2 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
+        "owner": "admin",
+        "category": "Lobby"
+    },
+    {
+        "author": "Kaworru",
+        "description": "Build, craft and innovate with a mix of scrapyard engineering, neon-powered machinery and urban workshop tools.",
+        "icon": "https://media.forgecdn.net/avatars/thumbnails/1477/261/256/256/638959016207095146.png",
+        "loaders": [
+            "fabric",
+            "quilt",
+            "forge"
+        ],
+        "title": "Scrap Tech Workshop",
+        "url": "https://www.curseforge.com/minecraft/mc-mods/scrap-tech-workshop",
+        "versions": "1.20.1",
+        "owner": "admin",
+        "category": "VulcanoTechCraft"
+    }
+]
