@@ -1,195 +1,144 @@
 import argparse
+import os
 import re
 import requests
 import sys
 from urllib.parse import urlparse
 
+# Voeg de bovenliggende map toe aan het systeempad om utils te kunnen importeren
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from fetchers.utils import detect_platform
+
 # -------- MODRINTH --------
-def get_modrinth_server_game_versions(slug):
+def get_modrinth_versions(slug):
     try:
         url = f"https://api.modrinth.com/v2/project/{slug}/version"
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
 
-        server_platforms = {"purpur", "paper", "spigot", "bukkit", "neoforge"}
-        platform_priority = {"purpur": 5, "paper": 4, "spigot": 3, "bukkit": 2, "neoforge": 1}
-
-        game_versions_dict = {}
-
-        for v in data:
-            loaders = [loader.lower() for loader in v.get("loaders", [])]
-            relevant_loaders = [loader for loader in loaders if loader in server_platforms]
-            if not relevant_loaders:
-                continue
-            best_loader = max(relevant_loaders, key=lambda loader: platform_priority[loader])
-            for gv in v.get("game_versions", []):
-                if gv in game_versions_dict:
-                    if platform_priority[best_loader] > platform_priority[game_versions_dict[gv]]:
-                        game_versions_dict[gv] = best_loader
-                else:
-                    game_versions_dict[gv] = best_loader
-
-        return sorted(game_versions_dict.keys())
+        versions = set()
+        for version_data in data:
+            versions.update(version_data.get("game_versions", []))
+        return sorted(list(versions))
     except Exception:
-        return None
+        return []
 
 # -------- SPIGOT --------
-def get_spigot_game_versions(url):
+def get_spigot_versions(url):
     try:
         match = re.search(r'/resources/[^/]+\.(\d+)/?', url)
         if not match:
-            return None
+            return []
         
         resource_id = match.group(1)
         api_url = f"https://api.spiget.org/v2/resources/{resource_id}"
         
         response = requests.get(api_url)
-        if response.status_code != 200:
-            return None
-        
+        response.raise_for_status()
         data = response.json()
-        versions = data.get('testedVersions', [])
-        
-        return sorted(versions) if versions else []
-    except Exception:
-        return None
-
-# -------- HANGAR --------
-def get_hangar_game_versions(combined_slug):
-    try:
-        limit = 25
-        offset = 0
-        game_versions = set()
-        
-        while True:
-            url = f"https://hangar.papermc.io/api/v1/projects/{combined_slug}/versions?limit={limit}&offset={offset}"
-            
-            response = requests.get(url)
-            response.raise_for_status()
-                
-            data = response.json()
-            
-            if not data.get("result"):
-                break
-                
-            for v in data["result"]:
-                platform_deps = v.get("platformDependencies", {})
-                for platform_name, versions in platform_deps.items():
-                    for version in versions:
-                        game_versions.add(version)
-            
-            pagination = data.get("pagination", {})
-            if offset + limit >= pagination.get("count", 0):
-                break
-                
-            offset += limit
-        
-        return sorted(game_versions)
-    except Exception:
-        return None
-
-# -------- CURSEFORGE --------
-def get_curseforge_game_versions(url):
-    try:
-        parsed = urlparse(url)
-        path_parts = parsed.path.strip('/').split('/')
-        if len(path_parts) < 3:
-            return []
-        
-        category = path_parts[1]
-        project_slug = path_parts[2]
-        
-        class_id = 6 if category == 'mc-mods' else 4471 if category == 'modpacks' else None
-        if not class_id:
-            return []
-        
-        api_url = f"https://api.curseforge.com/v1/mods/search?gameId=432&slug={project_slug}&classId={class_id}"
-        
-        headers = {
-            'Accept': 'application/json',
-            'x-api-key': '$2a$10$bL4bIL5pUWqfcO7KQtnMReakwtfHbNKh6v1uTpKlzhwoueEJQnPnm'
-        }
-        
-        response = requests.get(api_url, headers=headers)
-        if response.status_code != 200:
-            return []
-        
-        data = response.json()
-        if not data.get('data'):
-            return []
-        
-        versions = set()
-        for mod in data['data']:
-            for version in mod.get('latestFilesIndexes', []):
-                game_version = version.get('gameVersion')
-                if game_version and re.match(r'^1\.\d+(\.\d+)?$', game_version):
-                    versions.add(game_version)
-        
-        return sorted(versions) if versions else []
+        return sorted(data.get('testedVersions', []))
     except Exception:
         return []
 
-# -------- PLATFORM DETECTIE --------
-def detect_platform(url):
+# -------- HANGAR --------
+def get_hangar_versions(combined_slug):
     try:
-        parsed = urlparse(url)
-        host = parsed.netloc
-
-        if "modrinth.com" in host:
-            match = re.search(r"/(plugin|mod)/([^/]+)/?", parsed.path)
-            if match:
-                return "modrinth", match.group(2)
-
-        elif "spigotmc.org" in host:
-            return "spigot", url
-
-        elif "hangar.papermc.io" in host:
-            match = re.search(r"/([^/]+)/([^/]+)/?$", parsed.path)
-            if match:
-                author = match.group(1)
-                project = match.group(2)
-                return "hangar", f"{author}/{project}"
-
-        elif "curseforge.com" in host:
-            return "curseforge", url
-
-        return None, None
+        url = f"https://hangar.papermc.io/api/v1/projects/{combined_slug}/versions"
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+        
+        versions = set()
+        for version_data in data.get("result", []):
+            for deps in version_data.get("platformDependencies", {}).values():
+                versions.update(deps)
+        return sorted(list(versions))
     except Exception:
-        return None, None
+        return []
+
+# -------- CURSEFORGE --------
+def get_curseforge_versions(slug):
+    """Haalt de ondersteunde gameversies voor een CurseForge/Bukkit plugin op."""
+    try:
+        api_url = f"https://api.curseforge.com/v1/mods/search?gameId=432&slug={slug}"
+        headers = {
+            'Accept': 'application/json',
+            'x-api-key': os.environ.get('CURSEFORGE_API_KEY', '$2a$10$bL4bIL5pUWqfcO7KQtnMReakwtfHbNKh6v1uTpKlzhwoueEJQnPnm')
+        }
+        response = requests.get(api_url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+
+        if not data.get('data'):
+            return []
+
+        versions = set()
+        for mod in data['data']:
+            if mod.get('slug') == slug:
+                # 'latestFilesIndexes' bevat een lijst van bestanden met hun gameversies.
+                for file_index in mod.get('latestFilesIndexes', []):
+                    game_version = file_index.get('gameVersion')
+                    if game_version:
+                        versions.add(game_version)
+                # We hebben de juiste mod gevonden en de versies verzameld.
+                break
+        
+        return sorted(list(versions))
+    except Exception:
+        return []
+
+# -------- GITHUB --------
+def get_github_versions(repo_identifier):
+    """Haalt de 'tags' (die vaak als versies dienen) van een GitHub repository op."""
+    try:
+        api_url = f"https://api.github.com/repos/{repo_identifier}/tags"
+        response = requests.get(api_url)
+        response.raise_for_status()
+        data = response.json()
+
+        # We halen de 'name' van elke tag op, bv. "v1.2.3" of "1.2.3"
+        # We filteren eventuele niet-numerieke tags eruit.
+        versions = [tag['name'].lstrip('v') for tag in data if re.match(r'v?\d', tag.get('name', ''))]
+        return sorted(versions)
+    except Exception:
+        return []
 
 # -------- MAIN --------
 def main():
-    parser = argparse.ArgumentParser(description="Print supported Minecraft versions of a plugin")
-    parser.add_argument("url", nargs="?", help="Plugin URL from Modrinth, SpigotMC, or Hangar")
+    parser = argparse.ArgumentParser(description="Extraheer ondersteunde versies van een plugin.")
+    parser.add_argument("url", nargs="?", help="Plugin URL")
     args = parser.parse_args()
 
     if not args.url:
-        args.url = input("Geef een plugin URL op: ").strip()
+        if sys.stdin.isatty():
+            args.url = input("Voer een plugin URL in: ").strip()
+        else:
+            args.url = sys.stdin.read().strip()
 
     platform, identifier = detect_platform(args.url)
+
     if not platform:
-        print("ongeldige url", file=sys.stderr)
+        print("Ongeldige of niet-ondersteunde URL", file=sys.stderr)
         sys.exit(1)
 
+    versions = []
     if platform == "modrinth":
-        game_versions = get_modrinth_server_game_versions(identifier)
+        versions = get_modrinth_versions(identifier)
     elif platform == "spigot":
-        game_versions = get_spigot_game_versions(identifier)
+        versions = get_spigot_versions(identifier)
     elif platform == "hangar":
-        game_versions = get_hangar_game_versions(identifier)
+        versions = get_hangar_versions(identifier)
     elif platform == "curseforge":
-        game_versions = get_curseforge_game_versions(identifier)
+        versions = get_curseforge_versions(identifier)
+    elif platform == "github":
+        versions = get_github_versions(identifier)
     else:
-        print("ongeldige url", file=sys.stderr)
+        print(f"Platform '{platform}' wordt nog niet ondersteund.", file=sys.stderr)
         sys.exit(1)
 
-    # Als er een fout optreedt bij het ophalen van versies, beschouw dit als ongeldige URL
-    if game_versions is None:
-        print("", file=sys.stderr)
-        sys.exit(1)
-    elif game_versions:
-        print(" ".join(game_versions))
+    if versions:
+        print(" ".join(versions))
     else:
         print("")
 

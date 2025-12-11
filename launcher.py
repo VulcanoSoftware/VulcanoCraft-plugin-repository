@@ -38,6 +38,9 @@ def get_plugin_data(url):
     except json.JSONDecodeError:
         loaders = []
 
+    # Converteer de 'versions' string naar een lijst
+    version_list = versions.split() if versions else []
+
     # Maak plugin object
     plugin = {
         "url": url,
@@ -45,7 +48,7 @@ def get_plugin_data(url):
         "description": description,
         "author": author,
         "icon": icon,
-        "versions": versions,
+        "versions": version_list,
         "loaders": loaders
     }
     
