@@ -1,51 +1,51 @@
 [
     {
         "name": "Survival Main Server",
-        "image_url": "",
-        "show_image": false,
+        "image_url": "https://purpurmc.org/images/purpur-christmas.svg",
+        "show_image": true,
         "software": "Purpur",
         "version": "1.21.6"
     },
     {
         "name": "VulcanoTechCraft",
-        "image_url": "",
-        "show_image": false,
-        "software": "",
-        "version": ""
+        "image_url": "https://github.com/IzzelAliz/Arclight/raw/FeudalKings/.github/arclightlogo.jpg",
+        "show_image": true,
+        "software": "Arclight",
+        "version": "1.20.1"
     },
     {
         "name": "Velocity",
         "image_url": "",
         "show_image": false,
-        "software": "",
-        "version": ""
+        "software": "Velocity",
+        "version": "1.21.6"
     },
     {
         "name": "Lobby",
-        "image_url": "",
-        "show_image": false,
-        "software": "",
-        "version": ""
+        "image_url": "https://purpurmc.org/images/purpur-christmas.svg",
+        "show_image": true,
+        "software": "Purpur",
+        "version": "1.21.6"
     },
     {
         "name": "Oneblock",
-        "image_url": "",
-        "show_image": false,
-        "software": "",
-        "version": ""
+        "image_url": "https://purpurmc.org/images/purpur-christmas.svg",
+        "show_image": true,
+        "software": "Purpur",
+        "version": "1.21.6"
     },
     {
         "name": "Bedwars",
-        "image_url": "",
-        "show_image": false,
-        "software": "",
-        "version": ""
+        "image_url": "https://purpurmc.org/images/purpur-christmas.svg",
+        "show_image": true,
+        "software": "Purpur",
+        "version": "1.21.6"
     },
     {
         "name": "Klokrise",
-        "image_url": "",
-        "show_image": false,
-        "software": "",
-        "version": ""
+        "image_url": "https://purpurmc.org/images/purpur-christmas.svg",
+        "show_image": true,
+        "software": "Purpur",
+        "version": "1.16.5"
     }
 ]

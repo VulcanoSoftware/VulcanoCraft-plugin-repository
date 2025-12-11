@@ -1,19 +1,68 @@
 [
     {
-        "author": "xenondevs",
-        "description": "A server-side modding framework for Paper",
-        "icon": "https://hangarcdn.papermc.io/avatars/project/626.webp",
+        "author": "Archy-X",
+        "description": "The ultra-versatile RPG skills plugin",
+        "icon": "https://cdn.modrinth.com/data/uDdZAVls/aadaedbbb7f8c142a625a11081aa0d9bdfafecc2.jpeg",
         "loaders": [
-            "paper"
+            "paper",
+            "purpur",
+            "spigot"
         ],
-        "title": "Nova",
-        "url": "https://hangar.papermc.io/xenondevs/Nova",
-        "versions": "1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.4 1.21.1 1.21.10 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
-        "owner": "admin",
-        "category": "Survival Main Server"
+        "title": "AuraSkills",
+        "url": "https://modrinth.com/plugin/auraskills",
+        "versions": "1.14.4 1.15 1.15.1 1.15.2 1.16 1.16.1 1.16.2 1.16.3 1.16.4 1.16.5 1.17 1.17.1 1.18 1.18.1 1.18.2 1.19 1.19.1 1.19.2 1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
+        "category": "Survival Main Server",
+        "owner": "admin"
     },
     {
-        "author": "GFelbergruck",
+        "author": "MrButtersDev",
+        "description": "Automatically pickup blocks that you mine! If a block drops XP you get that too!",
+        "icon": "https://cdn.modrinth.com/data/oB3hT7d7/307919bc4fcb0919a76954afd0dd22ffc2f093ff.png",
+        "loaders": [
+            "bukkit",
+            "paper",
+            "purpur",
+            "spigot"
+        ],
+        "title": "AutoPickup",
+        "url": "https://modrinth.com/plugin/auto-pickup",
+        "versions": "1.13 1.13.1 1.13.2 1.14 1.14.1 1.14.2 1.14.3 1.14.4 1.15 1.15.1 1.15.2 1.16 1.16.1 1.16.2 1.16.3 1.16.4 1.16.5 1.17 1.17.1 1.18 1.18.1 1.18.2 1.19 1.19.1 1.19.2 1.19.3 1.19.4 1.20 1.20.1",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "ArtillexStudios",
+        "description": "A lightweight grave (death chest) plugin focused on performance & compatibility.",
+        "icon": "https://cdn.modrinth.com/data/Cz6msz34/81af253da3341515c8d798daf7b7797501472382_96.webp",
+        "loaders": [
+            "bukkit",
+            "folia",
+            "paper",
+            "purpur",
+            "spigot"
+        ],
+        "title": "AxGraves",
+        "url": "https://modrinth.com/plugin/axgraves",
+        "versions": "1.18 1.18.1 1.18.2 1.19 1.19.1 1.19.2 1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "Fabsi",
+        "description": "Enable building on the Happy Ghast and adjust their speed",
+        "icon": "https://www.spigotmc.org/data/resource_icons/126/126139.jpg",
+        "loaders": [
+            "spigot",
+            "bukkit"
+        ],
+        "title": "BetterHappyGhast",
+        "url": "https://www.spigotmc.org/resources/betterhappyghast.126139/",
+        "versions": "1.21",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "GFelberg",
         "description": "Teleport to your last location after your death",
         "icon": "https://www.spigotmc.org/data/resource_icons/94/94702.jpg",
         "loaders": [
@@ -23,36 +72,586 @@
         "title": "Back",
         "url": "https://www.spigotmc.org/resources/back.94702/",
         "versions": "1.20 1.20.6 1.21",
-        "owner": "admin",
-        "category": "VulcanoTechCraft"
+        "category": "Survival Main Server",
+        "owner": "admin"
     },
     {
-        "author": "Oliver",
-        "description": "Create fancy looking text, item or block holograms with the new 1.19.4 text display entities",
-        "icon": "https://cdn.modrinth.com/data/5QNgOj66/cc884d7e7e8e5f2febaff17898b3a6af9397060e_96.webp",
+        "author": "tomisanhues2",
+        "description": "Get Prefixes to display in multiple places automatically!",
+        "icon": "https://www.spigotmc.org/data/resource_icons/18/18096.jpg",
         "loaders": [
-            "folia",
-            "paper"
+            "spigot",
+            "bukkit"
         ],
-        "title": "FancyHolograms",
-        "url": "https://modrinth.com/plugin/fancyholograms",
-        "versions": "1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.11-pre3 1.21.11-pre4 1.21.11-pre5 1.21.11-rc2 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
-        "owner": "admin",
-        "category": "Lobby"
+        "title": "BetterPrefix | PlaceholderAPI | LuckPerms",
+        "url": "https://www.spigotmc.org/resources/betterprefix-placeholderapi-luckperms.18096/",
+        "versions": "1.18 1.19 1.20",
+        "category": "Survival Main Server",
+        "owner": "admin"
     },
     {
-        "author": "Kaworru",
-        "description": "Build, craft and innovate with a mix of scrapyard engineering, neon-powered machinery and urban workshop tools.",
-        "icon": "https://media.forgecdn.net/avatars/thumbnails/1477/261/256/256/638959016207095146.png",
+        "author": "Mark-225",
+        "description": "Adds markers for various plugins to BlueMap",
+        "icon": "",
+        "loaders": [
+            "paper",
+            "spigot"
+        ],
+        "title": "BlueBridge",
+        "url": "https://modrinth.com/plugin/bluebridge",
+        "versions": "1.13.2 1.14 1.14.1 1.14.2 1.14.3 1.14.4 1.15 1.15.1 1.15.2 1.16 1.16.1 1.16.2 1.16.3 1.16.4 1.16.5 1.17 1.17.1 1.18 1.18.1 1.18.2 1.19 1.19.1 1.19.2",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "BlueColored",
+        "description": "A Minecraft mapping tool that creates 3D models of your Minecraft worlds and displays them in a web viewer.",
+        "icon": "https://cdn.modrinth.com/data/swbUV1cr/b9a17ab8c850046101a47e62037225c9b007a2ca_96.webp",
         "loaders": [
             "fabric",
-            "quilt",
-            "forge"
+            "folia",
+            "forge",
+            "neoforge",
+            "paper",
+            "purpur",
+            "spigot",
+            "sponge"
         ],
-        "title": "Scrap Tech Workshop",
-        "url": "https://www.curseforge.com/minecraft/mc-mods/scrap-tech-workshop",
-        "versions": "1.20.1",
-        "owner": "admin",
-        "category": "VulcanoTechCraft"
+        "title": "BlueMap",
+        "url": "https://modrinth.com/plugin/bluemap",
+        "versions": "1.13 1.13.1 1.13.2 1.14 1.14.1 1.14.2 1.14.3 1.14.4 1.15 1.15.1 1.15.2 1.16 1.16.1 1.16.2 1.16.3 1.16.4 1.16.5 1.17 1.17.1 1.18 1.18.1 1.18.2 1.19 1.19.1 1.19.2 1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.11 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "Cerothen",
+        "description": "Third party skin provider for BlueMap",
+        "icon": "https://www.spigotmc.org/",
+        "loaders": [
+            "spigot",
+            "bukkit"
+        ],
+        "title": "BlueMap Skin Integration",
+        "url": "https://www.spigotmc.org/resources/bluemap-skin-integration.114305/",
+        "versions": "1.20",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "Zrips",
+        "description": "This Plugin allows your players to fill their XP into XP-Bottles.",
+        "icon": "https://www.spigotmc.org/data/resource_icons/2/2815.jpg",
+        "loaders": [
+            "spigot",
+            "bukkit"
+        ],
+        "title": "BottledExp",
+        "url": "https://www.spigotmc.org/resources/bottledexp.2815/",
+        "versions": "1.10 1.11 1.12 1.13 1.14 1.15 1.16 1.17 1.18 1.19 1.20 1.7 1.8 1.9",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "kangarko",
+        "description": "The ultimate chat filtering and formatting plugin. Program your own rules!",
+        "icon": "https://cdn.modrinth.com/data/XGimhYe2/094ef94681bcff4a32d6a17db80f62ef60d34303_96.webp",
+        "loaders": [
+            "bukkit"
+        ],
+        "title": "ChatControl",
+        "url": "https://modrinth.com/plugin/chatcontrol",
+        "versions": "1.10 1.10.1 1.10.2 1.11 1.11.1 1.11.2 1.12 1.12.1 1.12.2 1.13 1.13.1 1.13.2 1.14 1.14.1 1.14.2 1.14.3 1.14.4 1.15 1.15.1 1.15.2 1.16 1.16.1 1.16.2 1.16.3 1.16.4 1.16.5 1.17 1.17.1 1.18 1.18.1 1.18.2 1.19 1.19.1 1.19.2 1.19.3 1.19.4 1.2.5 1.20 1.20.1 1.3.1 1.3.2 1.4.2 1.4.4 1.4.5 1.4.6 1.4.7 1.5.1 1.5.2 1.6.1 1.6.2 1.6.4 1.7.10 1.7.2 1.7.3 1.7.4 1.7.5 1.7.6 1.7.7 1.7.8 1.7.9 1.8 1.8.1 1.8.2 1.8.3 1.8.4 1.8.5 1.8.6 1.8.7 1.8.8 1.8.9 1.9 1.9.1 1.9.2 1.9.3 1.9.4",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "Phoenix616",
+        "description": "A simple, yet very powerful system for making physical shops using signs and chests!",
+        "icon": "https://cdn.modrinth.com/data/QI2CAnAl/4ce78428342f309c4264536deb4eb41d32d4d6f3_96.webp",
+        "loaders": [
+            "paper",
+            "spigot"
+        ],
+        "title": "ChestShop",
+        "url": "https://modrinth.com/plugin/chestshop",
+        "versions": "1.13 1.13.1 1.13.2 1.14 1.14.1 1.14.2 1.14.3 1.14.4 1.15 1.15.1 1.15.2 1.16 1.16.1 1.16.2 1.16.3 1.16.4 1.16.5 1.17 1.17.1 1.18 1.18.1 1.18.2 1.19 1.19.1 1.19.2 1.19.3",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "jameslfc19",
+        "description": "Minecraft Spigot mod that enhances chests and hoppers, with ChestLinks and Hopper filters!",
+        "icon": "https://www.spigotmc.org/data/resource_icons/71/71355.jpg",
+        "loaders": [
+            "spigot",
+            "bukkit"
+        ],
+        "title": "Chests++ | [Now with AutoCrafting!!] Chest Linking, Hopper Filtering, Remote Chests & Menus!",
+        "url": "https://www.spigotmc.org/resources/chests-now-with-autocrafting-chest-linking-hopper-filtering-remote-chests-menus.71355/",
+        "versions": "1.16 1.17 1.18 1.19 1.20 1.21",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "Zrips",
+        "description": "Library",
+        "icon": "https://www.spigotmc.org/data/resource_icons/87/87610.jpg",
+        "loaders": [
+            "spigot",
+            "bukkit"
+        ],
+        "title": "CMILib",
+        "url": "https://www.spigotmc.org/resources/cmilib.87610/",
+        "versions": "1.10 1.11 1.12 1.13 1.14 1.15 1.16 1.17 1.18 1.19 1.20 1.20.6 1.21 1.7 1.8 1.9",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "SnowGears",
+        "description": "Create portals in-game with little effort and no commands to type!",
+        "icon": "https://www.spigotmc.org/data/resource_icons/5/5546.jpg",
+        "loaders": [
+            "spigot",
+            "bukkit"
+        ],
+        "title": "Color Portals",
+        "url": "https://www.spigotmc.org/resources/color-portals.5546/",
+        "versions": "1.13 1.14 1.15 1.16 1.17 1.18 1.19",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "JavaSE",
+        "description": "Craft saddles and horse amour!",
+        "icon": "https://www.spigotmc.org/data/resource_icons/4/4067.jpg",
+        "loaders": [
+            "spigot",
+            "bukkit"
+        ],
+        "title": "craftable saddles",
+        "url": "https://www.spigotmc.org/resources/craftable-saddles.4067/",
+        "versions": "1.15 1.16",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "OfficerSarge",
+        "description": "Add bow enchants to crossbows",
+        "icon": "https://www.spigotmc.org/",
+        "loaders": [
+            "spigot",
+            "bukkit"
+        ],
+        "title": "Crossbow Enchants",
+        "url": "https://www.spigotmc.org/resources/crossbow-enchants.121342/",
+        "versions": "1.21",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "Ajneb97",
+        "description": "Teleport you to your death location by clicking on a message on chat!",
+        "icon": "https://www.spigotmc.org/data/resource_icons/43/43318.jpg",
+        "loaders": [
+            "spigot",
+            "bukkit"
+        ],
+        "title": "DeathCoordinates | [1.8-1.19]",
+        "url": "https://www.spigotmc.org/resources/deathcoordinates-1-8-1-19.43318/",
+        "versions": "1.10 1.11 1.12 1.13 1.14 1.15 1.16 1.17 1.18 1.19 1.8 1.9",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "Cyan735",
+        "description": "Shows a player that died his death coordinates in chat.",
+        "icon": "https://cdn.modrinth.com/data/cE9CA2Px/959d90c808b850d33329f1d021b733d8a94ef5b8.png",
+        "loaders": [
+            "bukkit",
+            "paper",
+            "purpur",
+            "spigot"
+        ],
+        "title": "DeathCoords",
+        "url": "https://modrinth.com/plugin/deathcoords",
+        "versions": "1.16 1.16.1 1.16.2 1.16.3 1.16.4 1.16.5 1.17 1.17.1 1.18 1.18.1 1.18.2 1.19 1.19.1 1.19.2 1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.11 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "",
+        "description": "A lightweight yet very powerful hologram plugin with many features and configuration options.",
+        "icon": "https://cdn.modrinth.com/data/w02MKsTg/da26ff80e9bcd5646284c57dd06a57b2e4361027.png",
+        "loaders": [
+            "paper",
+            "spigot"
+        ],
+        "title": "DecentHolograms",
+        "url": "https://modrinth.com/plugin/decentholograms",
+        "versions": "1.10 1.10.1 1.10.2 1.11 1.11.1 1.11.2 1.12 1.12.1 1.12.2 1.13 1.13.1 1.13.2 1.14 1.14.1 1.14.2 1.14.3 1.14.4 1.15 1.15.1 1.15.2 1.16 1.16.1 1.16.2 1.16.3 1.16.4 1.16.5 1.17 1.17.1 1.18 1.18.1 1.18.2 1.19 1.19.1 1.19.2 1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9 1.8 1.8.1 1.8.2 1.8.3 1.8.4 1.8.5 1.8.6 1.8.7 1.8.8 1.8.9 1.9 1.9.1 1.9.2 1.9.3 1.9.4",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "",
+        "description": "The all in one GUI menu plugin!",
+        "icon": "https://cdn.modrinth.com/data/kKZkPgJ7/469ce9cd0fdf3075c20663fc750f2c06e4afbffe_96.webp",
+        "loaders": [
+            "bukkit",
+            "paper",
+            "spigot"
+        ],
+        "title": "DeluxeMenus",
+        "url": "https://modrinth.com/plugin/deluxemenus",
+        "versions": "1.16 1.16.1 1.16.2 1.16.3 1.16.4 1.16.5 1.17 1.17.1 1.18 1.18.1 1.18.2 1.19 1.19.1 1.19.2 1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "ZsoltDZ",
+        "description": "Discord commands to interact with your server's economy on discord",
+        "icon": "https://www.spigotmc.org/data/resource_icons/90/90290.jpg",
+        "loaders": [
+            "spigot",
+            "bukkit"
+        ],
+        "title": "Discord Economy Bridge - 1.7-1.21 [SlashCommands][ [Minigames in Discord] Supports DiscordSRV",
+        "url": "https://www.spigotmc.org/resources/discord-economy-bridge-1-7-1-21-slashcommands-minigames-in-discord-supports-discordsrv.90290/",
+        "versions": "1.10 1.11 1.12 1.13 1.14 1.15 1.16 1.17 1.18 1.19 1.20 1.20.6 1.21 1.7 1.8 1.9",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "Vankka granny Scarsz",
+        "description": "The most powerful, configurable, open-source Discord to Minecraft bridging plugin available.",
+        "icon": "https://cdn.modrinth.com/data/UmLGoGij/icon.png",
+        "loaders": [
+            "bukkit",
+            "folia",
+            "paper",
+            "purpur",
+            "spigot"
+        ],
+        "title": "DiscordSRV",
+        "url": "https://modrinth.com/plugin/discordsrv",
+        "versions": "1.10 1.10.1 1.10.2 1.11 1.11.1 1.11.2 1.12 1.12.1 1.12.2 1.13 1.13.1 1.13.2 1.14 1.14.1 1.14.2 1.14.3 1.14.4 1.15 1.15.1 1.15.2 1.16 1.16.1 1.16.2 1.16.3 1.16.4 1.16.5 1.17 1.17.1 1.18 1.18.1 1.18.2 1.19 1.19.1 1.19.2 1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9 1.7.10 1.8 1.8.1 1.8.2 1.8.3 1.8.4 1.8.5 1.8.6 1.8.7 1.8.8 1.8.9 1.9 1.9.1 1.9.2 1.9.3 1.9.4",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "BlueTree242",
+        "description": "DiscordSRVUtils is a DiscordSRV addon to improve the abilities of DiscordSRV bot in your Discord server.",
+        "icon": "https://cdn.modrinth.com/data/kPCZgvM2/bc15fd548b4649b1cde648e3d386ab5117ca3207.png",
+        "loaders": [
+            "bukkit",
+            "folia",
+            "paper",
+            "purpur",
+            "spigot"
+        ],
+        "title": "DiscordSRVUtils",
+        "url": "https://modrinth.com/plugin/discordsrvutils",
+        "versions": "1.10 1.10.1 1.10.2 1.11 1.11.1 1.11.2 1.12 1.12.1 1.12.2 1.13 1.13.1 1.13.2 1.14 1.14.1 1.14.2 1.14.3 1.14.4 1.15 1.15.1 1.15.2 1.16 1.16.1 1.16.2 1.16.3 1.16.4 1.16.5 1.17 1.17.1 1.18 1.18.1 1.18.2 1.19 1.19.1 1.19.2 1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.8 1.8.1 1.8.2 1.8.3 1.8.4 1.8.5 1.8.6 1.8.7 1.8.8 1.8.9 1.9 1.9.1 1.9.2 1.9.3 1.9.4",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "rhld16",
+        "description": "DriveBackupV2 is a plugin that aims to provide an extra layer of security to your data making a backup and saving it remotely.",
+        "icon": "https://cdn.modrinth.com/data/BQbKkmMm/7fda94b2835c4297bc7b58a0f5f6464b65cd34c5_96.webp",
+        "loaders": [
+            "bukkit",
+            "paper",
+            "purpur",
+            "spigot"
+        ],
+        "title": "DriveBackupV2",
+        "url": "https://modrinth.com/plugin/drivebackupv2",
+        "versions": "1.10 1.10.1 1.10.2 1.11 1.11.1 1.11.2 1.12 1.12.1 1.12.2 1.13 1.13.1 1.13.2 1.14 1.14.1 1.14.2 1.14.3 1.14.4 1.15 1.15.1 1.15.2 1.16 1.16.1 1.16.2 1.16.3 1.16.4 1.16.5 1.17 1.17.1 1.18 1.18.1 1.18.2 1.19 1.19.1 1.19.2 1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9 1.8 1.8.1 1.8.2 1.8.3 1.8.4 1.8.5 1.8.6 1.8.7 1.8.8 1.8.9 1.9 1.9.1 1.9.2 1.9.3 1.9.4",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "TheMindDroid",
+        "description": "A plugin that introduces unique drugs into Minecraft.",
+        "icon": "https://www.spigotmc.org/data/resource_icons/90/90645.jpg",
+        "loaders": [
+            "spigot",
+            "bukkit"
+        ],
+        "title": "Drugs",
+        "url": "https://www.spigotmc.org/resources/drugs.90645/",
+        "versions": "1.15 1.16 1.17 1.18 1.19 1.20",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "GeeVeeDee",
+        "description": "Two Player Horse Riding - Ride off into the sunset with your friends!",
+        "icon": "https://www.spigotmc.org/data/resource_icons/99/99663.jpg",
+        "loaders": [
+            "spigot",
+            "bukkit"
+        ],
+        "title": "DualHorse",
+        "url": "https://www.spigotmc.org/resources/dualhorse.99663/",
+        "versions": "1.17 1.18 1.19 1.20 1.20.6 1.21",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "scruffyboy12",
+        "description": "A simple economy plugin that support MySQL and local playerdata support.",
+        "icon": "https://www.spigotmc.org/data/resource_icons/87/87053.jpg",
+        "loaders": [
+            "spigot",
+            "bukkit"
+        ],
+        "title": "Economy",
+        "url": "https://www.spigotmc.org/resources/economy.87053/",
+        "versions": "1.10 1.11 1.12 1.13 1.14 1.15 1.16 1.8 1.9",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "JRoy pop4959 mdcfe",
+        "description": "The essential plugin suite for Paper and Spigot servers.",
+        "icon": "https://cdn.modrinth.com/data/hXiIvTyT/e621675be1d0421b43b65ab8082507532d937009_96.webp",
+        "loaders": [
+            "bukkit",
+            "paper",
+            "spigot"
+        ],
+        "title": "EssentialsX",
+        "url": "https://modrinth.com/plugin/essentialsx",
+        "versions": "1.10.2 1.11.2 1.12.2 1.13.2 1.14.4 1.15.2 1.16.5 1.17.1 1.18.2 1.19.2 1.19.4 1.20.1 1.20.6 1.21.4 1.21.5 1.21.8 1.8.8 1.8.9 1.9.4",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "Torm",
+        "description": "Upgraded farming mechanics.",
+        "icon": "https://www.spigotmc.org/data/resource_icons/76/76907.jpg",
+        "loaders": [
+            "spigot",
+            "bukkit"
+        ],
+        "title": "FarmingUpgrade",
+        "url": "https://www.spigotmc.org/resources/farmingupgrade.76907/",
+        "versions": "1.16 1.17 1.18 1.19 1.20 1.21",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "certainly1182",
+        "description": "Change minecart speed using blocks under rails",
+        "icon": "https://cdn.modrinth.com/data/Fi1ayW5p/7b8a1293944a4cf74d0cc12db64ca1a03e50916e_96.webp",
+        "loaders": [
+            "paper",
+            "purpur"
+        ],
+        "title": "FastMinecarts",
+        "url": "https://modrinth.com/plugin/fastminecarts",
+        "versions": "1.19 1.19.1 1.19.2 1.19.3",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "Hydrolien",
+        "description": "Minecraft plugins to display banners as flags.",
+        "icon": "https://cdn.modrinth.com/data/aUr0vpz1/cce0cf755d15ce9c87687c26ac36ce0214757a4b.webp",
+        "loaders": [
+            "bukkit",
+            "folia",
+            "paper",
+            "purpur",
+            "spigot"
+        ],
+        "title": "FlagsH",
+        "url": "https://modrinth.com/plugin/flagsh",
+        "versions": "1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "lucyy.p",
+        "description": "Transfer ownership of your pets to other people",
+        "icon": "https://www.spigotmc.org/",
+        "loaders": [
+            "spigot",
+            "bukkit"
+        ],
+        "title": "GivePet",
+        "url": "https://www.spigotmc.org/resources/givepet.88395/",
+        "versions": "1.16",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "QarthO RoboMWM",
+        "description": "The self-service anti-griefing Bukkit plugin for Minecraft servers since 2011.",
+        "icon": "https://cdn.modrinth.com/data/O4o4mKaq/6aeade7ea5551c41dbe71e379ea893777356650d_96.webp",
+        "loaders": [
+            "bukkit",
+            "paper",
+            "purpur",
+            "spigot"
+        ],
+        "title": "GriefPrevention",
+        "url": "https://modrinth.com/plugin/griefprevention",
+        "versions": "1.17 1.17.1 1.18 1.18.1 1.18.2 1.19 1.19.1 1.19.2 1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "Gecolay",
+        "description": "",
+        "icon": "https://www.spigotmc.org/data/resource_icons/62/62325.jpg",
+        "loaders": [
+            "spigot",
+            "bukkit"
+        ],
+        "title": "GSit - Modern Sit (Seat and Chair), Lay and Crawl Plugin! - [1.16 - 1.21.11]",
+        "url": "https://www.spigotmc.org/resources/gsit-modern-sit-seat-and-chair-lay-and-crawl-plugin-1-16-1-21-11.62325/",
+        "versions": "1.16 1.17 1.18 1.19 1.20 1.20.6 1.21",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "Rocknatalino",
+        "description": "Shows health bar on top of players and mobs",
+        "icon": "https://www.spigotmc.org/data/resource_icons/92/92041.jpg",
+        "loaders": [
+            "spigot",
+            "bukkit"
+        ],
+        "title": "HealthBar | Players and Mobs | [1.8 - 1.18.2]",
+        "url": "https://www.spigotmc.org/resources/healthbar-players-and-mobs-1-8-1-18-2.92041/",
+        "versions": "1.10 1.11 1.12 1.13 1.14 1.15 1.16 1.17 1.18 1.8 1.9",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "LOOHP",
+        "description": "Chat enchancing plugin to work on top of your chat formatting plugins, adding functionalities such as sharing items and inventories to chat, and creation of custom chat placeholders!",
+        "icon": "https://cdn.modrinth.com/data/VOenPQ01/6f1fba8bd3556efdd567755d8ffbe6cae53b1fe7.png",
+        "loaders": [
+            "bungeecord",
+            "folia",
+            "paper",
+            "purpur",
+            "spigot",
+            "velocity",
+            "waterfall"
+        ],
+        "title": "InteractiveChat",
+        "url": "https://modrinth.com/plugin/interactivechat",
+        "versions": "1.10 1.10.1 1.10.2 1.11 1.11.1 1.11.2 1.12 1.12.1 1.12.2 1.13 1.13.1 1.13.2 1.14 1.14.1 1.14.2 1.14.3 1.14.4 1.15 1.15.1 1.15.2 1.16 1.16.1 1.16.2 1.16.3 1.16.4 1.16.5 1.17 1.17.1 1.18 1.18.1 1.18.2 1.19 1.19.1 1.19.2 1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9 1.8 1.8.1 1.8.2 1.8.3 1.8.4 1.8.5 1.8.6 1.8.7 1.8.8 1.8.9 1.9 1.9.1 1.9.2 1.9.3 1.9.4",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "LOOHP",
+        "description": "Integrate InteractiveChat features and more into DiscordSRV!",
+        "icon": "https://cdn.modrinth.com/data/LOvZJShs/0e3bda4e7044512f0948903ec553b1a925caf2c1.png",
+        "loaders": [],
+        "title": "InteractiveChat DiscordSRV Addon",
+        "url": "https://modrinth.com/plugin/interactivechat-discordsrv-addon/",
+        "versions": "1.10 1.10.1 1.10.2 1.11 1.11.1 1.11.2 1.12 1.12.1 1.12.2 1.13 1.13.1 1.13.2 1.14 1.14.1 1.14.2 1.14.3 1.14.4 1.15 1.15.1 1.15.2 1.16 1.16.1 1.16.2 1.16.3 1.16.4 1.16.5 1.17 1.17.1 1.18 1.18.1 1.18.2 1.19 1.19.1 1.19.2 1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9 1.8 1.8.1 1.8.2 1.8.3 1.8.4 1.8.5 1.8.6 1.8.7 1.8.8 1.8.9 1.9 1.9.1 1.9.2 1.9.3 1.9.4",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "Zrips",
+        "description": "A fully configurable plugin that allows you to get paid for breaking, placing, killing, fishing...",
+        "icon": "https://www.spigotmc.org/data/resource_icons/4/4216.jpg",
+        "loaders": [
+            "spigot",
+            "bukkit"
+        ],
+        "title": "Jobs Reborn",
+        "url": "https://www.spigotmc.org/resources/jobs-reborn.4216/",
+        "versions": "1.10 1.11 1.12 1.13 1.14 1.15 1.16 1.17 1.18 1.19 1.20 1.20.6 1.21 1.7 1.8 1.9",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "SkytAsul",
+        "description": "A plugin which allows you to propose note block songs/musics to your players. SQL integration!",
+        "icon": "https://www.spigotmc.org/data/resource_icons/40/40580.jpg",
+        "loaders": [
+            "spigot",
+            "bukkit"
+        ],
+        "title": "JukeBox - Music Plugin",
+        "url": "https://www.spigotmc.org/resources/jukebox-music-plugin.40580/",
+        "versions": "1.10 1.11 1.12 1.13 1.14 1.15 1.16 1.17 1.18 1.19 1.20 1.20.6 1.21 1.8 1.9",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "GFelberg",
+        "description": "Use the night vision in dark places",
+        "icon": "https://www.spigotmc.org/data/resource_icons/104/104977.jpg",
+        "loaders": [
+            "spigot",
+            "bukkit"
+        ],
+        "title": "Light",
+        "url": "https://www.spigotmc.org/resources/light.104977/",
+        "versions": "1.10 1.11 1.12 1.13 1.14 1.15 1.16 1.17 1.18 1.19 1.8 1.9",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "AuroraLS3",
+        "description": "Make more things compostable!",
+        "icon": "https://www.spigotmc.org/data/resource_icons/73/73880.jpg",
+        "loaders": [
+            "spigot",
+            "bukkit"
+        ],
+        "title": "Little Composter",
+        "url": "https://www.spigotmc.org/resources/little-composter.73880/",
+        "versions": "1.14 1.15 1.16 1.17 1.18 1.19",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "Larrox",
+        "description": "Removes the 1.21.6 Player Locator Bar in every World.",
+        "icon": "https://cdn.modrinth.com/data/Gtr4jzYI/f38c72a7fa5c184650f4a0818106eb69dbe4fbb1_96.webp",
+        "loaders": [
+            "bukkit",
+            "paper",
+            "purpur",
+            "spigot"
+        ],
+        "title": "locatorBarRemover",
+        "url": "https://modrinth.com/plugin/locatorbarremover",
+        "versions": "1.21 1.21.1 1.21.10 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9",
+        "category": "Survival Main Server",
+        "owner": "admin"
+    },
+    {
+        "author": "lucko",
+        "description": "A permissions plugin/mod for Minecraft servers.",
+        "icon": "https://cdn.modrinth.com/data/Vebnzrzj/90943902cc650e95b167265b8f2d7c893f82c8f4_96.webp",
+        "loaders": [
+            "bukkit",
+            "bungeecord",
+            "fabric",
+            "forge",
+            "neoforge",
+            "paper",
+            "spigot",
+            "velocity",
+            "waterfall"
+        ],
+        "title": "LuckPerms",
+        "url": "https://modrinth.com/plugin/luckperms",
+        "versions": "1.10 1.10.1 1.10.2 1.11 1.11.1 1.11.2 1.12 1.12.1 1.12.2 1.13 1.13.1 1.13.2 1.14 1.14.1 1.14.2 1.14.3 1.14.4 1.15 1.15.1 1.15.2 1.16 1.16.1 1.16.2 1.16.3 1.16.4 1.16.5 1.17 1.17.1 1.18 1.18.1 1.18.2 1.19 1.19.1 1.19.2 1.19.3 1.19.4 1.20 1.20.1 1.20.2 1.20.3 1.20.4 1.20.5 1.20.6 1.21 1.21.1 1.21.10 1.21.11 1.21.2 1.21.3 1.21.4 1.21.5 1.21.6 1.21.7 1.21.8 1.21.9 1.8.8 1.8.9 1.9 1.9.1 1.9.2 1.9.3 1.9.4",
+        "category": "Survival Main Server",
+        "owner": "admin"
     }
 ]
