@@ -50,22 +50,16 @@ def get_curseforge_title(url):
     try:
         parsed = urlparse(url)
         path_parts = parsed.path.strip('/').split('/')
+        if len(path_parts) < 3:
+            return None
         
-        if "dev.bukkit.org" in url:
-            project_slug = path_parts[1]
-            class_id = 5
-        else:
-            category = path_parts[1]
-            project_slug = path_parts[2]
-            if category == 'bukkit-plugins':
-                class_id = 5
-            elif category == 'mc-mods':
-                class_id = 6
-            elif category == 'modpacks':
-                class_id = 4471
-            else:
-                return None
-
+        category = path_parts[1]
+        project_slug = path_parts[2]
+        
+        class_id = 6 if category == 'mc-mods' else 4471 if category == 'modpacks' else None
+        if not class_id:
+            return None
+        
         api_url = f"https://api.curseforge.com/v1/mods/search?gameId=432&slug={project_slug}&classId={class_id}"
         
         headers = {
@@ -85,18 +79,33 @@ def get_curseforge_title(url):
     except Exception:
         return None
 
-# -------- GITHUB --------
-def get_github_title(repo):
+# -------- PLATFORM DETECTION --------
+def detect_platform(url):
     try:
-        url = f"https://api.github.com/repos/{repo}"
-        response = requests.get(url)
-        response.raise_for_status()
-        data = response.json()
-        return data.get("name")
-    except Exception:
-        return None
+        parsed = urlparse(url)
+        host = parsed.netloc
 
-from utils import detect_platform
+        if "modrinth.com" in host:
+            match = re.search(r"/(plugin|mod)/([^/]+)/?", parsed.path)
+            if match:
+                return "modrinth", match.group(2)
+
+        elif "spigotmc.org" in host:
+            return "spigot", url
+
+        elif "hangar.papermc.io" in host:
+            match = re.search(r"/([^/]+)/([^/]+)/?$", parsed.path)
+            if match:
+                author = match.group(1)
+                project = match.group(2)
+                return "hangar", f"{author}/{project}"
+
+        elif "curseforge.com" in host:
+            return "curseforge", url
+
+        return None, None
+    except Exception:
+        return None, None
 
 # -------- MAIN --------
 def main():
@@ -120,8 +129,6 @@ def main():
         title = get_hangar_title(identifier)
     elif platform == "curseforge":
         title = get_curseforge_title(identifier)
-    elif platform == "github":
-        title = get_github_title(identifier)
     else:
         print("Invalid URL", file=sys.stderr)
         sys.exit(1)
