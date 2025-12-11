@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: vulcanocraft-app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./plugins.json:/app/plugins.json
+      - ./users.json:/app/users.json
+      - ./server_categories.json:/app/server_categories.json
+      - ./loaders.json:/app/loaders.json
+      - ./settings.json:/app/settings.json
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  cron:
+    build: .
+    container_name: vulcanocraft-cron
+    restart: unless-stopped
+    volumes:
+      - ./plugins.json:/app/plugins.json
+      - ./users.json:/app/users.json
+      - ./server_categories.json:/app/server_categories.json
+      - ./loaders.json:/app/loaders.json
+      - ./settings.json:/app/settings.json
+    command: ["python", "cron.py"]
+    environment:
+      - PYTHONUNBUFFERED=1
