@@ -1,3 +1,6 @@
 flask
 requests
 playwright
+pymongo
+gunicorn
+python-dotenv
