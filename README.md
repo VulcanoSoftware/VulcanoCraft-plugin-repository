@@ -2,126 +2,103 @@
 
 [![CodeFactor](https://www.codefactor.io/repository/github/vulcanosoftware/vulcanocraft-plugin-repository/badge)](https://www.codefactor.io/repository/github/vulcanosoftware/vulcanocraft-plugin-repository)
 
-This repository contains a **Python-based tool** that automatically **fetches plugin information** and keeps it up to date.  
-It includes a small web interface for viewing the collected data, but its main focus is background automation.
+Dit project biedt een **volledig gecontaineriseerde, self-hosted webapplicatie** voor het beheren en weergeven van een verzameling Minecraft-plugins. Het haalt automatisch plugin-informatie op van diverse platforms en biedt een moderne webinterface met geavanceerde filteropties.
+
+Dankzij Docker is de installatie en het beheer sterk vereenvoudigd en is de applicatie klaar voor productie.
 
 ---
 
-## 🚀 Features
-- 🔄 **Automated Updates** – Background service fetches and updates plugin information hourly.
-- 👥 **User Management** – Registration, login, and role-based permissions (User, Co-Admin, Admin).
-- 🎨 **Modern UI** – Responsive design with animations and advanced filtering capabilities.
-- 🔍 **Advanced Filtering** – Search by name, version, platform, or loader.
-- 🛡️ **Admin Panel** – Manage users, plugins, categories, and system settings.
-- ⚡ **Optimized Scraping** – Fast plugin data fetching with Playwright.
-- 🖼️ **Smart Icons** – Automatic fallback to letter-based logos for broken images.
-- 📂 **Category Management** – Create, rename, and delete server categories.
-- 🔌 **Loader Filtering** – Filter plugins by their supported loaders (e.g., Paper, Spigot, Fabric).
-- 📢 **Public API** – Public API endpoint to access all plugins without authentication.
+## 🚀 Kenmerken
+
+- 🐳 **Volledig Gecontaineriseerd** – Eenvoudige installatie en beheer met Docker en Docker Compose.
+- 🔒 **Productie-Klaar** – Maakt gebruik van een Gunicorn WSGI-server voor robuuste prestaties.
+- 💾 **Persistente Data** – Alle data (plugins, gebruikers, etc.) wordt opgeslagen in een MongoDB-database met een persistent volume.
+- 🔄 **Automatische Updates** – Een achtergrondservice in een aparte container werkt de plugin-informatie elk uur bij.
+- 👥 **Gebruikersbeheer** – Registratie, login en op rollen gebaseerde permissies (User, Co-Admin, Admin).
+- 🎨 **Moderne UI** – Responsief ontwerp met een geavanceerd filtersysteem.
+- 🛡️ **Adminpaneel** – Beheer gebruikers, plugins, categorieën en systeeminstellingen.
 
 ---
 
-## 📂 Repository Structure
-```
-├── cron.py                 # Background updater (hourly plugin updates)
-├── webserver.py            # Flask web server with API endpoints
-├── launcher.py             # Plugin data fetcher
-├── create_admin.py         # Admin account creation utility
-├── fetchers/               # Platform-specific data scrapers
-│   ├── author.py
-│   ├── description.py
-│   ├── icon.py
-│   ├── titles.py
-│   └── versions.py
-├── components/
-│   ├── admin/
-│   │   └── admin.html      # Admin panel interface
-│   └── user/
-│       └── login.html      # User login/registration page
-├── images/                 # UI assets and icons
-├── index.html              # Main plugin browser interface
-├── style.css               # Styling and animations
-├── plugins.json            # Plugin database
-├── users.json              # User accounts database
-├── server_categories.json  # Server categories
-├── loaders.json            # Loader data
-└── requirements.txt        # Python dependencies
-```
+## 🛠️ Installatie & Gebruik
 
----
+### Vereisten
 
-## 🛠️ Installation & Usage
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
 
-### Requirements
-- Python 3.11
-- uv (Python package manager)
+### Stappen
 
-### Setup
+**1. Kloon de Repository**
+
 ```bash
-# Install dependencies
-uv pip install -r requirements.txt
-
-# Install Playwright browsers
-playwright install
-
-# Create admin account
-python create_admin.py
+git clone https://github.com/VulcanoSoftware/VulcanoCraft-Plugin-Repository.git
+cd VulcanoCraft-Plugin-Repository
 ```
 
-### Running the Application
+**2. Configureer de Omgeving**
 
-**Start the web server:**
+Maak een `.env`-bestand aan door het voorbeeld te kopiëren. Hier kun je de standaard MongoDB-instellingen aanpassen indien nodig.
+
 ```bash
-uv run webserver.py
+cp .env.example .env
 ```
-Access at: `http://localhost:5000`
 
-**Start background updater (optional):**
+**3. Bouw en Start de Applicatie**
+
+Gebruik Docker Compose om de images te bouwen en alle services te starten. De `-d` vlag zorgt ervoor dat de containers op de achtergrond draaien.
+
 ```bash
-uv run cron.py
+docker-compose build
+docker-compose up -d
 ```
-Updates all plugins every hour automatically.
+
+De applicatie is nu toegankelijk op `http://localhost:5000`.
+
+**4. Maak een Admin-account aan**
+
+Voer het volgende commando uit om een admin-account aan te maken. Je kunt de standaard `admin:admin123` gebruiken of je eigen credentials opgeven.
+
+```bash
+# Standaard admin-account aanmaken
+docker-compose exec app python create_admin.py
+
+# Een aangepast admin-account aanmaken
+docker-compose exec app python create_admin.py <jouw-gebruikersnaam> <jouw-wachtwoord>
+```
 
 ---
 
-## 👥 User Roles
+## 🐳 Docker Services Beheren
 
-- **User** – Add, view, and delete own plugins
-- **Co-Admin** – Manage all plugins and view users
-- **Admin** – Full access including user management and settings
+- **Applicatielogs bekijken:**
+  ```bash
+  docker-compose logs -f app
+  ```
+
+- **Cronjob-logs bekijken:**
+  ```bash
+  docker-compose logs -f cron
+  ```
+
+- **Alle services stoppen:**
+  ```bash
+  docker-compose down
+  ```
+
+- **Alle services stoppen en het databasevolume verwijderen (alle data gaat verloren!):**
+  ```bash
+  docker-compose down -v
+  ```
 
 ---
 
-## 🌐 Supported Platforms
+## 🌐 Ondersteunde Platforms
 
 - **SpigotMC** – `spigotmc.org/resources/*`
 - **Modrinth** – `modrinth.com/plugin/*`
 - **Hangar** – `hangar.papermc.io/*/*`
 - **CurseForge** – `curseforge.com/minecraft/*`
-
----
-
-## 📝 API Endpoints
-
-- `GET /` – Main plugin browser
-- `GET /login-page` – User login/registration
-- `GET /admin` – Admin panel
-- `GET /api/plugins` – Get plugins for the authenticated user
-- `GET /api/plugins/public` – Get all plugins (public)
-- `GET /api/server_categories` – Get all server categories
-- `GET /api/loaders` – Get all loaders
-- `POST /add_plugin` – Add a new plugin (authenticated)
-- `POST /delete_plugin` – Delete a plugin (authenticated)
-- `POST /login` – User login
-- `POST /register` – User registration
-- `POST /logout` – User logout
-- `GET /auth-status` – Check authentication status
-- `GET /registration-status` – Check if registration is enabled
-- `GET /admin/users` – Get all users (admin)
-- `DELETE /admin/users/<username>` – Delete a user (admin)
-- `POST /admin/users/<username>/role` – Change a user's role (admin)
-- `GET /admin/plugins` – Get all plugins (admin)
-- `DELETE /admin/plugins/<path:url>` – Delete a plugin (admin)
 
 ---
 <p align="right">made possible by <code>_.g.a.u.t.a.m._</code> on discord.</p>

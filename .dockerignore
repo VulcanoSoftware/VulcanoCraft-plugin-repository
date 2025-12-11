@@ -1,0 +1,16 @@
+.git
+.gitignore
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+.DS_Store
+.idea
+.vscode
+npm_debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+.env.local
