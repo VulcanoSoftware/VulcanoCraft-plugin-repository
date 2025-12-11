@@ -164,16 +164,6 @@ def get_curseforge_loaders(url, api_key):
 
 
 # ---------------------------------------------------------
-# GitHub
-# ---------------------------------------------------------
-
-def get_github_loaders(repo):
-    """Haalt de loaders voor een specifiek GitHub-project op."""
-    return ["github"]
-
-from utils import detect_platform
-
-# ---------------------------------------------------------
 # MAIN
 # ---------------------------------------------------------
 
@@ -183,27 +173,42 @@ def main():
         sys.exit(1)
 
     url = sys.argv[1]
-    platform, identifier = detect_platform(url)
 
-    loaders = []
-    if platform == "modrinth":
-        loaders = get_modrinth_loaders(identifier)
-    elif platform == "spigot":
-        resource_id = url.split('.')[-1].split('/')[0]
-        loaders = get_spigotmc_loaders(resource_id)
-    elif platform == "hangar":
-        author, slug = identifier.split('/')
+    # Modrinth
+    if "modrinth.com" in url:
+        project_id = url.split('/')[-1]
+        loaders = get_modrinth_loaders(project_id)
+        print(json.dumps(loaders))
+        return
+
+    # SpigotMC
+    if "spigotmc.org" in url:
+        try:
+            resource_id = url.split('.')[-1].split('/')[0]
+            loaders = get_spigotmc_loaders(resource_id)
+            print(json.dumps(loaders))
+        except IndexError:
+            print(json.dumps([]))
+        return
+
+    # Hangar
+    if "hangar.papermc.io" in url:
+        parts = url.strip('/').split('/')
+        author = parts[-2]
+        slug = parts[-1]
         loaders = get_hangar_loaders(author, slug)
-    elif platform == "curseforge":
-        api_key = os.environ.get("CURSEFORGE_API_KEY")
-        if not api_key:
-            print("CURSEFORGE_API_KEY environment variable not set", file=sys.stderr)
-            sys.exit(1)
-        loaders = get_curseforge_loaders(identifier, api_key)
-    elif platform == "github":
-        loaders = get_github_loaders(identifier)
+        print(json.dumps(loaders))
+        return
 
-    print(json.dumps(loaders))
+    # CurseForge
+    if "curseforge.com" in url:
+        api_key = "$2a$10$bL4bIL5pUWqfcO7KQtnMReakwtfHbNKh6v1uTpKlzhwoueEJQnPnm"
+        loaders = get_curseforge_loaders(url, api_key)
+        print(json.dumps(loaders))
+        return
+
+    # Onbekende URL → leeg
+    print(json.dumps([]))
 
 
 if __name__ == "__main__":
