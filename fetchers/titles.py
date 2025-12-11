@@ -1,8 +1,13 @@
 import argparse
+import os
 import re
 import requests
 import sys
 from urllib.parse import urlparse
+
+# Voeg de bovenliggende map toe aan het systeempad om utils te kunnen importeren
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from fetchers.utils import detect_platform
 
 # -------- MODRINTH --------
 def get_modrinth_title(slug):
@@ -46,81 +51,62 @@ def get_hangar_title(combined_slug):
         return None
 
 # -------- CURSEFORGE --------
-def get_curseforge_title(url):
+def get_curseforge_title(slug):
+    """Haalt de titel van een CurseForge/Bukkit plugin op via de slug."""
     try:
-        parsed = urlparse(url)
-        path_parts = parsed.path.strip('/').split('/')
-        if len(path_parts) < 3:
-            return None
-        
-        category = path_parts[1]
-        project_slug = path_parts[2]
-        
-        class_id = 6 if category == 'mc-mods' else 4471 if category == 'modpacks' else None
-        if not class_id:
-            return None
-        
-        api_url = f"https://api.curseforge.com/v1/mods/search?gameId=432&slug={project_slug}&classId={class_id}"
+        # We zoeken zonder classId om het algemeen te houden voor alle project types.
+        api_url = f"https://api.curseforge.com/v1/mods/search?gameId=432&slug={slug}"
         
         headers = {
             'Accept': 'application/json',
-            'x-api-key': '$2a$10$bL4bIL5pUWqfcO7KQtnMReakwtfHbNKh6v1uTpKlzhwoueEJQnPnm'
+            'x-api-key': os.environ.get('CURSEFORGE_API_KEY', '$2a$10$bL4bIL5pUWqfcO7KQtnMReakwtfHbNKh6v1uTpKlzhwoueEJQnPnm')
         }
         
         response = requests.get(api_url, headers=headers)
-        if response.status_code != 200:
-            return None
+        response.raise_for_status()
         
         data = response.json()
         if data.get('data'):
-            return data['data'][0].get('name')
-        
+            # De zoekopdracht kan meerdere resultaten geven, we nemen de eerste die exact overeenkomt.
+            for mod in data['data']:
+                if mod.get('slug') == slug:
+                    return mod.get('name')
         return None
     except Exception:
         return None
 
-# -------- PLATFORM DETECTION --------
-def detect_platform(url):
+# -------- GITHUB --------
+def get_github_title(repo_identifier):
+    """Haalt de titel (repositorynaam) van een GitHub repository op."""
     try:
-        parsed = urlparse(url)
-        host = parsed.netloc
-
-        if "modrinth.com" in host:
-            match = re.search(r"/(plugin|mod)/([^/]+)/?", parsed.path)
-            if match:
-                return "modrinth", match.group(2)
-
-        elif "spigotmc.org" in host:
-            return "spigot", url
-
-        elif "hangar.papermc.io" in host:
-            match = re.search(r"/([^/]+)/([^/]+)/?$", parsed.path)
-            if match:
-                author = match.group(1)
-                project = match.group(2)
-                return "hangar", f"{author}/{project}"
-
-        elif "curseforge.com" in host:
-            return "curseforge", url
-
-        return None, None
+        api_url = f"https://api.github.com/repos/{repo_identifier}"
+        response = requests.get(api_url)
+        response.raise_for_status()
+        data = response.json()
+        # Gebruik 'name' voor de pure repositorynaam, 'full_name' bevat ook de eigenaar.
+        return data.get("name")
     except Exception:
-        return None, None
+        return None
 
 # -------- MAIN --------
 def main():
-    parser = argparse.ArgumentParser(description="Extract plugin title from Modrinth, SpigotMC, or Hangar URLs")
-    parser.add_argument("url", nargs="?", help="Plugin URL from Modrinth, SpigotMC, or Hangar")
+    parser = argparse.ArgumentParser(description="Extraheer plugintitel van ondersteunde platformen.")
+    parser.add_argument("url", nargs="?", help="Plugin URL")
     args = parser.parse_args()
 
     if not args.url:
-        args.url = input("Enter a plugin URL: ").strip()
+        if sys.stdin.isatty():
+            args.url = input("Voer een plugin URL in: ").strip()
+        else:
+            args.url = sys.stdin.read().strip()
 
     platform, identifier = detect_platform(args.url)
+
     if not platform:
-        print("Invalid URL", file=sys.stderr)
+        print("Ongeldige of niet-ondersteunde URL", file=sys.stderr)
         sys.exit(1)
 
+    title = None
     if platform == "modrinth":
         title = get_modrinth_title(identifier)
     elif platform == "spigot":
@@ -129,13 +115,16 @@ def main():
         title = get_hangar_title(identifier)
     elif platform == "curseforge":
         title = get_curseforge_title(identifier)
+    elif platform == "github":
+        title = get_github_title(identifier)
     else:
-        print("Invalid URL", file=sys.stderr)
+        print(f"Platform '{platform}' wordt nog niet ondersteund.", file=sys.stderr)
         sys.exit(1)
 
     if title is None:
-        print("", file=sys.stderr)
-        sys.exit(1)
+        # Een lege output is prima als er geen titel is, maar we vermijden een fout.
+        print("")
+        sys.exit(0)
     else:
         print(title)
 
