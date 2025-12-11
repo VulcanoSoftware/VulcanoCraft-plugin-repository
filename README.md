@@ -3,11 +3,12 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/vulcanosoftware/vulcanocraft-plugin-repository/badge)](https://www.codefactor.io/repository/github/vulcanosoftware/vulcanocraft-plugin-repository)
 
 This repository contains a **Python-based tool** that automatically **fetches plugin information** and keeps it up to date.  
-It includes a small web interface for viewing the collected data, but its main focus is background automation.
+It includes a web interface for viewing the collected data, user management, and an admin panel.
 
 ---
 
 ## 🚀 Features
+- 🐳 **Dockerized for Production** – Easy to deploy and manage with Docker Compose.
 - 🔄 **Automated Updates** – Background service fetches and updates plugin information hourly.
 - 👥 **User Management** – Registration, login, and role-based permissions (User, Co-Admin, Admin).
 - 🎨 **Modern UI** – Responsive design with animations and advanced filtering capabilities.
@@ -21,66 +22,69 @@ It includes a small web interface for viewing the collected data, but its main f
 
 ---
 
-## 📂 Repository Structure
-```
-├── cron.py                 # Background updater (hourly plugin updates)
-├── webserver.py            # Flask web server with API endpoints
-├── launcher.py             # Plugin data fetcher
-├── create_admin.py         # Admin account creation utility
-├── fetchers/               # Platform-specific data scrapers
-│   ├── author.py
-│   ├── description.py
-│   ├── icon.py
-│   ├── titles.py
-│   └── versions.py
-├── components/
-│   ├── admin/
-│   │   └── admin.html      # Admin panel interface
-│   └── user/
-│       └── login.html      # User login/registration page
-├── images/                 # UI assets and icons
-├── index.html              # Main plugin browser interface
-├── style.css               # Styling and animations
-├── plugins.json            # Plugin database
-├── users.json              # User accounts database
-├── server_categories.json  # Server categories
-├── loaders.json            # Loader data
-└── requirements.txt        # Python dependencies
-```
+## 🐳 Production Setup with Docker
 
----
-
-## 🛠️ Installation & Usage
+This application is designed to run in production using Docker and Docker Compose.
 
 ### Requirements
-- Python 3.11
-- uv (Python package manager)
+- Docker
+- Docker Compose
 
-### Setup
+### 1. Initial Setup
+
+Before starting the containers, you need to create the necessary JSON files for data storage. These files will be mounted into the containers, ensuring your data is persisted on the host machine.
+
+Create the following empty JSON files in the root of the repository:
+- `plugins.json` (use `[]`)
+- `users.json` (use `[]`)
+- `server_categories.json` (use `[]`)
+- `loaders.json` (use `[]`)
+- `settings.json` (use `{}`)
+
 ```bash
-# Install dependencies
-uv pip install -r requirements.txt
-
-# Install Playwright browsers
-playwright install
-
-# Create admin account
-python create_admin.py
+touch plugins.json users.json server_categories.json loaders.json settings.json
+echo "[]" > plugins.json
+echo "[]" > users.json
+echo "[]" > server_categories.json
+echo "[]" > loaders.json
+echo "{}" > settings.json
 ```
 
-### Running the Application
+### 2. Build and Start the Services
 
-**Start the web server:**
-```bash
-uv run webserver.py
-```
-Access at: `http://localhost:5000`
+Build and start the web application and the background cron job using Docker Compose:
 
-**Start background updater (optional):**
 ```bash
-uv run cron.py
+docker-compose up --build -d
 ```
-Updates all plugins every hour automatically.
+The web application will be accessible at `http://localhost:5000`.
+
+### 3. Create an Admin Account
+
+Once the `app` container is running, create the initial admin account by executing the `create_admin.py` script inside the container:
+
+```bash
+docker-compose exec app python create_admin.py
+```
+You will be prompted to enter a username and password for the new admin account.
+
+### 4. Managing the Services
+
+- **View Logs:**
+  To see the logs for the web server or the cron job:
+  ```bash
+  # View logs for the web server
+  docker-compose logs -f app
+
+  # View logs for the cron job
+  docker-compose logs -f cron
+  ```
+
+- **Stop Services:**
+  To stop the running containers:
+  ```bash
+  docker-compose down
+  ```
 
 ---
 
@@ -98,30 +102,6 @@ Updates all plugins every hour automatically.
 - **Modrinth** – `modrinth.com/plugin/*`
 - **Hangar** – `hangar.papermc.io/*/*`
 - **CurseForge** – `curseforge.com/minecraft/*`
-
----
-
-## 📝 API Endpoints
-
-- `GET /` – Main plugin browser
-- `GET /login-page` – User login/registration
-- `GET /admin` – Admin panel
-- `GET /api/plugins` – Get plugins for the authenticated user
-- `GET /api/plugins/public` – Get all plugins (public)
-- `GET /api/server_categories` – Get all server categories
-- `GET /api/loaders` – Get all loaders
-- `POST /add_plugin` – Add a new plugin (authenticated)
-- `POST /delete_plugin` – Delete a plugin (authenticated)
-- `POST /login` – User login
-- `POST /register` – User registration
-- `POST /logout` – User logout
-- `GET /auth-status` – Check authentication status
-- `GET /registration-status` – Check if registration is enabled
-- `GET /admin/users` – Get all users (admin)
-- `DELETE /admin/users/<username>` – Delete a user (admin)
-- `POST /admin/users/<username>/role` – Change a user's role (admin)
-- `GET /admin/plugins` – Get all plugins (admin)
-- `DELETE /admin/plugins/<path:url>` – Delete a plugin (admin)
 
 ---
 <p align="right">made possible by <code>_.g.a.u.t.a.m._</code> on discord.</p>
