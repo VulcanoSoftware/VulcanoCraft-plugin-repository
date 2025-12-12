@@ -72,7 +72,6 @@ class Filters {
         });
 
         this.onFilterChange(filteredPlugins);
-        UI.updateCategoryCounts(this.allPlugins);
     }
 
     reset() {

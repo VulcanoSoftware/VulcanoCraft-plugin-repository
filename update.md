@@ -43,7 +43,7 @@ components/
 - Resolved logout button positioning problems
 - Fixed admin session persistence on page refresh
 
-### 📋 Current Features
+### 📋 Current Features (samenvatting)
 1. **User System**: Registration, login, logout with secure sessions
 2. **Plugin Management**: Add, view, delete plugins per user
 3. **Admin Panel**: User management, registration control, plugin statistics

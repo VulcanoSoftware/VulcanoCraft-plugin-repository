@@ -2,6 +2,7 @@ import json
 import os
 import subprocess
 import sys
+from pymongo import MongoClient
 
 def run_script(script_name, url):
     """Voert een Python script uit uit de fetchers map met de gegeven URL en retourneert de output"""
@@ -52,34 +53,20 @@ def get_plugin_data(url):
     return plugin
 
 def save_to_file(plugin):
-    """Slaat een plugin op in het plugins.json bestand"""
-    plugins = []
-    if os.path.exists('plugins.json'):
-        with open('plugins.json', 'r', encoding='utf-8') as f:
-            try:
-                plugins = json.load(f)
-            except json.JSONDecodeError:
-                pass
-
-    # Zoek de bestaande plugin en behoud de 'owner'
-    existing_plugin = next((p for p in plugins if p.get('url') == plugin['url']), None)
-    if existing_plugin:
-        if 'owner' in existing_plugin:
-            plugin['owner'] = existing_plugin['owner']
-
-        for key in ['author', 'icon']:
-            if existing_plugin.get(key) and not plugin.get(key):
-                plugin[key] = existing_plugin[key]
-
-    # Verwijder de oude plugin (indien aanwezig) en voeg de nieuwe toe
-    plugins = [p for p in plugins if p.get('url') != plugin['url']]
-    plugins.append(plugin)
-
-    # Schrijf de bijgewerkte lijst terug naar het bestand
-    with open('plugins.json', 'w', encoding='utf-8') as f:
-        json.dump(plugins, f, indent=4, ensure_ascii=False)
-    
-    print(f"Plugin {plugin['url']} is opgeslagen in plugins.json!")
+    mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+    mongo_db_name = os.getenv("MONGO_DB_NAME", "vulcanocraft")
+    mongo_client = MongoClient(mongo_uri)
+    db = mongo_client[mongo_db_name]
+    plugins_collection = db.plugins
+    existing_plugin = plugins_collection.find_one({"url": plugin["url"]})
+    if existing_plugin and existing_plugin.get("owner") and not plugin.get("owner"):
+        plugin["owner"] = existing_plugin["owner"]
+    plugins_collection.update_one(
+        {"url": plugin["url"], "owner": plugin.get("owner")},
+        {"$set": plugin},
+        upsert=True,
+    )
+    print(f"Plugin {plugin['url']} is opgeslagen in de database!")
 
 def main():
     # Controleer command-line argumenten

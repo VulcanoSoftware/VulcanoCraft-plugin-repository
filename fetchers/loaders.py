@@ -4,7 +4,6 @@ import json
 import os
 import re
 
-
 # ---------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------
@@ -84,18 +83,21 @@ def get_hangar_loaders(author, slug):
         return []
 
 
+CURSEFORGE_API_KEY = os.environ.get("CURSEFORGE_API_KEY")
+
+
 # ---------------------------------------------------------
 # CurseForge — 100% dynamisch, geen hardcoded loaders
 # ---------------------------------------------------------
 
-def get_curseforge_loaders(url, api_key):
+def get_curseforge_loaders(url, api_key=None):
     """Haalt de loaders voor een specifiek CurseForge-project op (volledig dynamisch)."""
     slug = extract_slug_from_url(url)
     if not slug:
         return []
 
     headers = {
-        'x-api-key': api_key,
+        'x-api-key': api_key or CURSEFORGE_API_KEY or '',
         'Accept': 'application/json',
     }
 

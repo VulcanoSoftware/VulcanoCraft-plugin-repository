@@ -1,8 +1,11 @@
 import argparse
+import os
 import re
 import requests
 import sys
 from urllib.parse import urlparse
+
+CURSEFORGE_API_KEY = os.environ.get("CURSEFORGE_API_KEY")
 
 # -------- MODRINTH --------
 def get_modrinth_server_game_versions(slug):
@@ -163,7 +166,7 @@ def get_curseforge_game_versions(url):
         
         headers = {
             'Accept': 'application/json',
-            'x-api-key': '$2a$10$bL4bIL5pUWqfcO7KQtnMReakwtfHbNKh6v1uTpKlzhwoueEJQnPnm'
+            'x-api-key': CURSEFORGE_API_KEY or ''
         }
         
         response = requests.get(api_url, headers=headers)

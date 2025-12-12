@@ -42,9 +42,7 @@
 - **Co-Admin**: View-only access to user list
 - **User**: No access to user management
 
-## Default Credentials
-- Username: `admin`
-- Password: `admin123`
-- Role: `admin`
-
-**Important**: Change the default password after first login!
+## Default Admin Account
+- Wordt aangemaakt via `python create_admin.py` of binnen Docker:
+  - `docker compose exec app python create_admin.py`
+- Kies tijdens het aanmaken altijd een sterk, uniek wachtwoord.

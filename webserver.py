@@ -5,26 +5,39 @@ import subprocess
 import sys
 import hashlib
 import secrets
+from pymongo import MongoClient
 
 app = Flask(__name__)
-app.secret_key = secrets.token_hex(16)
+env_name = os.getenv("FLASK_ENV", "development")
+secret_key = os.getenv("FLASK_SECRET_KEY")
+if env_name == "production" and not secret_key:
+    raise RuntimeError("FLASK_SECRET_KEY must be set in production")
+app.secret_key = secret_key or secrets.token_hex(32)
+
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "vulcanocraft")
+mongo_client = MongoClient(MONGO_URI)
+db = mongo_client[MONGO_DB_NAME]
+db.users.create_index("username", unique=True)
+db.plugins.create_index([("url", 1), ("owner", 1)], unique=True)
 
 def load_plugins():
-    """Laad de plugins data uit het JSON bestand"""
+    """Laad de plugins data"""
     try:
-        if os.path.exists('plugins.json'):
-            with open('plugins.json', 'r', encoding='utf-8') as f:
-                return json_module.load(f)
-        return []
+        plugins = list(db.plugins.find({}, {"_id": 0}))
+        return plugins
     except Exception as e:
         print(f"Fout bij het laden van plugins: {e}")
         return []
-
+    
 def save_plugins(plugins):
-    """Sla plugins op in het JSON bestand"""
+    """Sla plugins op in de database"""
     try:
-        with open('plugins.json', 'w', encoding='utf-8') as f:
-            json_module.dump(plugins, f, indent=4, ensure_ascii=False)
+        if not isinstance(plugins, list):
+            return False
+        db.plugins.delete_many({})
+        if plugins:
+            db.plugins.insert_many(plugins)
         return True
     except Exception as e:
         print(f"Fout bij het opslaan van plugins: {e}")
@@ -32,44 +45,61 @@ def save_plugins(plugins):
 
 def get_user_plugins(username):
     """Haal plugins van specifieke gebruiker op"""
-    plugins = load_plugins()
-    return [p for p in plugins if p.get('owner') == username]
+    try:
+        return list(db.plugins.find({"owner": username}, {"_id": 0}))
+    except Exception as e:
+        print(f"Fout bij het laden van plugins voor gebruiker: {e}")
+        return []
 
 def add_user_plugin(username, plugin_data):
     """Voeg plugin toe voor specifieke gebruiker"""
-    plugins = load_plugins()
-    plugin_data['owner'] = username
-    plugins = [p for p in plugins if not (p.get('url') == plugin_data['url'] and p.get('owner') == username)]
-    plugins.append(plugin_data)
-    return save_plugins(plugins)
+    try:
+        plugin_data = dict(plugin_data or {})
+        plugin_data["owner"] = username
+        db.plugins.update_one(
+            {"url": plugin_data.get("url"), "owner": username},
+            {"$set": plugin_data},
+            upsert=True,
+        )
+        return True
+    except Exception as e:
+        print(f"Fout bij het toevoegen van plugin: {e}")
+        return False
 
 def delete_user_plugin(username, url):
     """Verwijder plugin van specifieke gebruiker"""
-    plugins = load_plugins()
-    new_plugins = [p for p in plugins if not (p.get('url') == url and p.get('owner') == username)]
-    return save_plugins(new_plugins) if len(new_plugins) != len(plugins) else False
+    try:
+        result = db.plugins.delete_one({"url": url, "owner": username})
+        return result.deleted_count > 0
+    except Exception as e:
+        print(f"Fout bij verwijderen plugin voor gebruiker: {e}")
+        return False
 
 def delete_any_plugin(url):
     """Verwijder plugin (admin functie)"""
-    plugins = load_plugins()
-    new_plugins = [p for p in plugins if p.get('url') != url]
-    return save_plugins(new_plugins) if len(new_plugins) != len(plugins) else False
+    try:
+        result = db.plugins.delete_many({"url": url})
+        return result.deleted_count > 0
+    except Exception as e:
+        print(f"Fout bij verwijderen plugin: {e}")
+        return False
 
 def load_users():
-    """Laad gebruikers uit users.json"""
+    """Laad gebruikers"""
     try:
-        if os.path.exists('users.json'):
-            with open('users.json', 'r', encoding='utf-8') as f:
-                return json_module.load(f)
-        return []
+        users = list(db.users.find({}, {"_id": 0}))
+        return users
     except Exception:
         return []
-
+    
 def save_users(users):
-    """Sla gebruikers op in users.json"""
+    """Sla gebruikers op"""
     try:
-        with open('users.json', 'w', encoding='utf-8') as f:
-            json_module.dump(users, f, indent=4, ensure_ascii=False)
+        if not isinstance(users, list):
+            return False
+        db.users.delete_many({})
+        if users:
+            db.users.insert_many(users)
         return True
     except Exception:
         return False
@@ -117,37 +147,40 @@ def get_current_user():
 def load_settings():
     """Laad instellingen"""
     try:
-        if os.path.exists('settings.json'):
-            with open('settings.json', 'r', encoding='utf-8') as f:
-                return json_module.load(f)
+        doc = db.settings.find_one({"_id": "app_settings"})
+        if doc:
+            doc.pop("_id", None)
+            return doc
         return {'registration_enabled': True}
     except Exception:
         return {'registration_enabled': True}
-
+    
 def save_settings(settings):
     """Sla instellingen op"""
     try:
-        with open('settings.json', 'w', encoding='utf-8') as f:
-            json_module.dump(settings, f, indent=4)
+        if not isinstance(settings, dict):
+            return False
+        db.settings.update_one({"_id": "app_settings"}, {"$set": settings}, upsert=True)
         return True
     except Exception:
         return False
 
 def load_server_categories():
-    """Laad server categorieën uit server_categories.json"""
+    """Laad server categorieën"""
     try:
-        if os.path.exists('server_categories.json'):
-            with open('server_categories.json', 'r', encoding='utf-8') as f:
-                return json_module.load(f)
-        return []
+        categories = list(db.server_categories.find({}, {"_id": 0}))
+        return categories
     except Exception:
         return []
-
+    
 def save_server_categories(categories):
-    """Sla server categorieën op in server_categories.json"""
+    """Sla server categorieën op"""
     try:
-        with open('server_categories.json', 'w', encoding='utf-8') as f:
-            json_module.dump(categories, f, indent=4, ensure_ascii=False)
+        if not isinstance(categories, list):
+            return False
+        db.server_categories.delete_many({})
+        if categories:
+            db.server_categories.insert_many(categories)
         return True
     except Exception:
         return False
@@ -239,11 +272,8 @@ def api_server_info():
 def api_loaders():
     """API endpoint for loaders data"""
     try:
-        if os.path.exists('loaders.json'):
-            with open('loaders.json', 'r', encoding='utf-8') as f:
-                loaders = json_module.load(f)
-                return jsonify(loaders)
-        return jsonify([])
+        loaders = list(db.loaders.find({}, {"_id": 0}))
+        return jsonify(loaders)
     except Exception as e:
         print(f"Fout bij het laden van loaders: {e}")
         return jsonify({'error': 'Fout bij het laden van loaders'}), 500
@@ -603,24 +633,22 @@ def admin_update_plugin_details(url):
         if not new_title or not new_author:
             return jsonify({'error': 'Titel en auteur zijn vereist'}), 400
 
-        plugins = load_plugins()
-        plugin_found = False
-        for plugin in plugins:
-            if plugin.get('url') == url:
-                plugin['title'] = new_title
-                plugin['author'] = new_author
-                if new_category is not None:
-                    plugin['category'] = new_category
-                plugin_found = True
-                break
-        
-        if plugin_found:
-            if save_plugins(plugins):
-                return jsonify({'success': True})
-            else:
-                return jsonify({'error': 'Fout bij opslaan van plugin details'}), 500
-        else:
+        update_data = {
+            "title": new_title,
+            "author": new_author,
+        }
+        if new_category is not None:
+            update_data["category"] = new_category
+
+        result = db.plugins.update_many(
+            {"url": url},
+            {"$set": update_data},
+        )
+
+        if result.matched_count == 0:
             return jsonify({'error': 'Plugin niet gevonden'}), 404
+
+        return jsonify({'success': True})
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -676,27 +704,18 @@ def add_plugin():
 @app.route('/delete_plugin', methods=['POST'])
 @require_login
 def delete_plugin():
-    """Verwijder een plugin uit de repository"""
     try:
         data = request.get_json()
         url = data.get('url')
-        
+
         if not url:
             return jsonify({'error': 'Geen URL opgegeven'}), 400
-        
-        username = session['user']
-        user = get_current_user()
-        
-        # Admin en co-admin kunnen elke plugin verwijderen
-        if user and user.get('role') in ['admin', 'co-admin']:
-            if delete_any_plugin(url):
-                return jsonify({'success': True, 'message': 'Plugin succesvol verwijderd'})
-        # Normale gebruikers kunnen alleen hun eigen plugins verwijderen
-        elif delete_user_plugin(username, url):
+
+        if delete_any_plugin(url):
             return jsonify({'success': True, 'message': 'Plugin succesvol verwijderd'})
-        
+
         return jsonify({'error': 'Plugin niet gevonden of fout bij verwijderen'}), 404
-        
+
     except Exception as e:
         return jsonify({'error': f'Onverwachte fout: {str(e)}'}), 500
 
