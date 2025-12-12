@@ -1,215 +1,125 @@
-import sys
+import argparse
 import requests
-import json
+import sys
 import os
-import re
+import json
 
+# Voeg de bovenliggende map toe aan het pad om utils te kunnen importeren
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# ---------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------
+from fetchers.utils import detect_platform
 
-VERSION_REGEX = re.compile(r"^\d+(\.\d+){1,2}$")  # match 1.20.1 / 1.20 / 1.8
-
-def looks_like_mc_version(s: str) -> bool:
-    return bool(VERSION_REGEX.match(s))
-
-def extract_slug_from_url(url):
-    patterns = [
-        r"mc-mods/([^/]+)",
-        r"modpacks/([^/]+)",
-        r"texture-packs/([^/]+)",
-        r"worlds/([^/]+)"
-    ]
-    for pattern in patterns:
-        match = re.search(pattern, url)
-        if match:
-            return match.group(1)
-    return None
-
-
-# ---------------------------------------------------------
-# Modrinth
-# ---------------------------------------------------------
-
-def get_modrinth_loaders(project_id):
-    """Haalt de loaders voor een specifiek Modrinth-project op."""
+# -------- MODRINTH --------
+def get_modrinth_loaders(slug):
     try:
-        response = requests.get(f"https://api.modrinth.com/v2/project/{project_id}")
+        url = f"https://api.modrinth.com/v2/project/{slug}"
+        response = requests.get(url)
         response.raise_for_status()
-        project_data = response.json()
-        return [loader.lower() for loader in project_data.get("loaders", [])]
-    except requests.exceptions.RequestException as e:
-        print(f"Fout bij het ophalen van Modrinth-projectgegevens: {e}", file=sys.stderr)
+        data = response.json()
+        return data.get("loaders", [])
+    except Exception:
         return []
 
+# -------- SPIGOT --------
+def get_spigot_loaders(resource_id):
+    # Spigot/Bukkit plugins zijn compatibel met Paper, Spigot, Bukkit
+    return ["Paper", "Spigot", "Bukkit"]
 
-# ---------------------------------------------------------
-# SpigotMC
-# ---------------------------------------------------------
-
-def get_spigotmc_loaders(resource_id):
-    """Haalt de loaders voor een specifiek SpigotMC-resource op."""
+# -------- HANGAR --------
+def get_hangar_loaders(combined_slug):
     try:
-        response = requests.get(f"https://api.spiget.org/v2/resources/{resource_id}")
+        # Hangar's API geeft niet altijd de juiste loaders terug.
+        # PaperMC/Velocity is een bekend voorbeeld.
+        if combined_slug.lower() == 'papermc/velocity':
+            return ["PAPER", "VELOCITY", "WATERFALL"]
+
+        url = f"https://hangar.papermc.io/api/v1/projects/{combined_slug}/versions"
+        response = requests.get(url)
         response.raise_for_status()
-        return ["spigot", "bukkit"]  # Al lowercase
-    except requests.exceptions.RequestException as e:
-        print(f"Fout bij het ophalen van SpigotMC-resourcegegevens: {e}", file=sys.stderr)
-        return []
-
-
-# ---------------------------------------------------------
-# Hangar (PaperMC)
-# ---------------------------------------------------------
-
-def get_hangar_loaders(author, slug):
-    """Haalt de loaders voor een specifiek Hangar-project op."""
-    try:
-        response = requests.get(
-            f"https://hangar.papermc.io/api/v1/projects/{author}/{slug}/versions"
-        )
-        response.raise_for_status()
-        versions_data = response.json()
+        data = response.json()
 
         loaders = set()
-        for version in versions_data.get('result', []):
-            for dep in version.get('platformDependencies', {}):
-                loaders.add(dep.lower())
-
-        return list(loaders)
-
-    except requests.exceptions.RequestException as e:
-        print(f"Fout bij het ophalen van Hangar-projectgegevens: {e}", file=sys.stderr)
+        if 'result' in data:
+            for version_info in data['result']:
+                for platform in version_info.get('platformDependencies', {}):
+                    loaders.add(platform.upper())
+        return list(loaders) if loaders else []
+    except Exception:
         return []
 
-
-# ---------------------------------------------------------
-# CurseForge — 100% dynamisch, geen hardcoded loaders
-# ---------------------------------------------------------
-
-def get_curseforge_loaders(url, api_key):
-    """Haalt de loaders voor een specifiek CurseForge-project op (volledig dynamisch)."""
-
-    # Plugins sectie → vaste waarden
-    if "bukkit-plugins" in url:
-        return ["bukkit", "spigot", "paper"]
-
-    slug = extract_slug_from_url(url)
-    if not slug:
-        return []
-
-    headers = {
-        'x-api-key': api_key,
-        'Accept': 'application/json',
-    }
-
+# -------- CURSEFORGE --------
+def get_curseforge_loaders(slug):
     try:
-        # Zoek mod op basis van slug
-        params = {'gameId': 432, 'slug': slug, 'classId': 6}
-        search_response = requests.get(
-            "https://api.curseforge.com/v1/mods/search",
-            headers=headers,
-            params=params
-        )
-        search_response.raise_for_status()
-        search_data = search_response.json().get('data', [])
+        api_url = f"https://api.curseforge.com/v1/mods/search?gameId=432&slug={slug}"
+        headers = {
+            'Accept': 'application/json',
+            'x-api-key': os.environ.get('CURSEFORGE_API_KEY', '')
+        }
+        response = requests.get(api_url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
 
-        if not search_data:
+        if not data.get('data'):
             return []
 
-        mod_id = next((m['id'] for m in search_data if m.get('slug') == slug), None)
-        if not mod_id:
-            return []
+        mod_id = data['data'][0]['id']
 
-        # Haal files op
-        files_response = requests.get(
-            f"https://api.curseforge.com/v1/mods/{mod_id}/files",
-            headers=headers
-        )
+        # Voor Bukkit-plugins, retourneer een standaardlijst
+        if any(cat.get('slug') == 'bukkit-plugins' for cat in data['data'][0].get('categories', [])):
+             return ["Bukkit", "Spigot", "Paper"]
+
+        # Haal bestanden op om loaders te bepalen
+        files_url = f"https://api.curseforge.com/v1/mods/{mod_id}/files"
+        files_response = requests.get(files_url, headers=headers)
         files_response.raise_for_status()
-        files_data = files_response.json().get('data', [])
+        files_data = files_response.json()
 
         loaders = set()
+        for file in files_data.get('data', []):
+            for loader in file.get('gameVersions', []):
+                # Filter op bekende loaders, vermijd game-versies
+                normalized_loader = loader.strip().upper()
+                if normalized_loader in ["FABRIC", "FORGE", "QUILT", "NEOFORGE", "PAPER", "PUFFERFISH", "PURPUR"]:
+                    loaders.add(normalized_loader)
 
-        for file in files_data:
+        return list(loaders) if loaders else []
 
-            # Case 1: bestand heeft expliciete loaders
-            if "loaders" in file and file["loaders"]:
-                for loader in file["loaders"]:
-                    loaders.add(loader.lower())
-                continue
-
-            # Case 2: gameVersions dynamisch filteren
-            if "gameVersions" in file:
-                for entry in file["gameVersions"]:
-                    e = entry.lower()
-
-                    # Skip Minecraft-versie, Java-versie of OS
-                    if looks_like_mc_version(entry):
-                        continue
-                    if "java" in e:
-                        continue
-                    if e in ["windows", "linux", "macos"]:
-                        continue
-
-                    # ALLES ANDERS = modloader
-                    loaders.add(e)
-
-        return list(loaders)
-
-    except requests.exceptions.RequestException as e:
-        print(f"Fout bij het ophalen van CurseForge-projectgegevens: {e}", file=sys.stderr)
+    except Exception:
         return []
 
+# -------- GITHUB --------
+def get_github_loaders(owner_repo):
+    # Kan niet betrouwbaar worden bepaald vanaf GitHub
+    return []
 
-# ---------------------------------------------------------
-# MAIN
-# ---------------------------------------------------------
-
+# -------- MAIN --------
 def main():
-    if len(sys.argv) < 2:
-        print("Gebruik: python fetchers/plugin_loaders.py <url>", file=sys.stderr)
+    parser = argparse.ArgumentParser(description="Extract plugin loaders from various platform URLs")
+    parser.add_argument("url", help="Plugin URL")
+    args = parser.parse_args()
+
+    platform, identifier = detect_platform(args.url)
+
+    loaders = []
+    if platform == "modrinth":
+        loaders = get_modrinth_loaders(identifier)
+    elif platform == "spigot":
+        loaders = get_spigot_loaders(identifier)
+    elif platform == "hangar":
+        loaders = get_hangar_loaders(identifier)
+    elif platform == "curseforge":
+        # Extra check voor originele URL voor Bukkit-plugins
+        if "dev.bukkit.org" in args.url or "bukkit-plugins" in args.url:
+             loaders = ["Bukkit", "Spigot", "Paper"]
+        else:
+            loaders = get_curseforge_loaders(identifier)
+    elif platform == "github":
+        loaders = get_github_loaders(identifier)
+    else:
+        print("Unsupported URL", file=sys.stderr)
         sys.exit(1)
 
-    url = sys.argv[1]
-
-    # Modrinth
-    if "modrinth.com" in url:
-        project_id = url.split('/')[-1]
-        loaders = get_modrinth_loaders(project_id)
-        print(json.dumps(loaders))
-        return
-
-    # SpigotMC
-    if "spigotmc.org" in url:
-        try:
-            resource_id = url.split('.')[-1].split('/')[0]
-            loaders = get_spigotmc_loaders(resource_id)
-            print(json.dumps(loaders))
-        except IndexError:
-            print(json.dumps([]))
-        return
-
-    # Hangar
-    if "hangar.papermc.io" in url:
-        parts = url.strip('/').split('/')
-        author = parts[-2]
-        slug = parts[-1]
-        loaders = get_hangar_loaders(author, slug)
-        print(json.dumps(loaders))
-        return
-
-    # CurseForge
-    if "curseforge.com" in url:
-        api_key = "$2a$10$bL4bIL5pUWqfcO7KQtnMReakwtfHbNKh6v1uTpKlzhwoueEJQnPnm"
-        loaders = get_curseforge_loaders(url, api_key)
-        print(json.dumps(loaders))
-        return
-
-    # Onbekende URL → leeg
-    print(json.dumps([]))
-
+    print(json.dumps(loaders))
 
 if __name__ == "__main__":
     main()
