@@ -1,8 +1,20 @@
 import argparse
+import os
 import re
 import requests
 import sys
 from urllib.parse import urlparse, urlunparse
+
+HTML_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.5",
+}
+
+CURSEFORGE_API_KEY = os.environ.get(
+    "CURSEFORGE_API_KEY",
+    "$2a$10$bL4bIL5pUWqfcO7KQtnMReakwtfHbNKh6v1uTpKlzhwoueEJQnPnm",
+)
 
 # -------- MODRINTH --------
 def get_modrinth_icon(slug):
@@ -13,7 +25,6 @@ def get_modrinth_icon(slug):
         data = response.json()
         icon_url = data.get("icon_url")
         if icon_url:
-            # Verwijder query parameters
             parsed = urlparse(icon_url)
             return urlunparse((parsed.scheme, parsed.netloc, parsed.path, '', '', ''))
         return None
@@ -56,13 +67,63 @@ def get_hangar_icon(combined_slug):
         response.raise_for_status()
         data = response.json()
         
-        # Gebruik het avatarUrl veld en verwijder query parameters
         avatar_url = data.get("avatarUrl")
         if avatar_url:
             parsed = urlparse(avatar_url)
             return urlunparse((parsed.scheme, parsed.netloc, parsed.path, '', '', ''))
         return None
         
+    except Exception:
+        return None
+
+def _extract_meta_image(text):
+    pattern = r'<meta[^>]+(?=[^>]*(?:name|property)=["\']og:image["\'])(?=[^>]*content=["\']([^"\']+)["\'])'
+    match = re.search(pattern, text, re.IGNORECASE)
+    if match:
+        return match.group(1)
+    pattern_twitter = r'<meta[^>]+(?=[^>]*(?:name|property)=["\']twitter:image["\'])(?=[^>]*content=["\']([^"\']+)["\'])'
+    match = re.search(pattern_twitter, text, re.IGNORECASE)
+    if match:
+        return match.group(1)
+    return None
+
+def _get_curseforge_mod(project_slug, class_id):
+    try:
+        api_url = f"https://api.curseforge.com/v1/mods/search?gameId=432&slug={project_slug}&classId={class_id}"
+        headers = {
+            "Accept": "application/json",
+            "x-api-key": CURSEFORGE_API_KEY,
+        }
+        response = requests.get(api_url, headers=headers)
+        if response.status_code != 200:
+            return None
+        data = response.json()
+        if not data.get("data"):
+            return None
+        return data["data"][0]
+    except Exception:
+        return None
+
+# -------- BUKKITDEV / SERVERMODS --------
+def get_bukkitdev_icon(slug):
+    try:
+        mod = _get_curseforge_mod(slug, 5)
+        if mod:
+            logo = mod.get("logo")
+            if logo:
+                icon_url = logo.get("thumbnailUrl") or logo.get("url")
+                if icon_url and '?' in icon_url:
+                    icon_url = icon_url.split('?', 1)[0]
+                if icon_url:
+                    return icon_url
+        page_url = f"https://dev.bukkit.org/projects/{slug}"
+        response = requests.get(page_url, headers=HTML_HEADERS)
+        if response.status_code != 200:
+            return None
+        icon_url = _extract_meta_image(response.text)
+        if icon_url and '?' in icon_url:
+            icon_url = icon_url.split('?', 1)[0]
+        return icon_url
     except Exception:
         return None
 
@@ -76,32 +137,53 @@ def get_curseforge_icon(url):
         
         category = path_parts[1]
         project_slug = path_parts[2]
-        
-        class_id = 6 if category == 'mc-mods' else 4471 if category == 'modpacks' else None
-        if not class_id:
+
+        class_id = 5 if category == 'bukkit-plugins' else 6 if category == 'mc-mods' else 4471 if category == 'modpacks' else None
+        if class_id:
+            mod = _get_curseforge_mod(project_slug, class_id)
+            if mod:
+                logo = mod.get("logo")
+                if logo:
+                    icon_url = logo.get("thumbnailUrl") or logo.get("url")
+                    if icon_url and '?' in icon_url:
+                        icon_url = icon_url.split('?', 1)[0]
+                    if icon_url:
+                        return icon_url
+
+        if category == 'bukkit-plugins':
+            try:
+                response = requests.get(url, headers=HTML_HEADERS)
+                if response.status_code != 200:
+                    return None
+                icon_url = _extract_meta_image(response.text)
+                if icon_url and '?' in icon_url:
+                    icon_url = icon_url.split('?', 1)[0]
+                if icon_url:
+                    return icon_url
+            except Exception:
+                return None
+
+        return None
+    except Exception:
+        return None
+
+# -------- GITHUB --------
+def get_github_icon(repo_slug):
+    try:
+        if '/' not in repo_slug:
             return None
-        
-        api_url = f"https://api.curseforge.com/v1/mods/search?gameId=432&slug={project_slug}&classId={class_id}"
-        
-        headers = {
-            'Accept': 'application/json',
-            'x-api-key': '$2a$10$bL4bIL5pUWqfcO7KQtnMReakwtfHbNKh6v1uTpKlzhwoueEJQnPnm'
-        }
-        
-        response = requests.get(api_url, headers=headers)
+        owner, repo = repo_slug.split('/', 1)
+        url = f"https://api.github.com/repos/{owner}/{repo}"
+        headers = {"Accept": "application/vnd.github+json"}
+        response = requests.get(url, headers=headers)
         if response.status_code != 200:
             return None
-        
         data = response.json()
-        if data.get('data'):
-            logo = data['data'][0].get('logo')
-            if logo:
-                icon_url = logo.get('thumbnailUrl') or logo.get('url')
-                if icon_url and '?' in icon_url:
-                    icon_url = icon_url.split('?')[0]
-                return icon_url
-        
-        return None
+        owner_data = data.get("owner") or {}
+        avatar_url = owner_data.get("avatar_url")
+        if avatar_url and '?' in avatar_url:
+            avatar_url = avatar_url.split('?', 1)[0]
+        return avatar_url
     except Exception:
         return None
 
@@ -125,6 +207,16 @@ def detect_platform(url):
                 author = match.group(1)
                 project = match.group(2)
                 return "hangar", f"{author}/{project}"
+
+        elif "dev.bukkit.org" in host:
+            match = re.search(r"/projects/([^/]+)/?", parsed.path)
+            if match:
+                return "bukkitdev", match.group(1)
+
+        elif "github.com" in host:
+            parts = parsed.path.strip('/').split('/')
+            if len(parts) >= 2:
+                return "github", f"{parts[0]}/{parts[1]}"
 
         elif "curseforge.com" in host:
             return "curseforge", url
@@ -155,6 +247,10 @@ def main():
         icon_url = get_hangar_icon(identifier)
     elif platform == "curseforge":
         icon_url = get_curseforge_icon(identifier)
+    elif platform == "bukkitdev":
+        icon_url = get_bukkitdev_icon(identifier)
+    elif platform == "github":
+        icon_url = get_github_icon(identifier)
     else:
         print("Invalid URL", file=sys.stderr)
         sys.exit(1)

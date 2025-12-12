@@ -89,6 +89,42 @@ def get_hangar_game_versions(combined_slug):
     except Exception:
         return None
 
+# -------- BUKKITDEV / SERVERMODS --------
+def get_bukkitdev_game_versions(slug):
+    try:
+        search_url = f"https://api.curseforge.com/servermods/projects?search={slug}"
+        search_response = requests.get(search_url)
+        if search_response.status_code != 200:
+            return []
+        projects = search_response.json()
+        if not isinstance(projects, list) or not projects:
+            return []
+        project = None
+        for p in projects:
+            if p.get("slug") == slug:
+                project = p
+                break
+        if project is None:
+            project = projects[0]
+        project_id = project.get("id")
+        if not project_id:
+            return []
+        files_url = f"https://api.curseforge.com/servermods/files?projectIds={project_id}"
+        files_response = requests.get(files_url)
+        if files_response.status_code != 200:
+            return []
+        files = files_response.json()
+        if not isinstance(files, list):
+            return []
+        versions = set()
+        for f in files:
+            gv = f.get("gameVersion")
+            if gv and re.match(r'^1\.\d+(\.\d+)?$', gv):
+                versions.add(gv)
+        return sorted(versions) if versions else []
+    except Exception:
+        return []
+
 # -------- CURSEFORGE --------
 def get_curseforge_game_versions(url):
     try:
@@ -99,6 +135,9 @@ def get_curseforge_game_versions(url):
         
         category = path_parts[1]
         project_slug = path_parts[2]
+
+        if category == 'bukkit-plugins':
+            return get_bukkitdev_game_versions(project_slug)
         
         class_id = 6 if category == 'mc-mods' else 4471 if category == 'modpacks' else None
         if not class_id:
@@ -130,6 +169,13 @@ def get_curseforge_game_versions(url):
     except Exception:
         return []
 
+# -------- GITHUB --------
+def get_github_game_versions(repo_slug):
+    try:
+        return []
+    except Exception:
+        return []
+
 # -------- PLATFORM DETECTIE --------
 def detect_platform(url):
     try:
@@ -150,6 +196,16 @@ def detect_platform(url):
                 author = match.group(1)
                 project = match.group(2)
                 return "hangar", f"{author}/{project}"
+
+        elif "dev.bukkit.org" in host:
+            match = re.search(r"/projects/([^/]+)/?", parsed.path)
+            if match:
+                return "bukkitdev", match.group(1)
+
+        elif "github.com" in host:
+            parts = parsed.path.strip('/').split('/')
+            if len(parts) >= 2:
+                return "github", f"{parts[0]}/{parts[1]}"
 
         elif "curseforge.com" in host:
             return "curseforge", url
@@ -180,11 +236,14 @@ def main():
         game_versions = get_hangar_game_versions(identifier)
     elif platform == "curseforge":
         game_versions = get_curseforge_game_versions(identifier)
+    elif platform == "bukkitdev":
+        game_versions = get_bukkitdev_game_versions(identifier)
+    elif platform == "github":
+        game_versions = get_github_game_versions(identifier)
     else:
         print("ongeldige url", file=sys.stderr)
         sys.exit(1)
 
-    # Als er een fout optreedt bij het ophalen van versies, beschouw dit als ongeldige URL
     if game_versions is None:
         print("", file=sys.stderr)
         sys.exit(1)

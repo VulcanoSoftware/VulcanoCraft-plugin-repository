@@ -1056,6 +1056,8 @@ document.addEventListener("DOMContentLoaded", function () {
         if (url.includes("hangar.papermc.io")) return "hangar";
         if (url.includes("spigotmc.org")) return "spigot";
         if (url.includes("modrinth.com")) return "modrinth";
+        if (url.includes("dev.bukkit.org")) return "bukkitdev";
+        if (url.includes("github.com")) return "github";
         if (url.includes("curseforge.com")) return "curseforge";
         return "unknown";
     }
