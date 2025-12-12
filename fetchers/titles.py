@@ -45,6 +45,27 @@ def get_hangar_title(combined_slug):
     except Exception:
         return None
 
+# -------- BUKKITDEV / SERVERMODS --------
+def get_bukkitdev_title(slug):
+    try:
+        api_url = f"https://api.curseforge.com/servermods/projects?search={slug}"
+        response = requests.get(api_url)
+        if response.status_code != 200:
+            return None
+        data = response.json()
+        if not isinstance(data, list) or not data:
+            return None
+        project = None
+        for p in data:
+            if p.get("slug") == slug:
+                project = p
+                break
+        if project is None:
+            project = data[0]
+        return project.get("name")
+    except Exception:
+        return None
+
 # -------- CURSEFORGE --------
 def get_curseforge_title(url):
     try:
@@ -55,6 +76,9 @@ def get_curseforge_title(url):
         
         category = path_parts[1]
         project_slug = path_parts[2]
+
+        if category == 'bukkit-plugins':
+            return get_bukkitdev_title(project_slug)
         
         class_id = 6 if category == 'mc-mods' else 4471 if category == 'modpacks' else None
         if not class_id:
@@ -79,6 +103,22 @@ def get_curseforge_title(url):
     except Exception:
         return None
 
+# -------- GITHUB --------
+def get_github_title(repo_slug):
+    try:
+        if '/' not in repo_slug:
+            return None
+        owner, repo = repo_slug.split('/', 1)
+        url = f"https://api.github.com/repos/{owner}/{repo}"
+        headers = {"Accept": "application/vnd.github+json"}
+        response = requests.get(url, headers=headers)
+        if response.status_code != 200:
+            return None
+        data = response.json()
+        return data.get("name") or data.get("full_name")
+    except Exception:
+        return None
+
 # -------- PLATFORM DETECTION --------
 def detect_platform(url):
     try:
@@ -99,6 +139,16 @@ def detect_platform(url):
                 author = match.group(1)
                 project = match.group(2)
                 return "hangar", f"{author}/{project}"
+
+        elif "dev.bukkit.org" in host:
+            match = re.search(r"/projects/([^/]+)/?", parsed.path)
+            if match:
+                return "bukkitdev", match.group(1)
+
+        elif "github.com" in host:
+            parts = parsed.path.strip('/').split('/')
+            if len(parts) >= 2:
+                return "github", f"{parts[0]}/{parts[1]}"
 
         elif "curseforge.com" in host:
             return "curseforge", url
@@ -129,6 +179,10 @@ def main():
         title = get_hangar_title(identifier)
     elif platform == "curseforge":
         title = get_curseforge_title(identifier)
+    elif platform == "bukkitdev":
+        title = get_bukkitdev_title(identifier)
+    elif platform == "github":
+        title = get_github_title(identifier)
     else:
         print("Invalid URL", file=sys.stderr)
         sys.exit(1)

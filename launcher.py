@@ -59,12 +59,17 @@ def save_to_file(plugin):
             try:
                 plugins = json.load(f)
             except json.JSONDecodeError:
-                pass  # Start met een lege lijst als het bestand leeg of corrupt is
+                pass
 
     # Zoek de bestaande plugin en behoud de 'owner'
     existing_plugin = next((p for p in plugins if p.get('url') == plugin['url']), None)
-    if existing_plugin and 'owner' in existing_plugin:
-        plugin['owner'] = existing_plugin['owner']
+    if existing_plugin:
+        if 'owner' in existing_plugin:
+            plugin['owner'] = existing_plugin['owner']
+
+        for key in ['author', 'icon']:
+            if existing_plugin.get(key) and not plugin.get(key):
+                plugin[key] = existing_plugin[key]
 
     # Verwijder de oude plugin (indien aanwezig) en voeg de nieuwe toe
     plugins = [p for p in plugins if p.get('url') != plugin['url']]

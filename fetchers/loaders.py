@@ -90,11 +90,6 @@ def get_hangar_loaders(author, slug):
 
 def get_curseforge_loaders(url, api_key):
     """Haalt de loaders voor een specifiek CurseForge-project op (volledig dynamisch)."""
-
-    # Plugins sectie → vaste waarden
-    if "bukkit-plugins" in url:
-        return ["bukkit", "spigot", "paper"]
-
     slug = extract_slug_from_url(url)
     if not slug:
         return []
@@ -200,8 +195,21 @@ def main():
         print(json.dumps(loaders))
         return
 
+    # dev.bukkit.org
+    if "dev.bukkit.org" in url:
+        print(json.dumps(["bukkit", "spigot"]))
+        return
+
+    # GitHub
+    if "github.com" in url:
+        print(json.dumps(["bukkit", "spigot"]))
+        return
+
     # CurseForge
     if "curseforge.com" in url:
+        if "bukkit-plugins" in url:
+            print(json.dumps(["bukkit", "spigot", "paper"]))
+            return
         api_key = "$2a$10$bL4bIL5pUWqfcO7KQtnMReakwtfHbNKh6v1uTpKlzhwoueEJQnPnm"
         loaders = get_curseforge_loaders(url, api_key)
         print(json.dumps(loaders))
