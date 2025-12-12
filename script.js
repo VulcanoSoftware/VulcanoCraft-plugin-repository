@@ -1059,6 +1059,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (url.includes("dev.bukkit.org")) return "bukkitdev";
         if (url.includes("github.com")) return "github";
         if (url.includes("curseforge.com")) return "curseforge";
+        if (url.includes("planetminecraft.com")) return "planetminecraft";
         return "unknown";
     }
 

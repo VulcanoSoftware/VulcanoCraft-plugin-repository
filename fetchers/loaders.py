@@ -215,6 +215,10 @@ def main():
         print(json.dumps(loaders))
         return
 
+    if "planetminecraft.com" in url:
+        print(json.dumps(["datapack"]))
+        return
+
     # Onbekende URL → leeg
     print(json.dumps([]))
 

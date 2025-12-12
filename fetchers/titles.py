@@ -45,26 +45,39 @@ def get_hangar_title(combined_slug):
     except Exception:
         return None
 
-# -------- BUKKITDEV / SERVERMODS --------
-def get_bukkitdev_title(slug):
+def _get_servermods_project(slug):
     try:
         api_url = f"https://api.curseforge.com/servermods/projects?search={slug}"
         response = requests.get(api_url)
         if response.status_code != 200:
             return None
-        data = response.json()
-        if not isinstance(data, list) or not data:
-            return None
-        project = None
-        for p in data:
+        projects = response.json()
+        if not isinstance(projects, list) or not projects:
+            if "-" not in slug and slug.endswith("plate"):
+                alt_slug = slug[:-5] + "-plate"
+                api_url = f"https://api.curseforge.com/servermods/projects?search={alt_slug}"
+                response = requests.get(api_url)
+                if response.status_code != 200:
+                    return None
+                projects = response.json()
+                if not isinstance(projects, list) or not projects:
+                    return None
+                slug = alt_slug
+            else:
+                return None
+        for p in projects:
             if p.get("slug") == slug:
-                project = p
-                break
-        if project is None:
-            project = data[0]
-        return project.get("name")
+                return p
+        return projects[0]
     except Exception:
         return None
+
+# -------- BUKKITDEV / SERVERMODS --------
+def get_bukkitdev_title(slug):
+    project = _get_servermods_project(slug)
+    if not project:
+        return None
+    return project.get("name")
 
 # -------- CURSEFORGE --------
 def get_curseforge_title(url):
@@ -103,6 +116,47 @@ def get_curseforge_title(url):
     except Exception:
         return None
 
+def _extract_meta_content(text, meta_name):
+    try:
+        pattern = rf'<meta[^>]+(?:name|property)="{meta_name}"[^>]+content="([^"]+)"'
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            return match.group(1)
+        return None
+    except Exception:
+        return None
+
+def get_planetminecraft_title(url):
+    try:
+        response = requests.get(url)
+        title = None
+        if response.status_code == 200:
+            text = response.text
+            title = _extract_meta_content(text, "og:title")
+            if title is None:
+                title = _extract_meta_content(text, "title")
+            if title is None:
+                match = re.search(r"<title>([^<]+)</title>", text, re.IGNORECASE)
+                if match:
+                    title = match.group(1).strip()
+        if title is None:
+            parsed = urlparse(url)
+            parts = [p for p in parsed.path.strip("/").split("/") if p]
+            slug = parts[-1] if parts else ""
+            if slug:
+                words = slug.replace("-", " ").split()
+                return " ".join(w.capitalize() for w in words)
+            return ""
+        return title
+    except Exception:
+        parsed = urlparse(url)
+        parts = [p for p in parsed.path.strip("/").split("/") if p]
+        slug = parts[-1] if parts else ""
+        if slug:
+            words = slug.replace("-", " ").split()
+            return " ".join(w.capitalize() for w in words)
+        return ""
+
 # -------- GITHUB --------
 def get_github_title(repo_slug):
     try:
@@ -126,7 +180,7 @@ def detect_platform(url):
         host = parsed.netloc
 
         if "modrinth.com" in host:
-            match = re.search(r"/(plugin|mod)/([^/]+)/?", parsed.path)
+            match = re.search(r"/(plugin|mod|datapack)/([^/]+)/?", parsed.path)
             if match:
                 return "modrinth", match.group(2)
 
@@ -152,6 +206,9 @@ def detect_platform(url):
 
         elif "curseforge.com" in host:
             return "curseforge", url
+
+        elif "planetminecraft.com" in host:
+            return "planetminecraft", url
 
         return None, None
     except Exception:
@@ -183,6 +240,8 @@ def main():
         title = get_bukkitdev_title(identifier)
     elif platform == "github":
         title = get_github_title(identifier)
+    elif platform == "planetminecraft":
+        title = get_planetminecraft_title(identifier)
     else:
         print("Invalid URL", file=sys.stderr)
         sys.exit(1)

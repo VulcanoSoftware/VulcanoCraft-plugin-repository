@@ -104,25 +104,95 @@ def _get_curseforge_mod(project_slug, class_id):
     except Exception:
         return None
 
-# -------- BUKKITDEV / SERVERMODS --------
+def _get_servermods_project(slug):
+    try:
+        url = f"https://api.curseforge.com/servermods/projects?search={slug}"
+        response = requests.get(url)
+        if response.status_code != 200:
+            return None
+        projects = response.json()
+        if not isinstance(projects, list) or not projects:
+            if "-" not in slug and slug.endswith("plate"):
+                alt_slug = slug[:-5] + "-plate"
+                url = f"https://api.curseforge.com/servermods/projects?search={alt_slug}"
+                response = requests.get(url)
+                if response.status_code != 200:
+                    return None
+                projects = response.json()
+                if not isinstance(projects, list) or not projects:
+                    return None
+                slug = alt_slug
+            else:
+                return None
+        for p in projects:
+            if p.get("slug") == slug:
+                return p
+        return projects[0]
+    except Exception:
+        return None
+
+def _extract_planetminecraft_avatar(text):
+    try:
+        pattern = r'<img[^>]*class=["\']avatar["\'][^>]*src=["\']([^"\']+)["\']'
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            return match.group(1)
+        return None
+    except Exception:
+        return None
+
+def _search_modrinth_icon(name_hint):
+    try:
+        if not name_hint:
+            return None
+        search_url = "https://api.modrinth.com/v2/search"
+        params = {"query": name_hint}
+        response = requests.get(search_url, params=params)
+        if response.status_code != 200:
+            return None
+        data = response.json()
+        hits = data.get("hits") or []
+        if not hits:
+            return None
+        slug = hits[0].get("slug")
+        if not slug:
+            return None
+        return get_modrinth_icon(slug)
+    except Exception:
+        return None
+
 def get_bukkitdev_icon(slug):
     try:
-        mod = _get_curseforge_mod(slug, 5)
+        project_slug = slug
+        try:
+            project = _get_servermods_project(slug)
+            if project and project.get("slug"):
+                project_slug = project.get("slug")
+        except Exception:
+            project_slug = slug
+        mod = _get_curseforge_mod(project_slug, 5)
         if mod:
             logo = mod.get("logo")
             if logo:
                 icon_url = logo.get("thumbnailUrl") or logo.get("url")
-                if icon_url and '?' in icon_url:
-                    icon_url = icon_url.split('?', 1)[0]
+                if icon_url and "?" in icon_url:
+                    icon_url = icon_url.split("?", 1)[0]
                 if icon_url:
                     return icon_url
-        page_url = f"https://dev.bukkit.org/projects/{slug}"
+            authors = mod.get("authors") or []
+            if authors:
+                avatar_url = authors[0].get("avatarUrl")
+                if avatar_url:
+                    if "?" in avatar_url:
+                        avatar_url = avatar_url.split("?", 1)[0]
+                    return avatar_url
+        page_url = f"https://dev.bukkit.org/projects/{project_slug}"
         response = requests.get(page_url, headers=HTML_HEADERS)
         if response.status_code != 200:
             return None
         icon_url = _extract_meta_image(response.text)
-        if icon_url and '?' in icon_url:
-            icon_url = icon_url.split('?', 1)[0]
+        if icon_url and "?" in icon_url:
+            icon_url = icon_url.split("?", 1)[0]
         return icon_url
     except Exception:
         return None
@@ -166,6 +236,33 @@ def get_curseforge_icon(url):
         return None
     except Exception:
         return None
+
+def get_planetminecraft_icon(url):
+    try:
+        icon_url = None
+        try:
+            response = requests.get(url, headers=HTML_HEADERS)
+            if response.status_code == 200:
+                text = response.text
+                icon_url = _extract_planetminecraft_avatar(text)
+                if not icon_url:
+                    icon_url = _extract_meta_image(text)
+        except Exception:
+            icon_url = None
+        if not icon_url:
+            parsed = urlparse(url)
+            parts = [p for p in parsed.path.strip("/").split("/") if p]
+            slug = parts[-1] if parts else ""
+            if slug:
+                base = slug.replace("-", " ")
+                if base.lower().endswith(" datapack"):
+                    base = base[: -len(" datapack")].strip()
+                icon_url = _search_modrinth_icon(base)
+        if icon_url and '?' in icon_url:
+            icon_url = icon_url.split('?', 1)[0]
+        return icon_url
+    except Exception:
+        return ""
 
 # -------- GITHUB --------
 def get_github_icon(repo_slug):
@@ -221,6 +318,9 @@ def detect_platform(url):
         elif "curseforge.com" in host:
             return "curseforge", url
 
+        elif "planetminecraft.com" in host:
+            return "planetminecraft", url
+
         return None, None
     except Exception:
         return None, None
@@ -251,6 +351,8 @@ def main():
         icon_url = get_bukkitdev_icon(identifier)
     elif platform == "github":
         icon_url = get_github_icon(identifier)
+    elif platform == "planetminecraft":
+        icon_url = get_planetminecraft_icon(identifier)
     else:
         print("Invalid URL", file=sys.stderr)
         sys.exit(1)
