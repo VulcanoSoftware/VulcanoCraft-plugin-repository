@@ -3,8 +3,6 @@ import requests
 import json
 import os
 import re
-import argparse
-from fetchers.utils import detect_platform
 
 
 # ---------------------------------------------------------
@@ -94,14 +92,12 @@ def get_curseforge_loaders(url, api_key):
     """Haalt de loaders voor een specifiek CurseForge-project op (volledig dynamisch)."""
 
     # Plugins sectie → vaste waarden
-    if "bukkit-plugins" in url or "projects" in url:
+    if "bukkit-plugins" in url:
         return ["bukkit", "spigot", "paper"]
 
-    match = re.search(r'/(mc-mods)/([^/]+)', url)
-    if not match:
+    slug = extract_slug_from_url(url)
+    if not slug:
         return []
-
-    slug = match.group(2)
 
     headers = {
         'x-api-key': api_key,
@@ -166,53 +162,53 @@ def get_curseforge_loaders(url, api_key):
         print(f"Fout bij het ophalen van CurseForge-projectgegevens: {e}", file=sys.stderr)
         return []
 
-# ---------------------------------------------------------
-# GitHub
-# ---------------------------------------------------------
-
-def get_github_loaders(repo_slug):
-    """Geeft een lege lijst terug voor GitHub-repositories."""
-    return []
 
 # ---------------------------------------------------------
 # MAIN
 # ---------------------------------------------------------
 
 def main():
-    parser = argparse.ArgumentParser(description="Extract plugin loaders from a URL")
-    parser.add_argument("url", nargs="?", help="Plugin URL")
-    args = parser.parse_args()
-
-    if not args.url:
-        args.url = input("Enter a plugin URL: ").strip()
-
-    platform, identifier = detect_platform(args.url)
-
-    if not platform:
-        print(json.dumps([]))
+    if len(sys.argv) < 2:
+        print("Gebruik: python fetchers/plugin_loaders.py <url>", file=sys.stderr)
         sys.exit(1)
 
-    loaders = []
-    if platform == "modrinth":
-        loaders = get_modrinth_loaders(identifier)
-    elif platform == "spigot":
-        match = re.search(r'/resources/[^/]+\.(\d+)/?', identifier)
-        if match:
-            resource_id = match.group(1)
-            loaders = get_spigotmc_loaders(resource_id)
-    elif platform == "hangar":
-        author, slug = identifier.split('/')
-        loaders = get_hangar_loaders(author, slug)
-    elif platform == "curseforge":
-        api_key = os.environ.get('CURSEFORGE_API_KEY')
-        if not api_key:
-            print("CURSEFORGE_API_KEY not set", file=sys.stderr)
-            sys.exit(1)
-        loaders = get_curseforge_loaders(identifier, api_key)
-    elif platform == "github":
-        loaders = get_github_loaders(identifier)
+    url = sys.argv[1]
 
-    print(json.dumps(loaders))
+    # Modrinth
+    if "modrinth.com" in url:
+        project_id = url.split('/')[-1]
+        loaders = get_modrinth_loaders(project_id)
+        print(json.dumps(loaders))
+        return
+
+    # SpigotMC
+    if "spigotmc.org" in url:
+        try:
+            resource_id = url.split('.')[-1].split('/')[0]
+            loaders = get_spigotmc_loaders(resource_id)
+            print(json.dumps(loaders))
+        except IndexError:
+            print(json.dumps([]))
+        return
+
+    # Hangar
+    if "hangar.papermc.io" in url:
+        parts = url.strip('/').split('/')
+        author = parts[-2]
+        slug = parts[-1]
+        loaders = get_hangar_loaders(author, slug)
+        print(json.dumps(loaders))
+        return
+
+    # CurseForge
+    if "curseforge.com" in url:
+        api_key = "$2a$10$bL4bIL5pUWqfcO7KQtnMReakwtfHbNKh6v1uTpKlzhwoueEJQnPnm"
+        loaders = get_curseforge_loaders(url, api_key)
+        print(json.dumps(loaders))
+        return
+
+    # Onbekende URL → leeg
+    print(json.dumps([]))
 
 
 if __name__ == "__main__":
