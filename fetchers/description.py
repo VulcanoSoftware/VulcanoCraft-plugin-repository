@@ -85,15 +85,44 @@ def _get_curseforge_mod(project_slug, class_id):
     except Exception:
         return None
 
+def _get_servermods_project(slug):
+    try:
+        url = f"https://api.curseforge.com/servermods/projects?search={slug}"
+        response = requests.get(url)
+        if response.status_code != 200:
+            return None
+        projects = response.json()
+        if not isinstance(projects, list) or not projects:
+            if "-" not in slug and slug.endswith("plate"):
+                alt_slug = slug[:-5] + "-plate"
+                url = f"https://api.curseforge.com/servermods/projects?search={alt_slug}"
+                response = requests.get(url)
+                if response.status_code != 200:
+                    return None
+                projects = response.json()
+                if not isinstance(projects, list) or not projects:
+                    return None
+                slug = alt_slug
+            else:
+                return None
+        for p in projects:
+            if p.get("slug") == slug:
+                return p
+        return projects[0]
+    except Exception:
+        return None
+
 # -------- BUKKITDEV / SERVERMODS --------
 def get_bukkitdev_description(slug):
     try:
-        mod = _get_curseforge_mod(slug, 5)
+        project = _get_servermods_project(slug)
+        project_slug = project.get("slug") if project and project.get("slug") else slug
+        mod = _get_curseforge_mod(project_slug, 5)
         if mod:
             summary = mod.get("summary")
             if summary:
                 return summary
-        page_url = f"https://dev.bukkit.org/projects/{slug}"
+        page_url = f"https://dev.bukkit.org/projects/{project_slug}"
         response = requests.get(page_url, headers=HTML_HEADERS)
         if response.status_code != 200:
             return None
@@ -140,6 +169,31 @@ def get_curseforge_description(url):
         return None
     except Exception:
         return None
+
+def get_planetminecraft_description(url):
+    try:
+        response = requests.get(url, headers=HTML_HEADERS)
+        description = None
+        if response.status_code == 200:
+            text = response.text
+            description = _extract_meta_content(text, "og:description")
+            if description is None:
+                description = _extract_meta_content(text, "description")
+        if description is None:
+            parsed = urlparse(url)
+            parts = [p for p in parsed.path.strip("/").split("/") if p]
+            slug = parts[-1] if parts else ""
+            if slug:
+                return f"Datapack van PlanetMinecraft: {slug.replace('-', ' ')}"
+            return ""
+        return description
+    except Exception:
+        parsed = urlparse(url)
+        parts = [p for p in parsed.path.strip("/").split("/") if p]
+        slug = parts[-1] if parts else ""
+        if slug:
+            return f"Datapack van PlanetMinecraft: {slug.replace('-', ' ')}"
+        return ""
 
 # -------- GITHUB --------
 def get_github_description(repo_slug):
@@ -191,6 +245,9 @@ def detect_platform(url):
         elif "curseforge.com" in host:
             return "curseforge", url
 
+        elif "planetminecraft.com" in host:
+            return "planetminecraft", url
+
         return None, None
     except Exception:
         return None, None
@@ -221,6 +278,8 @@ def main():
         description = get_bukkitdev_description(identifier)
     elif platform == "github":
         description = get_github_description(identifier)
+    elif platform == "planetminecraft":
+        description = get_planetminecraft_description(identifier)
     else:
         print("Invalid URL", file=sys.stderr)
         sys.exit(1)

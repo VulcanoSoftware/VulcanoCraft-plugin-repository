@@ -120,16 +120,45 @@ def _get_curseforge_mod(project_slug, class_id):
     except Exception:
         return None
 
+def _get_servermods_project(slug):
+    try:
+        url = f"https://api.curseforge.com/servermods/projects?search={slug}"
+        response = requests.get(url)
+        if response.status_code != 200:
+            return None
+        projects = response.json()
+        if not isinstance(projects, list) or not projects:
+            if "-" not in slug and slug.endswith("plate"):
+                alt_slug = slug[:-5] + "-plate"
+                url = f"https://api.curseforge.com/servermods/projects?search={alt_slug}"
+                response = requests.get(url)
+                if response.status_code != 200:
+                    return None
+                projects = response.json()
+                if not isinstance(projects, list) or not projects:
+                    return None
+                slug = alt_slug
+            else:
+                return None
+        for p in projects:
+            if p.get("slug") == slug:
+                return p
+        return projects[0]
+    except Exception:
+        return None
+
 def get_bukkitdev_author(slug):
     try:
-        mod = _get_curseforge_mod(slug, 5)
+        project = _get_servermods_project(slug)
+        project_slug = project.get("slug") if project and project.get("slug") else slug
+        mod = _get_curseforge_mod(project_slug, 5)
         if mod:
             authors = mod.get("authors", [])
             if authors:
                 name = authors[0].get("name")
                 if name:
                     return name
-        page_url = f"https://dev.bukkit.org/projects/{slug}"
+        page_url = f"https://dev.bukkit.org/projects/{project_slug}"
         response = requests.get(page_url, headers=HTML_HEADERS)
         if response.status_code != 200:
             return None
@@ -167,6 +196,62 @@ def get_curseforge_author(url):
         return None
     except Exception:
         return None
+
+def _extract_planetminecraft_author(text):
+    try:
+        match = re.search(r'href="/member/[^"]+"[^>]*>([^<]+)</a>', text, re.IGNORECASE)
+        if match:
+            return html.unescape(match.group(1).strip())
+        return None
+    except Exception:
+        return None
+
+def _search_modrinth_author(name_hint):
+    try:
+        if not name_hint:
+            return None
+        search_url = "https://api.modrinth.com/v2/search"
+        params = {"query": name_hint}
+        response = requests.get(search_url, params=params)
+        if response.status_code != 200:
+            return None
+        data = response.json()
+        hits = data.get("hits") or []
+        if not hits:
+            return None
+        slug = hits[0].get("slug")
+        if not slug:
+            return None
+        return get_modrinth_author(slug)
+    except Exception:
+        return None
+
+def get_planetminecraft_author(url):
+    try:
+        author = None
+        try:
+            response = requests.get(url, headers=HTML_HEADERS)
+            if response.status_code == 200:
+                text = response.text
+                author = _extract_author_from_html(text)
+                if not author:
+                    author = _extract_planetminecraft_author(text)
+        except Exception:
+            author = None
+        if not author:
+            parsed = urlparse(url)
+            parts = [p for p in parsed.path.strip("/").split("/") if p]
+            slug = parts[-1] if parts else ""
+            if slug:
+                base = slug.replace("-", " ")
+                if base.lower().endswith(" datapack"):
+                    base = base[: -len(" datapack")].strip()
+                author = _search_modrinth_author(base)
+        if not author:
+            return ""
+        return author
+    except Exception:
+        return ""
 
 # -------- GITHUB --------
 def get_github_author(repo_slug):
@@ -219,6 +304,9 @@ def detect_platform(url):
         elif "curseforge.com" in host:
             return "curseforge", url
 
+        elif "planetminecraft.com" in host:
+            return "planetminecraft", url
+
         return None, None
     except Exception:
         return None, None
@@ -249,6 +337,8 @@ def main():
         author = get_bukkitdev_author(identifier)
     elif platform == "github":
         author = get_github_author(identifier)
+    elif platform == "planetminecraft":
+        author = get_planetminecraft_author(identifier)
     else:
         print("Invalid URL", file=sys.stderr)
         sys.exit(1)

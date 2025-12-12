@@ -89,23 +89,39 @@ def get_hangar_game_versions(combined_slug):
     except Exception:
         return None
 
-# -------- BUKKITDEV / SERVERMODS --------
-def get_bukkitdev_game_versions(slug):
+def _get_servermods_project(slug):
     try:
         search_url = f"https://api.curseforge.com/servermods/projects?search={slug}"
         search_response = requests.get(search_url)
         if search_response.status_code != 200:
-            return []
+            return None
         projects = search_response.json()
         if not isinstance(projects, list) or not projects:
-            return []
-        project = None
+            if "-" not in slug and slug.endswith("plate"):
+                alt_slug = slug[:-5] + "-plate"
+                search_url = f"https://api.curseforge.com/servermods/projects?search={alt_slug}"
+                search_response = requests.get(search_url)
+                if search_response.status_code != 200:
+                    return None
+                projects = search_response.json()
+                if not isinstance(projects, list) or not projects:
+                    return None
+                slug = alt_slug
+            else:
+                return None
         for p in projects:
             if p.get("slug") == slug:
-                project = p
-                break
-        if project is None:
-            project = projects[0]
+                return p
+        return projects[0]
+    except Exception:
+        return None
+
+# -------- BUKKITDEV / SERVERMODS --------
+def get_bukkitdev_game_versions(slug):
+    try:
+        project = _get_servermods_project(slug)
+        if not project:
+            return []
         project_id = project.get("id")
         if not project_id:
             return []
@@ -176,6 +192,18 @@ def get_github_game_versions(repo_slug):
     except Exception:
         return []
 
+def get_planetminecraft_game_versions(url):
+    try:
+        response = requests.get(url)
+        if response.status_code != 200:
+            return []
+        text = response.text
+        matches = re.findall(r"1\.\d+(?:\.\d+)?", text)
+        versions = sorted(set(matches))
+        return versions
+    except Exception:
+        return []
+
 # -------- PLATFORM DETECTIE --------
 def detect_platform(url):
     try:
@@ -183,7 +211,7 @@ def detect_platform(url):
         host = parsed.netloc
 
         if "modrinth.com" in host:
-            match = re.search(r"/(plugin|mod)/([^/]+)/?", parsed.path)
+            match = re.search(r"/(plugin|mod|datapack)/([^/]+)/?", parsed.path)
             if match:
                 return "modrinth", match.group(2)
 
@@ -209,6 +237,9 @@ def detect_platform(url):
 
         elif "curseforge.com" in host:
             return "curseforge", url
+
+        elif "planetminecraft.com" in host:
+            return "planetminecraft", url
 
         return None, None
     except Exception:
@@ -240,6 +271,8 @@ def main():
         game_versions = get_bukkitdev_game_versions(identifier)
     elif platform == "github":
         game_versions = get_github_game_versions(identifier)
+    elif platform == "planetminecraft":
+        game_versions = get_planetminecraft_game_versions(identifier)
     else:
         print("ongeldige url", file=sys.stderr)
         sys.exit(1)
