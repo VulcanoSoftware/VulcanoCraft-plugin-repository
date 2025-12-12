@@ -3,7 +3,6 @@ import re
 import requests
 import sys
 from urllib.parse import urlparse
-from fetchers.utils import detect_platform
 
 # -------- MODRINTH --------
 def get_modrinth_title(slug):
@@ -46,56 +45,67 @@ def get_hangar_title(combined_slug):
     except Exception:
         return None
 
-import os
-
 # -------- CURSEFORGE --------
 def get_curseforge_title(url):
     try:
-        api_key = os.environ.get('CURSEFORGE_API_KEY')
-        if not api_key:
-            print("CURSEFORGE_API_KEY not set", file=sys.stderr)
-            return None
-
-        # Extract slug from URL
-        match = re.search(r'/(projects|bukkit-plugins)/([^/]+)', url)
-        if not match:
-            # Fallback for URLs like /minecraft/mc-mods/...
-            match = re.search(r'/(mc-mods)/([^/]+)', url)
-        
-        if not match:
+        parsed = urlparse(url)
+        path_parts = parsed.path.strip('/').split('/')
+        if len(path_parts) < 3:
             return None
         
-        project_slug = match.group(2)
-
-        api_url = f"https://api.curseforge.com/v1/mods/search?gameId=432&slug={project_slug}"
+        category = path_parts[1]
+        project_slug = path_parts[2]
+        
+        class_id = 6 if category == 'mc-mods' else 4471 if category == 'modpacks' else None
+        if not class_id:
+            return None
+        
+        api_url = f"https://api.curseforge.com/v1/mods/search?gameId=432&slug={project_slug}&classId={class_id}"
         
         headers = {
             'Accept': 'application/json',
-            'x-api-key': api_key
+            'x-api-key': '$2a$10$bL4bIL5pUWqfcO7KQtnMReakwtfHbNKh6v1uTpKlzhwoueEJQnPnm'
         }
         
         response = requests.get(api_url, headers=headers)
-        response.raise_for_status()
+        if response.status_code != 200:
+            return None
         
         data = response.json()
         if data.get('data'):
             return data['data'][0].get('name')
         
         return None
-    except Exception as e:
-        print(f"Error fetching CurseForge title: {e}", file=sys.stderr)
-        return None
-
-# -------- GITHUB --------
-def get_github_title(repo_slug):
-    try:
-        url = f"https://api.github.com/repos/{repo_slug}"
-        response = requests.get(url)
-        response.raise_for_status()
-        data = response.json()
-        return data.get("name")
     except Exception:
         return None
+
+# -------- PLATFORM DETECTION --------
+def detect_platform(url):
+    try:
+        parsed = urlparse(url)
+        host = parsed.netloc
+
+        if "modrinth.com" in host:
+            match = re.search(r"/(plugin|mod)/([^/]+)/?", parsed.path)
+            if match:
+                return "modrinth", match.group(2)
+
+        elif "spigotmc.org" in host:
+            return "spigot", url
+
+        elif "hangar.papermc.io" in host:
+            match = re.search(r"/([^/]+)/([^/]+)/?$", parsed.path)
+            if match:
+                author = match.group(1)
+                project = match.group(2)
+                return "hangar", f"{author}/{project}"
+
+        elif "curseforge.com" in host:
+            return "curseforge", url
+
+        return None, None
+    except Exception:
+        return None, None
 
 # -------- MAIN --------
 def main():
@@ -111,7 +121,6 @@ def main():
         print("Invalid URL", file=sys.stderr)
         sys.exit(1)
 
-    title = None
     if platform == "modrinth":
         title = get_modrinth_title(identifier)
     elif platform == "spigot":
@@ -120,8 +129,6 @@ def main():
         title = get_hangar_title(identifier)
     elif platform == "curseforge":
         title = get_curseforge_title(identifier)
-    elif platform == "github":
-        title = get_github_title(identifier)
     else:
         print("Invalid URL", file=sys.stderr)
         sys.exit(1)
