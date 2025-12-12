@@ -1,0 +1,93 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    image: vulcanocraft-app
+    ports:
+      - "8000:8000"
+    environment:
+      - FLASK_ENV=production
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB_NAME=${MONGO_DB_NAME}
+      - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
+      - ADMIN_DEFAULT_PASSWORD=${ADMIN_DEFAULT_PASSWORD}
+      - CURSEFORGE_API_KEY=${CURSEFORGE_API_KEY}
+    mem_limit: 512m
+    cpus: 1.0
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:6.0
+    restart: always
+    environment:
+      - MONGO_INITDB_DATABASE=${MONGO_DB_NAME}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+    volumes:
+      - mongo-data:/data/db
+    mem_limit: 1024m
+    cpus: 1.0
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  cron:
+    image: vulcanocraft-app
+    command: ["python", "cron.py"]
+    environment:
+      - FLASK_ENV=production
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB_NAME=${MONGO_DB_NAME}
+      - CURSEFORGE_API_KEY=${CURSEFORGE_API_KEY}
+    depends_on:
+      - mongo
+    mem_limit: 256m
+    cpus: 0.5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  backup:
+    image: mongo:6.0
+    depends_on:
+      - mongo
+    environment:
+      - ENABLE_BACKUPS=${ENABLE_BACKUPS}
+      - BACKUP_INTERVAL_HOURS=${BACKUP_INTERVAL_HOURS}
+      - MONGO_BACKUP_URI=${MONGO_BACKUP_URI}
+    volumes:
+      - ./backups:/backups
+    command: >
+      bash -c '
+        if [ "$ENABLE_BACKUPS" != "true" ]; then
+          echo "Backups disabled";
+          tail -f /dev/null;
+        fi;
+        while true; do
+          ts=$(date +%Y%m%d-%H%M%S);
+          mongodump --uri="$MONGO_BACKUP_URI" --out=/backups/$ts;
+          find /backups -maxdepth 1 -mindepth 1 -type d -mtime +7 -exec rm -rf {} \;;
+          sleep ${BACKUP_INTERVAL_HOURS:-24}h;
+        done
+      '
+    mem_limit: 256m
+    cpus: 0.5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  mongo-data:

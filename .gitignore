@@ -40,6 +40,8 @@ Thumbs.db
 users.json
 settings.json
 *.log
+.env
+backups/
 
 # Temporary Files
 *.tmp

@@ -12,10 +12,7 @@ HTML_HEADERS = {
     "Accept-Language": "en-US,en;q=0.5",
 }
 
-CURSEFORGE_API_KEY = os.environ.get(
-    "CURSEFORGE_API_KEY",
-    "$2a$10$bL4bIL5pUWqfcO7KQtnMReakwtfHbNKh6v1uTpKlzhwoueEJQnPnm",
-)
+CURSEFORGE_API_KEY = os.environ.get("CURSEFORGE_API_KEY")
 
 # -------- MODRINTH --------
 def get_modrinth_description(slug):

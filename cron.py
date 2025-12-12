@@ -4,14 +4,18 @@ import subprocess
 import os
 import sys
 from datetime import datetime, timedelta
+from pymongo import MongoClient
+
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "vulcanocraft")
+mongo_client = MongoClient(MONGO_URI)
+db = mongo_client[MONGO_DB_NAME]
 
 def load_plugins():
-    """Laad de plugins data uit het JSON bestand"""
+    """Laad de plugins data"""
     try:
-        if os.path.exists('plugins.json'):
-            with open('plugins.json', 'r', encoding='utf-8') as f:
-                return json.load(f)
-        return []
+        plugins = list(db.plugins.find({}, {"_id": 0}))
+        return plugins
     except Exception as e:
         print(f"Fout bij het laden van plugins: {e}")
         return []
@@ -62,17 +66,20 @@ def update_plugin(url, owner=None):
         return None
 
 def save_plugins(plugins):
-    """Sla plugins op in het JSON bestand"""
+    """Sla plugins op"""
     try:
-        with open('plugins.json', 'w', encoding='utf-8') as f:
-            json.dump(plugins, f, indent=4, ensure_ascii=False)
+        if not isinstance(plugins, list):
+            return False
+        db.plugins.delete_many({})
+        if plugins:
+            db.plugins.insert_many(plugins)
         return True
     except Exception as e:
         print(f"Fout bij het opslaan van plugins: {e}")
         return False
 
 def main():
-    """Hoofdfunctie die elk uur alle plugins bijwerkt"""
+    """Hoofdfunctie die elke 6 uur alle plugins bijwerkt"""
     print("Cron service gestart - Ctrl+C om te stoppen")
     print(f"Python executable: {sys.executable}")
     print("-" * 50)
@@ -80,48 +87,52 @@ def main():
     # Oneindige loop
     while True:
         try:
-            # Laad huidige plugins
             plugins = load_plugins()
-            
+
             if not plugins:
                 print("Geen plugins gevonden om bij te werken")
             else:
                 print(f"Start bijwerken van {len(plugins)} plugin(s)")
                 
-                # Bijwerken van elke plugin
-                updated_plugins = []
                 success_count = 0
-                
+
                 for plugin in plugins:
                     url = plugin.get('url')
                     owner = plugin.get('owner')
                     
                     if url:
+                        existing = db.plugins.find_one({"url": url, "owner": owner})
+                        if not existing:
+                            print(f"Plugin verwijderd tijdens update, overslaan: {url}")
+                            continue
+
                         updated_data = update_plugin(url, owner)
                         if updated_data:
-                            updated_plugins.append(updated_data)
+                            db.plugins.update_one(
+                                {"url": url, "owner": owner},
+                                {"$set": updated_data},
+                                upsert=True,
+                            )
                             success_count += 1
                         else:
-                            # Behoud originele data bij fout
                             print(f"Originele data behouden voor: {url}")
-                            updated_plugins.append(plugin)
+                            db.plugins.update_one(
+                                {"url": url, "owner": owner},
+                                {"$set": plugin},
+                                upsert=True,
+                            )
                     else:
                         print("Plugin zonder URL gevonden, overslaan...")
-                        updated_plugins.append(plugin)
                 
-                # Sla bijgewerkte plugins op
-                if save_plugins(updated_plugins):
-                    print(f"Bijwerken voltooid: {success_count}/{len(plugins)} plugins succesvol bijgewerkt")
-                else:
-                    print("Fout bij opslaan van bijgewerkte plugins")
+                print(f"Bijwerken voltooid: {success_count}/{len(plugins)} plugins succesvol bijgewerkt")
             
-            # Wacht 1 uur tot volgende update
-            next_run = datetime.now() + timedelta(hours=1)
+            # Wacht 6 uur tot volgende update
+            next_run = datetime.now() + timedelta(hours=6)
             print(f"Volgende update om: {next_run.strftime('%Y-%m-%d %H:%M:%S')}")
             print("-" * 50)
             
-            # Wacht 1 uur (3600 seconden)
-            time.sleep(3600)
+            # Wacht 6 uur (21600 seconden)
+            time.sleep(21600)
             
         except KeyboardInterrupt:
             print("\nCron service gestopt door gebruiker")

@@ -37,10 +37,8 @@
 - Updated `delete_plugin()` endpoint to check user role
 
 ### 5. Cron Updates
-- Modified `cron.py` to preserve owner field during updates
-- Parse JSON output from `launcher.py`
-- Merge updated data with existing owner information
-- Save updated plugins back to `plugins.json`
+- `cron.py` werkt nu plugins bij op basis van MongoDB-data
+- JSON-bestanden worden niet meer als primaire opslag gebruikt
 
 ## Files Modified
 
@@ -61,11 +59,7 @@
    - Added `save_plugins()` function
    - Updated main loop to preserve owner field
 
-4. **users.json**
-   - Added role field to existing users
-   - Removed email field
-
-5. **components/admin/admin.html**
+4. **components/admin/admin.html**
    - Complete redesign with role-based UI
    - Added user role management dropdown
    - Added plugin management section
