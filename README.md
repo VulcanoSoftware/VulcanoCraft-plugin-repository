@@ -8,7 +8,7 @@ It includes a modern web interface for browsing plugins and a Docker-first deplo
 ---
 
 ## 🚀 Features
-- 🔄 **Automated Updates** – Background service fetches and updates plugin information hourly.
+- 🔄 **Automated Updates** – Background service that fetches and updates plugin information hourly.
 - 👥 **User Management** – Registration, login, and role-based permissions (User, Co-Admin, Admin).
 - 🎨 **Modern UI** – Responsive design with animations and advanced filtering capabilities.
 - 🔍 **Advanced Filtering** – Search by name, version, platform, or loader.
@@ -21,16 +21,16 @@ It includes a modern web interface for browsing plugins and a Docker-first deplo
 
 ---
 
-## 📂 Repository Structure (overzicht)
+## 📂 Repository Structure (overview)
 ```
-├── webserver.py            # Flask web server met API endpoints
-├── cron.py                 # Background updater (cron-achtige job)
-├── launcher.py             # Lokale tool om plugin-data op te halen
-├── create_admin.py         # CLI-tool om een admin-gebruiker aan te maken
+├── webserver.py            # Flask web server with API endpoints
+├── cron.py                 # Background updater (cron-like job)
+├── launcher.py             # Local tool to fetch plugin data
+├── create_admin.py         # CLI tool to create an admin user
 ├── docker-compose.yml      # Docker stack (app + mongo + cron + backup)
-├── Dockerfile              # Image voor de app / cron
-├── .env                    # Gevoelige configuratie (niet in git)
-├── fetchers/               # Platform-specifieke scrapers (Spigot, Modrinth, CurseForge, ...)
+├── Dockerfile              # Image for the app / cron
+├── .env                    # Sensitive configuration (not in git)
+├── fetchers/               # Platform-specific scrapers (Spigot, Modrinth, CurseForge, ...)
 │   ├── author.py
 │   ├── description.py
 │   ├── icon.py
@@ -41,140 +41,153 @@ It includes a modern web interface for browsing plugins and a Docker-first deplo
 │   ├── admin/
 │   │   └── admin.html      # Admin panel interface
 │   └── user/
-│       └── login.html      # Login/registratie
-├── images/                 # UI-assets en iconen
-├── js/                     # Moderne modular frontend (filters, UI, auth, modals)
-├── index.html              # Hoofd plugin-browser interface
-├── style.css               # Styling en animaties
+│       └── login.html      # Login/registration
+├── images/                 # UI assets and icons
+├── js/                     # Modern modular frontend (filters, UI, auth, modals)
+├── index.html              # Main plugin browser interface
+├── style.css               # Styling and animations
 ├── requirements.txt        # Python dependencies
-├── README.md               # Deze documentatie
-├── update.md               # Changelog / update-log
-├── ADMIN_CHANGES.md        # Historische beschrijving van admin-wijzigingen
-└── ADMIN_ROLES.md          # Uitleg over rolensysteem
+├── README.md               # This documentation
+├── update.md               # Changelog / update log
+├── ADMIN_CHANGES.md        # Historical description of admin changes
+└── ADMIN_ROLES.md          # Explanation of the role system
 ```
 
 ---
 
-## 🛠️ Installatie & Gebruik
+## 🛠️ Installation & Usage
 
-### 1. Vereisten
+### 1. Requirements
 - Python 3.11
-- `uv` (Python package manager) – voor lokale ontwikkeling
-- Docker + Docker Compose – aanbevolen voor productie
+- `uv` (Python package manager) – recommended for local development
+- Docker + Docker Compose – recommended for production
 
 ---
 
-### 2. Configuratie via `.env` (1 file voor alles)
+### 2. Configuration via `.env` (single config file)
 
-In de root van het project staat een `.env` bestand dat **alle gevoelige waarden** bevat.  
-Docker Compose leest deze automatisch in.
+In the project root there is a `.env` file that contains **all sensitive values**.  
+Docker Compose automatically loads this file.
 
-Een typisch `.env` voorbeeld:
+A typical `.env` example:
 
 ```env
 # MongoDB
 MONGO_ROOT_USERNAME=vulcano_root
-MONGO_ROOT_PASSWORD=een-sterk-wachtwoord
+MONGO_ROOT_PASSWORD=a-strong-password
 MONGO_DB_NAME=vulcanocraft
-MONGO_URI=mongodb://vulcano_root:een-sterk-wachtwoord@mongo:27017/vulcanocraft?authSource=admin
-MONGO_BACKUP_URI=mongodb://vulcano_root:een-sterk-wachtwoord@mongo:27017/vulcanocraft?authSource=admin
+MONGO_URI=mongodb://vulcano_root:a-strong-password@mongo:27017/vulcanocraft?authSource=admin
+MONGO_BACKUP_URI=mongodb://vulcano_root:a-strong-password@mongo:27017/vulcanocraft?authSource=admin
 
-# Flask / applicatie
-FLASK_SECRET_KEY=64-tekens-lange-random-hex-string
-ADMIN_DEFAULT_PASSWORD=een-sterk-admin-wachtwoord
+# Flask / application
+FLASK_SECRET_KEY=64-character-long-random-hex-string
+ADMIN_DEFAULT_PASSWORD=a-strong-admin-password
 
 # CurseForge
-CURSEFORGE_API_KEY=jouw-curseforge-api-key-hier
+CURSEFORGE_API_KEY=your-curseforge-api-key-here
 
 # Backups
 ENABLE_BACKUPS=false
 BACKUP_INTERVAL_HOURS=24
 ```
 
-Belangrijk:
-- Gebruik sterke wachtwoorden (geen `admin123` of `test`).
-- Zorg dat `MONGO_URI` en `MONGO_BACKUP_URI` overeenkomen met `MONGO_ROOT_USERNAME` en `MONGO_ROOT_PASSWORD`.
-- `FLASK_SECRET_KEY` moet lang en willekeurig zijn (64 hex-karakters is prima).
+Important:
+- Use strong passwords (do not use `admin123` or `test`).
+- Ensure that `MONGO_URI` and `MONGO_BACKUP_URI` match `MONGO_ROOT_USERNAME` and `MONGO_ROOT_PASSWORD`.
+- `FLASK_SECRET_KEY` must be long and random (64 hex characters is fine).
 
 ---
 
-### 3. Lokaal draaien (zonder Docker)
+### 3. Running locally (without Docker)
 
-Dit is vooral handig voor ontwikkeling of debugging.
+This is mainly useful for development or debugging.
 
-1. Dependencies installeren:
+1. Install dependencies:
 
 ```bash
 uv pip install -r requirements.txt
 ```
 
-2. Playwright browsers installeren (voor de fetchers):
+2. Install Playwright browsers (for the fetchers):
 
 ```bash
 playwright install
 ```
 
-3. Omgevingsvariabelen zetten (powershell-voorbeeld):
+3. Set environment variables
+
+Windows PowerShell example:
 
 ```powershell
 $env:MONGO_URI = "mongodb://localhost:27017"
 $env:MONGO_DB_NAME = "vulcanocraft"
-$env:FLASK_SECRET_KEY = "vervang-dit-met-een-veilige-sleutel"
+$env:FLASK_SECRET_KEY = "replace-this-with-a-secure-key"
 ```
 
-4. MongoDB lokaal starten (bijvoorbeeld via Docker of een lokale installatie).
+Linux/macOS (bash/zsh) example:
 
-5. Webserver starten:
+```bash
+export MONGO_URI="mongodb://localhost:27017"
+export MONGO_DB_NAME="vulcanocraft"
+export FLASK_SECRET_KEY="replace-this-with-a-secure-key"
+```
+
+4. Start MongoDB locally (for example via Docker or a local installation).
+
+5. Start the web server:
 
 ```bash
 uv run webserver.py
 ```
 
-Applicatie is dan bereikbaar op `http://localhost:5000`.
+The application is then available at `http://localhost:5000`.
 
-6. Cronjob (optioneel):
+6. Cron job (optional):
 
 ```bash
 uv run cron.py
 ```
 
-Deze job werkt bestaande plugins periodiek bij.
+This job periodically updates existing plugins.
 
 ---
 
-### 4. Draaien met Docker (aanbevolen voor productie)
+### 4. Running with Docker (recommended for production)
 
-Zorg dat Docker en Docker Compose geïnstalleerd zijn.
+Make sure Docker and Docker Compose are installed.
 
-1. Zorg dat `.env` correct is ingevuld (zie hierboven).
+1. Make sure `.env` is filled in correctly (see above).
 
-2. Bouw en start alle services:
-   ```bash
-   docker compose up -d
-   ```
-   Dit start:
-   - `app` – Flask-app achter een productie WSGI-server (`gunicorn`) op poort `8000`
-   - `mongo` – MongoDB met een persistent Docker volume `mongo-data`
-   - `cron` – Updater die regelmatig plugins bijwerkt
-   - `backup` – Optionele backupservice (afhankelijk van `ENABLE_BACKUPS`)
+2. Build and start all services:
 
-3. Maak een admin-account in de container (eenmalig):
-   ```bash
-   docker compose exec app python create_admin.py
-   ```
+```bash
+docker compose up -d
+```
 
-4. Open de webinterface:
-   - Applicatie: `http://localhost:8000`
+This starts:
+- `app` – Flask app behind a production WSGI server (`gunicorn`) on port `8000`
+- `mongo` – MongoDB with persistent data in `./mongo-live-data` in the project root
+- `cron` – Updater that regularly refreshes plugins
+- `backup` – Optional backup service (depending on `ENABLE_BACKUPS`)
 
-De data in MongoDB blijft behouden in het `mongo-data` volume, ook als je de containers opnieuw opstart.
+3. Create an admin account inside the container (one-time):
+
+```bash
+docker compose exec app python create_admin.py
+```
+
+4. Open the web interface:
+- Application: `http://localhost:8000`
+
+MongoDB data is persisted in the `mongo-live-data` directory in your project root, even if you restart the containers.
 
 ---
 
-### 5. Backups inschakelen en terugzetten
+### 5. Enabling and restoring backups
 
-#### 5.1 Waar komen de backups terecht?
+#### 5.1 Where are backups stored?
 
-In Docker Compose is de `backup` service zo geconfigureerd dat alle dumps in een map in je projectroot terechtkomen:
+In Docker Compose, the `backup` service is configured so that all dumps end up in a directory in your project root:
 
 ```yaml
 backup:
@@ -183,55 +196,55 @@ backup:
     - ./backups:/backups
 ```
 
-Op de host (Windows) vind je ze hier:
+On the host you will find them here:
 
 ```text
-<project-root>\backups\<timestamp>\
+<project-root>/backups/<timestamp>/
 ```
 
-Bijvoorbeeld:
+For example:
 
 ```text
-backups\
-  20251212-235900\
-  20251213-001500\
+backups/
+  20251212-235900/
+  20251213-001500/
 ```
 
-Elke map bevat een `mongodump` van je database op dat moment.
+Each directory contains a `mongodump` of your database at that moment.
 
-#### 5.2 Backups inschakelen
+#### 5.2 Enabling backups
 
-1. Zet in `.env`:
+1. In `.env` set:
 
 ```env
 ENABLE_BACKUPS=true
-BACKUP_INTERVAL_HOURS=24    # of 6, 12, ...
-MONGO_BACKUP_URI=mongodb://vulcano_root:een-sterk-wachtwoord@mongo:27017/vulcanocraft?authSource=admin
+BACKUP_INTERVAL_HOURS=24    # or 6, 12, ...
+MONGO_BACKUP_URI=mongodb://vulcano_root:a-strong-password@mongo:27017/vulcanocraft?authSource=admin
 ```
 
-2. Herstart de stack:
+2. Restart the stack:
 
 ```bash
 docker compose down
 docker compose up -d
 ```
 
-3. De `backup`-container zal nu, elke `BACKUP_INTERVAL_HOURS`,:
-   - Een timestamp genereren (`YYYYMMDD-HHMMSS`)
-   - `mongodump` draaien naar `/backups/<timestamp>`
-   - Backups ouder dan 7 dagen verwijderen
+3. The `backup` container will now, every `BACKUP_INTERVAL_HOURS`:
+- Generate a timestamp (`YYYYMMDD-HHMMSS`)
+- Run `mongodump` to `/backups/<timestamp>`
+- Delete backups older than 7 days
 
-#### 5.3 Een backup terugzetten (restore)
+#### 5.3 Restoring a backup
 
-Stel je wilt een backup met timestamp `20251212-235900` terugzetten.
+Assume you want to restore a backup with timestamp `20251212-235900`.
 
-1. Stop de app en cron (optioneel, maar veiligst):
+1. Stop the app and cron (optional, but safest):
 
 ```bash
 docker compose stop app cron
 ```
 
-2. Start een eenmalige `mongo`-container met dezelfde netwerk/URI en mount de backups:
+2. Start a one-off `mongo` container with the same network/URI and mount the backups:
 
 ```bash
 docker compose run --rm \
@@ -240,15 +253,15 @@ docker compose run --rm \
   mongorestore --uri="$MONGO_BACKUP_URI" /backups/20251212-235900
 ```
 
-3. Start de app weer:
+3. Start the app again:
 
 ```bash
 docker compose start app cron
 ```
 
-Na de restore zie je in de webinterface weer de data uit die backup.
+After the restore, you will see the data from that backup again in the web interface.
 
-> Let op: een restore overschrijft de huidige database-inhoud. Maak eventueel eerst een nieuwe backup voordat je een oude terugzet.
+> Note: a restore overwrites the current database content. Consider creating a new backup first before restoring an older one.
 
 ---
 
@@ -258,7 +271,7 @@ Na de restore zie je in de webinterface weer de data uit die backup.
 - **Co-Admin** – Manage all plugins and view users
 - **Admin** – Full access including user management and settings
 
-Meer details over rollen en rechten vind je in `ADMIN_ROLES.md`.
+More details about roles and permissions can be found in `ADMIN_ROLES.md`.
 
 ---
 
