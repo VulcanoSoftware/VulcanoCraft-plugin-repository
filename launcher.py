@@ -5,14 +5,17 @@ import sys
 
 def run_script(script_name, url):
     """Voert een Python script uit uit de fetchers map met de gegeven URL en retourneert de output"""
-    python_executable = ".venv/bin/python" if os.path.exists(".venv/bin/python") else sys.executable
+    # Gebruik sys.executable om de huidige python interpreter te gebruiken
+    python_executable = sys.executable
     try:
+        env = os.environ.copy()
+        env['PYTHONPATH'] = os.getcwd()
         result = subprocess.run(
             [python_executable, f'fetchers/{script_name}.py', url],
             capture_output=True,
             text=True,
             check=True,
-            env=os.environ.copy()
+            env=env
         )
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
