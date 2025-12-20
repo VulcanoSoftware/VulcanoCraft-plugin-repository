@@ -301,6 +301,8 @@ If you run into architecture-related issues (for example browser installation er
 - Ensure MongoDB is reachable via `MONGO_URI`.
 - Skip Playwright-based optimizations if the browser installation is not available on your platform.
 >
+On Raspberry Pi 4 specifically, the CPU is ARMv8.0-A. Recent official MongoDB builds for arm64 (including `mongo:4.4` tags ≥4.4.19) require ARMv8.2-A or newer and will crash with `Illegal instruction` on a Pi 4. For this reason, the Docker configuration in this repository pins MongoDB to `mongo:4.4.18`, which is the latest 4.4 release that still runs reliably on Raspberry Pi 4 according to the upstream issue tracker.
+>
 ---
 >
 ## 👥 User Roles
