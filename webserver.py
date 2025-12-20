@@ -19,7 +19,6 @@ MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "vulcanocraft")
 mongo_client = MongoClient(MONGO_URI)
 db = mongo_client[MONGO_DB_NAME]
 db.users.create_index("username", unique=True)
-db.plugins.create_index([("url", 1), ("owner", 1)], unique=True)
 
 def load_plugins():
     """Laad de plugins data"""
@@ -56,11 +55,7 @@ def add_user_plugin(username, plugin_data):
     try:
         plugin_data = dict(plugin_data or {})
         plugin_data["owner"] = username
-        db.plugins.update_one(
-            {"url": plugin_data.get("url"), "owner": username},
-            {"$set": plugin_data},
-            upsert=True,
-        )
+        db.plugins.insert_one(plugin_data)
         return True
     except Exception as e:
         print(f"Fout bij het toevoegen van plugin: {e}")
@@ -69,7 +64,7 @@ def add_user_plugin(username, plugin_data):
 def delete_user_plugin(username, url):
     """Verwijder plugin van specifieke gebruiker"""
     try:
-        result = db.plugins.delete_one({"url": url, "owner": username})
+        result = db.plugins.delete_many({"url": url, "owner": username})
         return result.deleted_count > 0
     except Exception as e:
         print(f"Fout bij verwijderen plugin voor gebruiker: {e}")
@@ -707,11 +702,12 @@ def delete_plugin():
     try:
         data = request.get_json()
         url = data.get('url')
+        username = session['user']
 
         if not url:
             return jsonify({'error': 'Geen URL opgegeven'}), 400
 
-        if delete_any_plugin(url):
+        if delete_user_plugin(username, url):
             return jsonify({'success': True, 'message': 'Plugin succesvol verwijderd'})
 
         return jsonify({'error': 'Plugin niet gevonden of fout bij verwijderen'}), 404
