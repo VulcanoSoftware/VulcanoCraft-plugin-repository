@@ -159,6 +159,13 @@ Make sure Docker and Docker Compose are installed.
 1. Make sure `.env` is filled in correctly (see above).
 
 2. Build and start all services:
+```bash
+git clone https://github.com/VulcanoSoftware/VulcanoCraft-plugin-repository.git
+```
+
+```bash
+cd VulcanoCraft-plugin-repository
+```
 
 ```bash
 docker compose up -d
