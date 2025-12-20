@@ -269,9 +269,40 @@ docker compose start app cron
 After the restore, you will see the data from that backup again in the web interface.
 
 > Note: a restore overwrites the current database content. Consider creating a new backup first before restoring an older one.
-
+>
 ---
-
+>
+### 6. Running on ARM64 / Raspberry Pi 4
+>
+The application is written in pure Python and uses Docker images that are available as multi-architecture builds. That means it can run on any 64-bit CPU, including ARM64 platforms such as a Raspberry Pi 4, as long as you use a 64-bit operating system.
+>
+To run on a Raspberry Pi 4 (or another ARM64 server) with Docker:
+>
+- Use a 64-bit OS (for example Raspberry Pi OS 64-bit or Ubuntu Server 64-bit).
+- Install Docker and Docker Compose in the standard way for your distribution.
+- Clone this repository and create a `.env` file as described above.
+- Start the stack in exactly the same way:
+  - `docker compose build app`
+  - `docker compose up -d`
+>
+Docker will automatically pull the correct `python:3.11-slim` and `mongo:4.4` images for your CPU architecture (including `linux/arm64`). No extra configuration is required.
+>
+If you prefer to run the app without Docker on ARM64:
+>
+- Install Python 3.11 for your platform.
+- Install the dependencies with `uv pip install -r requirements.txt` or `pip install -r requirements.txt`.
+- Run `playwright install` once to install the browser binaries. On ARM64 this automatically downloads the correct Playwright build for your CPU.
+- Set `MONGO_URI`, `MONGO_DB_NAME` and `FLASK_SECRET_KEY` as environment variables.
+- Start the web server with `uv run webserver.py` or `python webserver.py`.
+>
+If you run into architecture-related issues (for example browser installation errors on very minimal ARM distributions), you can still use the tool because the core fetchers primarily rely on HTTP requests. In that case:
+>
+- Make sure Python and `requests` are installed.
+- Ensure MongoDB is reachable via `MONGO_URI`.
+- Skip Playwright-based optimizations if the browser installation is not available on your platform.
+>
+---
+>
 ## 👥 User Roles
 
 - **User** – Add, view, and delete own plugins
