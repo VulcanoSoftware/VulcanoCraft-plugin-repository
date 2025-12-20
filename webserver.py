@@ -64,7 +64,7 @@ def add_user_plugin(username, plugin_data):
 def delete_user_plugin(username, url):
     """Verwijder plugin van specifieke gebruiker"""
     try:
-        result = db.plugins.delete_many({"url": url, "owner": username})
+        result = db.plugins.delete_one({"url": url, "owner": username})
         return result.deleted_count > 0
     except Exception as e:
         print(f"Fout bij verwijderen plugin voor gebruiker: {e}")
