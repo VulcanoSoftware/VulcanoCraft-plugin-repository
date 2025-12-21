@@ -1037,13 +1037,15 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
 
+        const totalAssignments = Object.values(categoryCounts).reduce((sum, count) => sum + count, 0);
+
         // Update the UI
         document.querySelectorAll('#categorySidebar .category-item').forEach(item => {
             const categoryName = item.getAttribute('data-category');
             const badge = item.querySelector('.badge');
             if (badge) {
                 if (categoryName === "") { // 'Alles' category
-                    badge.textContent = allPlugins.length;
+                    badge.textContent = totalAssignments;
                 } else {
                     badge.textContent = categoryCounts[categoryName] || 0;
                 }
