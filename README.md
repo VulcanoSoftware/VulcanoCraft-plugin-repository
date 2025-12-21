@@ -257,7 +257,7 @@ docker compose stop app cron
 docker compose run --rm \
   -v ./backups:/backups \
   mongo \
-  mongorestore --uri="$MONGO_BACKUP_URI" /backups/20251212-235900
+  sh -c 'mongorestore --uri="$MONGO_BACKUP_URI" /backups/20251212-235900'
 ```
 
 3. Start the app again:
