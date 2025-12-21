@@ -297,7 +297,7 @@ class AdminPage {
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-2">
-                            <img src="${plugin.icon || '/images/plugin-placeholder.png'}" style="width: 40px; height: 40px; margin-right: 10px;" alt="icon">
+                            <img src="${plugin.icon || '/images/plugin-placeholder.png'}" style="width: 40px; height: 40px; margin-right: 10px;" alt="icon" loading="lazy">
                             <div style="flex-grow: 1;">
                                 <input type="text" class="form-control form-control-sm mb-1 plugin-field plugin-title" value="${plugin.title}" data-url="${plugin.url}">
                                 <input type="text" class="form-control form-control-sm mb-1 plugin-field plugin-author" value="${plugin.author || 'Onbekend'}" data-url="${plugin.url}">

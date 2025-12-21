@@ -304,7 +304,7 @@ function loadPlugins() {
                                     <div class="d-flex align-items-center mb-2">
                                         <img src="${plugin.icon ||
                         "/images/plugin-placeholder.png"
-                        }" style="width: 40px; height: 40px; margin-right: 10px;" alt="icon">
+                        }" style="width: 40px; height: 40px; margin-right: 10px;" alt="icon" loading="lazy">
                                         <div style="flex-grow: 1;">
                                             <input type="text" class="form-control form-control-sm mb-1" value="${plugin.title}" id="pluginTitle-${plugin.url.replace(/[^a-zA-Z0-9]/g, '_')}" onchange="updatePluginDetails('${plugin.url}', '${plugin.url.replace(/[^a-zA-Z0-9]/g, '_')}')">
                                             <input type="text" class="form-control form-control-sm mb-1" value="${plugin.author || 'Onbekend'}" id="pluginAuthor-${plugin.url.replace(/[^a-zA-Z0-9]/g, '_')}" onchange="updatePluginDetails('${plugin.url}', '${plugin.url.replace(/[^a-zA-Z0-9]/g, '_')}')">
