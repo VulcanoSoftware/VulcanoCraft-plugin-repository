@@ -56,7 +56,7 @@ class UI {
                         <div>
                             <span class="domain-badge">${domain}</span>
                             ${canDelete ? `
-                                <button class="btn btn-delete ms-2 delete-btn" data-url="${plugin.url}" data-title="${plugin.title}">
+                                <button class="btn btn-delete ms-2 delete-btn" data-url="${plugin.url}" data-title="${plugin.title}" data-category-context="${plugin._categoryContext || ''}">
                                     <img src="images/delete-icon.png" class="btn-icon" alt="Verwijderen">
                                 </button>` : ''
                             }
@@ -218,12 +218,14 @@ class UI {
             });
         });
 
+        const totalAssignments = Object.values(categoryCounts).reduce((sum, count) => sum + count, 0);
+
         this.categorySidebar.querySelectorAll('.category-item').forEach(item => {
             const categoryName = item.dataset.category;
             const badge = item.querySelector('.badge');
             if (badge) {
                 if (categoryName === '') {
-                    badge.textContent = allPlugins.length;
+                    badge.textContent = totalAssignments;
                 } else {
                     badge.textContent = categoryCounts[categoryName] || 0;
                 }

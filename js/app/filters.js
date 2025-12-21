@@ -59,7 +59,7 @@ class Filters {
         const selectedCategory = this.categorySidebar.querySelector('.active').dataset.category;
         const include = this.includeExcludeSwitch.checked;
 
-        const filteredPlugins = this.allPlugins.filter(plugin => {
+        const perPluginFiltered = this.allPlugins.filter(plugin => {
             const matchesSearch = !searchTerm || ['title', 'description', 'author'].some(prop => plugin[prop]?.toLowerCase().includes(searchTerm));
             const matchesVersion = !selectedVersion || plugin.versions?.includes(selectedVersion);
             const matchesPlatform = selectedPlatforms.length === 0 || selectedPlatforms.includes(this._getPlatformFromUrl(plugin.url));
@@ -70,6 +70,30 @@ class Filters {
             const match = matchesSearch && matchesVersion && matchesPlatform && matchesLoader && matchesCategory;
             return include ? match : !match;
         });
+
+        let filteredPlugins = perPluginFiltered;
+
+        if (!selectedCategory) {
+            const expanded = [];
+            perPluginFiltered.forEach(plugin => {
+                const pluginCategories = new Set(plugin.categories || [plugin.category] || plugin.tags || []);
+                const categoriesArray = Array.from(pluginCategories);
+                if (categoriesArray.length === 0) {
+                    expanded.push({ ...plugin, _categoryContext: '' });
+                    return;
+                }
+                categoriesArray.forEach(cat => {
+                    expanded.push({ ...plugin, _categoryContext: cat });
+                });
+            });
+            filteredPlugins = expanded;
+        } else {
+            const expanded = [];
+            perPluginFiltered.forEach(plugin => {
+                expanded.push({ ...plugin, _categoryContext: selectedCategory });
+            });
+            filteredPlugins = expanded;
+        }
 
         this.onFilterChange(filteredPlugins);
     }

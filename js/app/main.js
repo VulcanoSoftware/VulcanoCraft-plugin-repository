@@ -44,7 +44,19 @@ class App {
 
     render(pluginsToRender) {
         UI.renderPlugins(pluginsToRender, this.authStatus, Auth.currentUser);
-        UI.updateResultsCount(pluginsToRender.length, this.allPlugins.length);
+        const activeCategoryEl = document.querySelector('#categorySidebar .category-item.active');
+        const selectedCategory = activeCategoryEl ? activeCategoryEl.dataset.category : '';
+        let totalCount = this.allPlugins.length;
+        if (!selectedCategory) {
+            let totalAssignments = 0;
+            this.allPlugins.forEach(plugin => {
+                const pluginCategories = new Set(plugin.categories || [plugin.category] || plugin.tags || []);
+                const count = pluginCategories.size || 1;
+                totalAssignments += count;
+            });
+            totalCount = totalAssignments;
+        }
+        UI.updateResultsCount(pluginsToRender.length, totalCount);
         UI.updateCategoryCounts(this.allPlugins);
     }
 
@@ -72,7 +84,8 @@ class App {
             if (deleteButton) {
                 const url = deleteButton.dataset.url;
                 const title = deleteButton.dataset.title;
-                Modals.showDeleteModal(url, title);
+                const categoryContext = deleteButton.dataset.categoryContext || '';
+                Modals.showDeleteModal(url, title, categoryContext);
             }
         });
     }

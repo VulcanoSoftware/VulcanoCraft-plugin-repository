@@ -41,11 +41,11 @@ class API {
         });
     }
 
-    deletePlugin(url) {
+    deletePlugin(url, category) {
         return this._fetch('/delete_plugin', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url }),
+            body: JSON.stringify({ url, category }),
         });
     }
 

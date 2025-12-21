@@ -101,8 +101,9 @@ class Modals {
 
     async handleDeleteConfirm() {
         const pluginTitle = document.getElementById('pluginToDeleteTitle').textContent;
+        const categoryContext = this.currentDeleteCategory || '';
         try {
-            const data = await API.deletePlugin(this.currentDeleteUrl);
+            const data = await API.deletePlugin(this.currentDeleteUrl, categoryContext || undefined);
             if (data.success) {
                 UI.showSuccessMessage(`Plugin "${pluginTitle}" succesvol verwijderd!`);
                 this.deleteModal.hide();
@@ -114,9 +115,10 @@ class Modals {
         }
     }
 
-    showDeleteModal(url, title) {
+    showDeleteModal(url, title, categoryContext = '') {
         document.getElementById('pluginToDeleteTitle').textContent = title;
         this.currentDeleteUrl = url;
+        this.currentDeleteCategory = categoryContext;
         this.deleteModal.show();
     }
 

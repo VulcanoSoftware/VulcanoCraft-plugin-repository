@@ -55,7 +55,40 @@ def add_user_plugin(username, plugin_data):
     try:
         plugin_data = dict(plugin_data or {})
         plugin_data["owner"] = username
-        db.plugins.insert_one(plugin_data)
+
+        url = plugin_data.get("url")
+        if not url:
+            return False
+
+        new_category = plugin_data.get("category")
+
+        existing_plugin = db.plugins.find_one({"url": url, "owner": username})
+
+        if existing_plugin:
+            categories = existing_plugin.get("categories")
+            if not isinstance(categories, list):
+                categories = []
+
+            existing_primary_category = existing_plugin.get("category")
+            if existing_primary_category and existing_primary_category not in categories:
+                categories.append(existing_primary_category)
+
+            if new_category and new_category not in categories:
+                categories.append(new_category)
+
+            if categories:
+                plugin_data["categories"] = categories
+                plugin_data["category"] = categories[0]
+
+            db.plugins.update_one({"_id": existing_plugin["_id"]}, {"$set": plugin_data})
+        else:
+            if new_category:
+                plugin_data.setdefault("categories", [])
+                if new_category not in plugin_data["categories"]:
+                    plugin_data["categories"].append(new_category)
+
+            db.plugins.insert_one(plugin_data)
+
         return True
     except Exception as e:
         print(f"Fout bij het toevoegen van plugin: {e}")
@@ -68,6 +101,40 @@ def delete_user_plugin(username, url):
         return result.deleted_count > 0
     except Exception as e:
         print(f"Fout bij verwijderen plugin voor gebruiker: {e}")
+        return False
+
+def remove_user_plugin_category(username, url, category):
+    """Verwijder een categorie-koppeling van een plugin voor een specifieke gebruiker"""
+    try:
+        plugin = db.plugins.find_one({"url": url, "owner": username})
+        if not plugin:
+            return False
+
+        categories = plugin.get("categories")
+        if isinstance(categories, list):
+            categories = [c for c in categories if c != category]
+        else:
+            categories = []
+
+        primary_category = plugin.get("category")
+        if primary_category == category and categories:
+            primary_category = categories[0]
+        elif primary_category == category and not categories:
+            primary_category = None
+
+        if not categories and not primary_category:
+            result = db.plugins.delete_one({"_id": plugin["_id"]})
+            return result.deleted_count > 0
+
+        update_data = {
+            "categories": categories,
+            "category": primary_category
+        }
+
+        result = db.plugins.update_one({"_id": plugin["_id"]}, {"$set": update_data})
+        return result.modified_count > 0
+    except Exception as e:
+        print(f"Fout bij verwijderen categorie voor plugin: {e}")
         return False
 
 def delete_any_plugin(url):
@@ -702,13 +769,18 @@ def delete_plugin():
     try:
         data = request.get_json()
         url = data.get('url')
+        category = data.get('category')
         username = session['user']
 
         if not url:
             return jsonify({'error': 'Geen URL opgegeven'}), 400
 
-        if delete_user_plugin(username, url):
-            return jsonify({'success': True, 'message': 'Plugin succesvol verwijderd'})
+        if category:
+            if remove_user_plugin_category(username, url, category):
+                return jsonify({'success': True, 'message': 'Categorie succesvol verwijderd'})
+        else:
+            if delete_user_plugin(username, url):
+                return jsonify({'success': True, 'message': 'Plugin succesvol verwijderd'})
 
         return jsonify({'error': 'Plugin niet gevonden of fout bij verwijderen'}), 404
 
