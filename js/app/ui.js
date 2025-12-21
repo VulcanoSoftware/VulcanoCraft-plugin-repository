@@ -40,7 +40,7 @@ class UI {
         const canDelete = logged_in && (role === 'admin' || role === 'co-admin' || plugin.owner === currentUser);
         const firstLetter = (plugin.title || 'P')[0].toUpperCase();
         const iconHtml = plugin.icon
-            ? `<img src="${plugin.icon}" alt="${plugin.title} icon" class="plugin-icon me-3" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="plugin-icon-letter me-3" style="display:none;">${firstLetter}</div>`
+            ? `<img src="${plugin.icon}" alt="${plugin.title} icon" class="plugin-icon me-3" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="plugin-icon-letter me-3" style="display:none;">${firstLetter}</div>`
             : `<div class="plugin-icon-letter me-3">${firstLetter}</div>`;
 
         return `

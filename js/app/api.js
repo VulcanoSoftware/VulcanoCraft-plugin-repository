@@ -54,20 +54,16 @@ class API {
     }
 
     async getServerCategories() {
-         try {
+        try {
             const response = await fetch('/api/server_categories');
             if (!response.ok) {
-                return this.getServerCategoriesFallback();
+                return null;
             }
             const data = await response.json();
-            return (Array.isArray(data) && data.length) ? data : this.getServerCategoriesFallback();
+            return (Array.isArray(data) && data.length) ? data : null;
         } catch (error) {
-            return this.getServerCategoriesFallback();
+            return null;
         }
-    }
-
-    getServerCategoriesFallback() {
-        return this._fetch('/server_categories.json').catch(() => null);
     }
 }
 
