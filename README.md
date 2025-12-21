@@ -214,7 +214,9 @@ For example:
 ```text
 backups/
   20251212-235900/
+    vulcanocraft/
   20251213-001500/
+    vulcanocraft/
 ```
 
 Each directory contains a `mongodump` of your database at that moment.
@@ -251,16 +253,24 @@ Assume you want to restore a backup with timestamp `20251212-235900`.
 docker compose stop app cron
 ```
 
-2. Start a one-off `mongo` container with the same network/URI and mount the backups:
+2. Restore the backup from the timestamp directory for your database:
 
 ```bash
 docker compose run --rm \
   -v ./backups:/backups \
   mongo \
-  sh -c 'mongorestore --uri="$MONGO_BACKUP_URI" /backups/20251212-235900'
+  sh -c 'mongorestore \
+    --host mongo \
+    --port 27017 \
+    -u "$MONGO_INITDB_ROOT_USERNAME" \
+    -p "$MONGO_INITDB_ROOT_PASSWORD" \
+    --authenticationDatabase admin \
+    --db "$MONGO_INITDB_DATABASE" \
+    --drop \
+    /backups/20251212-235900/vulcanocraft'
 ```
 
-3. Start the app again:
+3. Start the app and cron again:
 
 ```bash
 docker compose start app cron
