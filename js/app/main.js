@@ -6,8 +6,9 @@ import Auth from './auth.js';
 
 class App {
     constructor() {
-        this.allPlugins = [];
         this.authStatus = {};
+        this.currentPage = 1;
+        this.perPage = 20;
     }
 
     async init() {
@@ -15,67 +16,70 @@ class App {
 
         this.authStatus = await Auth.checkStatus();
 
-        await this.loadPluginData();
+        this.filters = new Filters((filterParams, resetPage) => {
+            if (resetPage) this.currentPage = 1;
+            this.loadAndRenderPlugins(filterParams);
+        });
 
-        this.filters = new Filters(this.allPlugins, (filteredPlugins) => this.render(filteredPlugins));
+        const [serverCategories, serverInfo] = await Promise.all([
+            API.getServerCategories(),
+            API.getServerInfo()
+        ]);
+
+        UI.buildCategorySidebar([], serverCategories, serverInfo);
 
         this.setupEventListeners();
 
-        this.render(this.allPlugins);
+        await this.loadAndRenderPlugins(this.filters.getFilterParams());
     }
 
-    async loadPluginData() {
+    async loadAndRenderPlugins(filterParams) {
         try {
-            const [plugins, serverCategories, serverInfo] = await Promise.all([
-                API.getPlugins(),
-                API.getServerCategories(),
-                API.getServerInfo()
-            ]);
-            this.allPlugins = plugins;
+            const params = {
+                page: this.currentPage,
+                perPage: this.perPage,
+                ...filterParams
+            };
 
-            UI.populateVersionFilter(this.allPlugins);
-            UI.populateLoaderFilter(this.allPlugins);
-            UI.buildCategorySidebar(this.allPlugins, serverCategories, serverInfo);
+            const data = await API.getPlugins(params);
+
+            if (data.all_versions) UI.populateVersionFilter(data.all_versions);
+            if (data.all_loaders) UI.populateLoaderFilter(data.all_loaders);
+
+            UI.renderPlugins(data.plugins || [], this.authStatus, Auth.currentUser);
+            UI.updateResultsCount(data.plugins ? data.plugins.length : 0, data.total || 0);
+            UI.updateCategoryCounts(data.category_counts || {});
+
+            UI.renderPagination(data.page || 1, data.total_pages || 1, (newPage) => {
+                this.currentPage = newPage;
+                this.loadAndRenderPlugins(this.filters.getFilterParams());
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
         } catch (error) {
             console.error('Failed to load plugin data:', error);
             UI.showEmptyMessage('Fout bij het laden van plugins.');
         }
     }
 
-    render(pluginsToRender) {
-        UI.renderPlugins(pluginsToRender, this.authStatus, Auth.currentUser);
-        const activeCategoryEl = document.querySelector('#categorySidebar .category-item.active');
-        const selectedCategory = activeCategoryEl ? activeCategoryEl.dataset.category : '';
-        let totalCount = this.allPlugins.length;
-        if (!selectedCategory) {
-            let totalAssignments = 0;
-            this.allPlugins.forEach(plugin => {
-                const pluginCategories = new Set(plugin.categories || [plugin.category] || plugin.tags || []);
-                const count = pluginCategories.size || 1;
-                totalAssignments += count;
-            });
-            totalCount = totalAssignments;
-        }
-        UI.updateResultsCount(pluginsToRender.length, totalCount);
-        UI.updateCategoryCounts(this.allPlugins);
-    }
-
     setupEventListeners() {
+        if (UI.perPageSelect) {
+            UI.perPageSelect.addEventListener('change', (e) => {
+                this.perPage = parseInt(e.target.value, 10) || 20;
+                this.currentPage = 1;
+                this.loadAndRenderPlugins(this.filters.getFilterParams());
+            });
+        }
+
         // Reload plugins when a plugin is successfully added or deleted
-        Modals.addModalEl.addEventListener('hidden.bs.modal', async (event) => {
-            // Check if the modal was closed after a successful add operation
+        Modals.addModalEl.addEventListener('hidden.bs.modal', async () => {
             if (Modals.addSuccess) {
-                await this.loadPluginData();
-                this.filters.allPlugins = this.allPlugins;
-                this.filters.applyFilters();
+                await this.loadAndRenderPlugins(this.filters.getFilterParams());
             }
             Modals.resetAddModal();
         });
 
         Modals.deleteModalEl.addEventListener('hidden.bs.modal', async () => {
-             await this.loadPluginData();
-             this.filters.allPlugins = this.allPlugins;
-             this.filters.applyFilters();
+            await this.loadAndRenderPlugins(this.filters.getFilterParams());
         });
 
         // Event delegation for delete buttons
