@@ -21,8 +21,20 @@ class API {
         return this._fetch('/logout', { method: 'POST' });
     }
 
-    getPlugins() {
-        return this._fetch('/api/plugins/public');
+    getPlugins(params = {}) {
+        const query = new URLSearchParams();
+        if (params.page !== undefined) query.set('page', params.page);
+        if (params.perPage !== undefined) query.set('per_page', params.perPage);
+        if (params.search) query.set('search', params.search);
+        if (params.version) query.set('version', params.version);
+        if (params.platforms && params.platforms.length) query.set('platforms', params.platforms.join(','));
+        if (params.loaders && params.loaders.length) query.set('loaders', params.loaders.join(','));
+        if (params.category) query.set('category', params.category);
+        if (params.include !== undefined) query.set('include', params.include);
+
+        const queryString = query.toString();
+        const url = queryString ? `/api/plugins/public?${queryString}` : '/api/plugins/public';
+        return this._fetch(url);
     }
 
     fetchPlugin(url) {

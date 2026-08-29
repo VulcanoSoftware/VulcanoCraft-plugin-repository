@@ -1,8 +1,7 @@
 import UI from './ui.js';
 
 class Filters {
-    constructor(allPlugins, onFilterChange) {
-        this.allPlugins = allPlugins;
+    constructor(onFilterChange) {
         this.onFilterChange = onFilterChange;
 
         this.searchInput = document.getElementById('searchInput');
@@ -51,51 +50,23 @@ class Filters {
         document.getElementById('uncheckAllLoaders').addEventListener('click', () => checkAll('.loader-filter', false));
     }
 
-    applyFilters() {
-        const searchTerm = this.searchInput.value.toLowerCase().trim();
-        const selectedVersion = this.versionFilter.value;
-        const selectedPlatforms = this._getSelectedValues('.platform-filter');
-        const selectedLoaders = this._getSelectedValues('.loader-filter');
-        const selectedCategory = this.categorySidebar.querySelector('.active').dataset.category;
-        const include = this.includeExcludeSwitch.checked;
+    getFilterParams() {
+        const activeCategoryEl = this.categorySidebar.querySelector('.active');
+        const selectedCategory = activeCategoryEl ? activeCategoryEl.dataset.category : '';
 
-        const perPluginFiltered = this.allPlugins.filter(plugin => {
-            const matchesSearch = !searchTerm || ['title', 'description', 'author'].some(prop => plugin[prop]?.toLowerCase().includes(searchTerm));
-            const matchesVersion = !selectedVersion || plugin.versions?.includes(selectedVersion);
-            const matchesPlatform = selectedPlatforms.length === 0 || selectedPlatforms.includes(this._getPlatformFromUrl(plugin.url));
-            const matchesLoader = selectedLoaders.length === 0 || plugin.loaders?.some(loader => selectedLoaders.includes(loader));
-            const pluginCategories = new Set(plugin.categories || [plugin.category] || plugin.tags || []);
-            const matchesCategory = !selectedCategory || pluginCategories.has(selectedCategory);
+        return {
+            search: this.searchInput.value.trim(),
+            version: this.versionFilter.value,
+            platforms: this._getSelectedValues('.platform-filter'),
+            loaders: this._getSelectedValues('.loader-filter'),
+            category: selectedCategory,
+            include: this.includeExcludeSwitch.checked
+        };
+    }
 
-            const match = matchesSearch && matchesVersion && matchesPlatform && matchesLoader && matchesCategory;
-            return include ? match : !match;
-        });
-
-        let filteredPlugins = perPluginFiltered;
-
-        if (!selectedCategory) {
-            const expanded = [];
-            perPluginFiltered.forEach(plugin => {
-                const pluginCategories = new Set(plugin.categories || [plugin.category] || plugin.tags || []);
-                const categoriesArray = Array.from(pluginCategories);
-                if (categoriesArray.length === 0) {
-                    expanded.push({ ...plugin, _categoryContext: '' });
-                    return;
-                }
-                categoriesArray.forEach(cat => {
-                    expanded.push({ ...plugin, _categoryContext: cat });
-                });
-            });
-            filteredPlugins = expanded;
-        } else {
-            const expanded = [];
-            perPluginFiltered.forEach(plugin => {
-                expanded.push({ ...plugin, _categoryContext: selectedCategory });
-            });
-            filteredPlugins = expanded;
-        }
-
-        this.onFilterChange(filteredPlugins);
+    applyFilters(resetPage = true) {
+        const filterParams = this.getFilterParams();
+        this.onFilterChange(filterParams, resetPage);
     }
 
     reset() {
