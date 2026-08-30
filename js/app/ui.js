@@ -319,13 +319,15 @@ class UI {
         if (!this.resultsCounter) {
             this.resultsCounter = document.createElement('div');
             this.resultsCounter.id = 'resultsCounter';
-            this.resultsCounter.className = 'text-center mb-3 text-muted';
+            this.resultsCounter.className = 'text-center mb-3';
             this.pluginsContainer.parentNode.insertBefore(this.resultsCounter, this.pluginsContainer);
         }
 
-        this.resultsCounter.innerHTML = (totalCount === filteredCount)
-            ? `<small>Alle ${totalCount} plugins worden weergegeven</small>`
-            : `<small>${filteredCount} van ${totalCount} plugins gevonden</small>`;
+        const text = (totalCount === filteredCount)
+            ? `Alle ${totalCount} plugins worden weergegeven`
+            : `${filteredCount} van ${totalCount} plugins gevonden`;
+
+        this.resultsCounter.innerHTML = `<span class="results-count-badge">${text}</span>`;
     }
 
     showSuccessMessage(message) {
