@@ -304,11 +304,152 @@ def api_plugins():
     plugins = get_user_plugins(username)
     return jsonify(plugins)
 
+def get_platform_from_url(url):
+    if not url:
+        return 'unknown'
+    if 'hangar.papermc.io' in url:
+        return 'hangar'
+    if 'spigotmc.org' in url:
+        return 'spigot'
+    if 'modrinth.com' in url:
+        return 'modrinth'
+    if 'dev.bukkit.org' in url:
+        return 'bukkitdev'
+    if 'github.com' in url:
+        return 'github'
+    if 'curseforge.com' in url:
+        return 'curseforge'
+    if 'planetminecraft.com' in url:
+        return 'planetminecraft'
+    return 'unknown'
+
+def extract_plugin_categories(plugin):
+    cats = plugin.get('categories') or ([plugin.get('category')] if plugin.get('category') else []) or plugin.get('tags') or []
+    return set(c for c in cats if c)
+
+def compute_plugin_metadata(all_plugins):
+    version_set = set()
+    loader_set = set()
+    category_counts = {}
+
+    for plugin in all_plugins:
+        v_str = plugin.get('versions', '') or ''
+        for ver in v_str.split():
+            if ver:
+                version_set.add(ver)
+
+        for loader in plugin.get('loaders', []) or []:
+            if loader:
+                loader_set.add(loader)
+
+        for cat in extract_plugin_categories(plugin):
+            category_counts[cat] = category_counts.get(cat, 0) + 1
+
+    return list(version_set), list(loader_set), category_counts
+
+def matches_plugin_criteria(plugin, search_term, selected_version, selected_platforms, selected_loaders, selected_category):
+    title = (plugin.get('title') or '').lower()
+    description = (plugin.get('description') or '').lower()
+    author = (plugin.get('author') or '').lower()
+
+    if search_term and search_term not in title and search_term not in description and search_term not in author:
+        return False
+
+    v_str = plugin.get('versions') or ''
+    if selected_version and selected_version not in v_str.split():
+        return False
+
+    plugin_platform = get_platform_from_url(plugin.get('url', ''))
+    if selected_platforms and plugin_platform not in selected_platforms:
+        return False
+
+    plugin_loaders = plugin.get('loaders') or []
+    if selected_loaders and not any(loader in selected_loaders for loader in plugin_loaders):
+        return False
+
+    plugin_cats = extract_plugin_categories(plugin)
+    if selected_category and selected_category not in plugin_cats:
+        return False
+
+    return True
+
+def expand_plugin_categories(per_plugin_filtered, selected_category):
+    filtered_expanded = []
+    if not selected_category:
+        for plugin in per_plugin_filtered:
+            plugin_cats = list(extract_plugin_categories(plugin))
+            if not plugin_cats:
+                p_copy = dict(plugin)
+                p_copy['_categoryContext'] = ''
+                filtered_expanded.append(p_copy)
+            else:
+                for cat in plugin_cats:
+                    p_copy = dict(plugin)
+                    p_copy['_categoryContext'] = cat
+                    filtered_expanded.append(p_copy)
+    else:
+        for plugin in per_plugin_filtered:
+            p_copy = dict(plugin)
+            p_copy['_categoryContext'] = selected_category
+            filtered_expanded.append(p_copy)
+
+    return filtered_expanded
+
+def paginate_items(items, page, per_page):
+    total_items = len(items)
+    if per_page <= 0:
+        return items, total_items, 1, 1
+
+    total_pages = max(1, (total_items + per_page - 1) // per_page)
+    current_page = max(1, min(page, total_pages)) if total_pages > 0 else 1
+    start_idx = (current_page - 1) * per_page
+    end_idx = start_idx + per_page
+
+    return items[start_idx:end_idx], total_items, current_page, total_pages
+
 @app.route('/api/plugins/public')
 def api_plugins_public():
-    """API endpoint voor alle plugins data (publiek toegankelijk)"""
-    plugins = load_plugins()
-    return jsonify(plugins)
+    """API endpoint voor alle plugins data met filtering en paginering"""
+    all_plugins = load_plugins()
+
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    search_term = request.args.get('search', '').lower().strip()
+    selected_version = request.args.get('version', '')
+
+    platforms_raw = request.args.get('platforms', '')
+    selected_platforms = [p.strip() for p in platforms_raw.split(',') if p.strip()] if platforms_raw else []
+
+    loaders_raw = request.args.get('loaders', '')
+    selected_loaders = [loader.strip() for loader in loaders_raw.split(',') if loader.strip()] if loaders_raw else []
+
+    selected_category = request.args.get('category', '')
+    include = request.args.get('include', 'true').lower() != 'false'
+
+    all_versions, all_loaders, category_counts = compute_plugin_metadata(all_plugins)
+
+    per_plugin_filtered = []
+    for plugin in all_plugins:
+        match = matches_plugin_criteria(
+            plugin, search_term, selected_version, selected_platforms, selected_loaders, selected_category
+        )
+        is_included = match if include else not match
+        if is_included:
+            per_plugin_filtered.append(plugin)
+
+    filtered_expanded = expand_plugin_categories(per_plugin_filtered, selected_category)
+    paginated_plugins, total_items, current_page, total_pages = paginate_items(filtered_expanded, page, per_page)
+
+    return jsonify({
+        'plugins': paginated_plugins,
+        'total': total_items,
+        'page': current_page,
+        'per_page': per_page,
+        'total_pages': total_pages,
+        'all_versions': all_versions,
+        'all_loaders': all_loaders,
+        'category_counts': category_counts
+    })
 
 
 @app.route('/api/server_categories')
