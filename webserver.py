@@ -449,47 +449,57 @@ def paginate_items(items, page, per_page):
 
     return items[start_idx:end_idx], total_items, current_page, total_pages
 
+def parse_public_api_params(req):
+    """Helper om de query parameters van de public API request te parsen."""
+    platforms_raw = req.args.get('platforms', '')
+    loaders_raw = req.args.get('loaders', '')
+    return {
+        'page': req.args.get('page', 1, type=int),
+        'per_page': req.args.get('per_page', 20, type=int),
+        'search_term': req.args.get('search', '').lower().strip(),
+        'selected_version': req.args.get('version', ''),
+        'selected_platforms': [p.strip() for p in platforms_raw.split(',') if p.strip()] if platforms_raw else [],
+        'selected_loaders': [loader.strip() for loader in loaders_raw.split(',') if loader.strip()] if loaders_raw else [],
+        'selected_category': req.args.get('category', ''),
+        'include': req.args.get('include', 'true').lower() != 'false',
+        'sort_by': req.args.get('sort', 'name_asc')
+    }
+
 @app.route('/api/plugins/public')
 def api_plugins_public():
     """API endpoint voor alle plugins data met filtering en paginering"""
     all_plugins = load_plugins()
-
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 20, type=int)
-    search_term = request.args.get('search', '').lower().strip()
-    selected_version = request.args.get('version', '')
-
-    platforms_raw = request.args.get('platforms', '')
-    selected_platforms = [p.strip() for p in platforms_raw.split(',') if p.strip()] if platforms_raw else []
-
-    loaders_raw = request.args.get('loaders', '')
-    selected_loaders = [loader.strip() for loader in loaders_raw.split(',') if loader.strip()] if loaders_raw else []
-
-    selected_category = request.args.get('category', '')
-    include = request.args.get('include', 'true').lower() != 'false'
-    sort_by = request.args.get('sort', 'name_asc')
+    params = parse_public_api_params(request)
 
     all_versions, all_loaders, category_counts = compute_plugin_metadata(all_plugins)
-
     ALL_PLATFORMS = ['hangar', 'spigot', 'modrinth', 'curseforge', 'bukkitdev', 'github', 'planetminecraft']
 
-    per_plugin_filtered = []
-    for plugin in all_plugins:
+    per_plugin_filtered = [
+        plugin for plugin in all_plugins
         if is_plugin_included(
-            plugin, search_term, selected_version, selected_platforms, selected_loaders, selected_category, include, ALL_PLATFORMS, all_loaders
-        ):
-            per_plugin_filtered.append(plugin)
+            plugin,
+            params['search_term'],
+            params['selected_version'],
+            params['selected_platforms'],
+            params['selected_loaders'],
+            params['selected_category'],
+            params['include'],
+            ALL_PLATFORMS,
+            all_loaders
+        )
+    ]
 
-    per_plugin_filtered = sort_plugins(per_plugin_filtered, sort_by)
-
-    filtered_expanded = expand_plugin_categories(per_plugin_filtered, selected_category)
-    paginated_plugins, total_items, current_page, total_pages = paginate_items(filtered_expanded, page, per_page)
+    per_plugin_filtered = sort_plugins(per_plugin_filtered, params['sort_by'])
+    filtered_expanded = expand_plugin_categories(per_plugin_filtered, params['selected_category'])
+    paginated_plugins, total_items, current_page, total_pages = paginate_items(
+        filtered_expanded, params['page'], params['per_page']
+    )
 
     return jsonify({
         'plugins': paginated_plugins,
         'total': total_items,
         'page': current_page,
-        'per_page': per_page,
+        'per_page': params['per_page'],
         'total_pages': total_pages,
         'all_versions': all_versions,
         'all_loaders': all_loaders,
