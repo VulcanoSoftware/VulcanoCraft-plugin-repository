@@ -31,6 +31,7 @@ class API {
         if (params.loaders && params.loaders.length) query.set('loaders', params.loaders.join(','));
         if (params.category) query.set('category', params.category);
         if (params.include !== undefined) query.set('include', params.include);
+        if (params.sort) query.set('sort', params.sort);
 
         const queryString = query.toString();
         const url = queryString ? `/api/plugins/public?${queryString}` : '/api/plugins/public';

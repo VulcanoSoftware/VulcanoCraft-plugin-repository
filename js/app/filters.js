@@ -6,6 +6,7 @@ class Filters {
 
         this.searchInput = document.getElementById('searchInput');
         this.versionFilter = document.getElementById('versionFilter');
+        this.sortSelect = document.getElementById('sortSelect');
         this.platformFilters = document.querySelectorAll('.platform-filter');
         this.loaderFiltersContainer = document.getElementById('loaderFilters');
         this.categorySidebar = document.getElementById('categorySidebar');
@@ -19,6 +20,7 @@ class Filters {
     _addEventListeners() {
         this.searchInput.addEventListener('input', this._debounce(() => this.applyFilters(), 300));
         this.versionFilter.addEventListener('change', () => this.applyFilters());
+        if (this.sortSelect) this.sortSelect.addEventListener('change', () => this.applyFilters());
         this.platformFilters.forEach(filter => filter.addEventListener('change', () => this.applyFilters()));
         this.loaderFiltersContainer.addEventListener('change', (e) => {
             if (e.target.classList.contains('loader-filter')) this.applyFilters();
@@ -57,6 +59,7 @@ class Filters {
         return {
             search: this.searchInput.value.trim(),
             version: this.versionFilter.value,
+            sort: this.sortSelect ? this.sortSelect.value : 'name_asc',
             platforms: this._getSelectedValues('.platform-filter'),
             loaders: this._getSelectedValues('.loader-filter'),
             category: selectedCategory,
@@ -72,6 +75,7 @@ class Filters {
     reset() {
         this.searchInput.value = '';
         this.versionFilter.value = '';
+        if (this.sortSelect) this.sortSelect.value = 'name_asc';
         this.platformFilters.forEach(cb => cb.checked = true);
         document.querySelectorAll('.loader-filter').forEach(cb => cb.checked = true);
         this.categorySidebar.querySelector('.active').classList.remove('active');
