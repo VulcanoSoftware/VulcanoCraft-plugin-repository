@@ -8,6 +8,9 @@ class UI {
         this.authButtons = document.getElementById('authButtons');
         this.userButtons = document.getElementById('userButtons');
         this.adminBtn = document.getElementById('adminBtn');
+        this.paginationContainer = document.getElementById('paginationContainer');
+        this.paginationControls = document.getElementById('paginationControls');
+        this.perPageSelect = document.getElementById('perPageSelect');
         this.resultsCounter = null;
     }
 
@@ -125,42 +128,54 @@ class UI {
         return `${url.substring(0, maxLength)}...`;
     }
 
-    populateVersionFilter(plugins) {
-        const allVersions = new Set(
-            plugins.flatMap(p => (p.versions ? p.versions.split(' ') : [])).filter(v => v)
-        );
-        const sortedVersions = Array.from(allVersions).sort((a, b) => {
+    populateVersionFilter(versionsList) {
+        let versions = [];
+        if (Array.isArray(versionsList) && typeof versionsList[0] === 'string') {
+            versions = versionsList;
+        } else if (Array.isArray(versionsList)) {
+            versions = Array.from(new Set(versionsList.flatMap(p => (p.versions ? p.versions.split(' ') : [])).filter(v => v)));
+        }
+
+        const sortedVersions = Array.from(new Set(versions)).sort((a, b) => {
             const aNum = parseFloat(a);
             const bNum = parseFloat(b);
             if (!isNaN(aNum) && !isNaN(bNum)) return bNum - aNum;
             return b.localeCompare(a);
         });
 
+        const currentValue = this.versionFilter.value;
         this.versionFilter.innerHTML = '<option value="">Alle versies</option>';
         sortedVersions.forEach(version => {
             const option = document.createElement('option');
             option.value = version;
             option.textContent = version;
+            if (version === currentValue) option.selected = true;
             this.versionFilter.appendChild(option);
         });
     }
 
-    populateLoaderFilter(plugins) {
-        const allLoaders = new Set(
-            plugins.flatMap(p => p.loaders || []).filter(l => l)
-        );
-        const sortedLoaders = Array.from(allLoaders).sort((a, b) => a.localeCompare(b));
+    populateLoaderFilter(loadersList) {
+        let loaders = [];
+        if (Array.isArray(loadersList) && typeof loadersList[0] === 'string') {
+            loaders = loadersList;
+        } else if (Array.isArray(loadersList)) {
+            loaders = Array.from(new Set(loadersList.flatMap(p => p.loaders || []).filter(l => l)));
+        }
 
-        this.loaderFilters.innerHTML = '';
-        sortedLoaders.forEach(loader => {
-            const div = document.createElement('div');
-            div.className = 'form-check form-check-inline';
-            div.innerHTML = `
-                <input class="form-check-input loader-filter" id="loader-${loader}" type="checkbox" value="${loader}" checked>
-                <label class="form-check-label" for="loader-${loader}">${loader}</label>
-            `;
-            this.loaderFilters.appendChild(div);
-        });
+        const sortedLoaders = Array.from(new Set(loaders)).sort((a, b) => a.localeCompare(b));
+
+        if (this.loaderFilters.children.length === 0) {
+            this.loaderFilters.innerHTML = '';
+            sortedLoaders.forEach(loader => {
+                const div = document.createElement('div');
+                div.className = 'form-check form-check-inline';
+                div.innerHTML = `
+                    <input class="form-check-input loader-filter" id="loader-${loader}" type="checkbox" value="${loader}" checked>
+                    <label class="form-check-label" for="loader-${loader}">${loader}</label>
+                `;
+                this.loaderFilters.appendChild(div);
+            });
+        }
     }
 
     buildCategorySidebar(plugins, serverCategories, serverInfo) {
@@ -204,21 +219,11 @@ class UI {
         });
     }
 
-    updateCategoryCounts(allPlugins) {
-        const categoryCounts = {};
-        this.categorySidebar.querySelectorAll('.category-item').forEach(item => {
-            const categoryName = item.dataset.category;
-            if (categoryName) categoryCounts[categoryName] = 0;
-        });
+    updateCategoryCounts(categoryCountsMap) {
+        if (!categoryCountsMap) return;
 
-        allPlugins.forEach(plugin => {
-            const pluginCategories = new Set(plugin.categories || [plugin.category] || plugin.tags || []);
-            pluginCategories.forEach(cat => {
-                if (cat in categoryCounts) categoryCounts[cat]++;
-            });
-        });
-
-        const totalAssignments = Object.values(categoryCounts).reduce((sum, count) => sum + count, 0);
+        let totalAssignments = 0;
+        Object.values(categoryCountsMap).forEach(c => totalAssignments += c);
 
         this.categorySidebar.querySelectorAll('.category-item').forEach(item => {
             const categoryName = item.dataset.category;
@@ -227,9 +232,74 @@ class UI {
                 if (categoryName === '') {
                     badge.textContent = totalAssignments;
                 } else {
-                    badge.textContent = categoryCounts[categoryName] || 0;
+                    badge.textContent = categoryCountsMap[categoryName] || 0;
                 }
             }
+        });
+    }
+
+    renderPagination(currentPage, totalPages, onPageClick) {
+        if (!this.paginationContainer || !this.paginationControls) return;
+
+        if (totalPages <= 1) {
+            this.paginationContainer.style.display = 'none';
+            return;
+        }
+
+        this.paginationContainer.style.display = 'flex';
+        let html = '';
+
+        // Previous button
+        const prevDisabled = currentPage <= 1 ? 'disabled' : '';
+        html += `<li class="page-item ${prevDisabled}">
+            <button class="page-link" data-page="${currentPage - 1}" aria-label="Vorige">&laquo;</button>
+        </li>`;
+
+        // Page numbers
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+
+        if (startPage > 1) {
+            html += `<li class="page-item"><button class="page-link" data-page="1">1</button></li>`;
+            if (startPage > 2) {
+                html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+            }
+        }
+
+        for (let p = startPage; p <= endPage; p++) {
+            const active = p === currentPage ? 'active' : '';
+            html += `<li class="page-item ${active}"><button class="page-link" data-page="${p}">${p}</button></li>`;
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+            }
+            html += `<li class="page-item"><button class="page-link" data-page="${totalPages}">${totalPages}</button></li>`;
+        }
+
+        // Next button
+        const nextDisabled = currentPage >= totalPages ? 'disabled' : '';
+        html += `<li class="page-item ${nextDisabled}">
+            <button class="page-link" data-page="${currentPage + 1}" aria-label="Volgende">&raquo;</button>
+        </li>`;
+
+        this.paginationControls.innerHTML = html;
+
+        // Attach click listener
+        this.paginationControls.querySelectorAll('button.page-link').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const page = parseInt(btn.dataset.page, 10);
+                if (page && page !== currentPage && page >= 1 && page <= totalPages) {
+                    onPageClick(page);
+                }
+            });
         });
     }
 
