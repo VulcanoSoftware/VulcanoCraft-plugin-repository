@@ -480,7 +480,12 @@
       function initAnimeHeader() {
         const textWrapper = document.querySelector(".ml9 .letters");
         if (!textWrapper || !window.anime) return;
-        textWrapper.innerHTML = textWrapper.textContent.replace(/\S/g, "<span class='letter'>$&</span>");
+        const words = textWrapper.textContent.trim().split(/\s+/);
+        textWrapper.innerHTML = words.map(word =>
+          `<span style="display: inline-block; white-space: nowrap;">` +
+          word.replace(/\S/g, "<span class='letter'>$&</span>") +
+          `</span>`
+        ).join(" ");
         window.anime
           .timeline({ loop: false })
           .add({

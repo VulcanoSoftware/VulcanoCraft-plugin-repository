@@ -347,6 +347,36 @@ def compute_plugin_metadata(all_plugins):
 
     return list(version_set), list(loader_set), category_counts
 
+def _check_include_mode(matches_search, search_term, matches_version, selected_version, plugin_platform, selected_platforms, plugin_loaders, selected_loaders, matches_category, selected_category):
+    if search_term and not matches_search:
+        return False
+    if selected_version and not matches_version:
+        return False
+    if selected_platforms and plugin_platform not in selected_platforms:
+        return False
+    if selected_loaders and not any(loader in selected_loaders for loader in plugin_loaders):
+        return False
+    if selected_category and not matches_category:
+        return False
+    return True
+
+def _check_exclude_mode(matches_search, search_term, matches_version, selected_version, matches_category, selected_category, plugin_platform, selected_platforms, all_platforms, plugin_loaders, selected_loaders, all_loaders):
+    if search_term and matches_search:
+        return False
+    if selected_version and matches_version:
+        return False
+    if selected_category and matches_category:
+        return False
+    if selected_platforms and plugin_platform in selected_platforms:
+        return False
+    if selected_loaders and any(loader in selected_loaders for loader in plugin_loaders):
+        return False
+    return True
+
+def matches_plugin_criteria(plugin, search_term, selected_version, selected_platforms, selected_loaders, selected_category):
+    """Legacy helper function maintained for backwards compatibility."""
+    return is_plugin_included(plugin, search_term, selected_version, selected_platforms, selected_loaders, selected_category, include=True)
+
 def is_plugin_included(plugin, search_term, selected_version, selected_platforms, selected_loaders, selected_category, include, all_platforms=None, all_loaders=None):
     if all_platforms is None:
         all_platforms = ['hangar', 'spigot', 'modrinth', 'curseforge', 'bukkitdev', 'github', 'planetminecraft']
@@ -361,40 +391,21 @@ def is_plugin_included(plugin, search_term, selected_version, selected_platforms
     matches_version = bool(selected_version) and (selected_version in v_str.split())
 
     plugin_platform = get_platform_from_url(plugin.get('url', ''))
-
     plugin_loaders = plugin.get('loaders') or []
-
     plugin_cats = extract_plugin_categories(plugin)
     matches_category = bool(selected_category) and (selected_category in plugin_cats)
 
     if include:
-        if search_term and not matches_search:
-            return False
-        if selected_version and not matches_version:
-            return False
-        if selected_platforms and plugin_platform not in selected_platforms:
-            return False
-        if selected_loaders and not any(loader in selected_loaders for loader in plugin_loaders):
-            return False
-        if selected_category and not matches_category:
-            return False
-        return True
-    else:
-        if search_term and matches_search:
-            return False
-        if selected_version and matches_version:
-            return False
-        if selected_category and matches_category:
-            return False
-        if selected_platforms:
-            excluded_platforms = set(all_platforms) - set(selected_platforms)
-            if plugin_platform in excluded_platforms:
-                return False
-        if selected_loaders and all_loaders:
-            excluded_loaders = set(all_loaders) - set(selected_loaders)
-            if any(loader in excluded_loaders for loader in plugin_loaders):
-                return False
-        return True
+        return _check_include_mode(
+            matches_search, search_term, matches_version, selected_version,
+            plugin_platform, selected_platforms, plugin_loaders, selected_loaders,
+            matches_category, selected_category
+        )
+    return _check_exclude_mode(
+        matches_search, search_term, matches_version, selected_version,
+        matches_category, selected_category, plugin_platform, selected_platforms,
+        all_platforms, plugin_loaders, selected_loaders, all_loaders
+    )
 
 def sort_plugins(plugins, sort_by):
     if sort_by == 'name_asc':
