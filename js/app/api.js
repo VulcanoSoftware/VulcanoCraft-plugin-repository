@@ -27,8 +27,8 @@ class API {
         if (params.perPage !== undefined) query.set('per_page', params.perPage);
         if (params.search) query.set('search', params.search);
         if (params.version) query.set('version', params.version);
-        if (params.platforms && params.platforms.length) query.set('platforms', params.platforms.join(','));
-        if (params.loaders && params.loaders.length) query.set('loaders', params.loaders.join(','));
+        if (params.platforms !== undefined) query.set('platforms', Array.isArray(params.platforms) ? params.platforms.join(',') : params.platforms);
+        if (params.loaders !== undefined) query.set('loaders', Array.isArray(params.loaders) ? params.loaders.join(',') : params.loaders);
         if (params.category) query.set('category', params.category);
         if (params.include !== undefined) query.set('include', params.include);
         if (params.sort) query.set('sort', params.sort);

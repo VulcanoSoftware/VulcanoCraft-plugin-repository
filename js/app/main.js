@@ -47,7 +47,7 @@ class App {
             if (data.all_loaders) UI.populateLoaderFilter(data.all_loaders);
 
             UI.renderPlugins(data.plugins || [], this.authStatus, Auth.currentUser);
-            UI.updateResultsCount(data.plugins ? data.plugins.length : 0, data.total || 0);
+            UI.updateResultsCount(data.plugins ? data.plugins.length : 0, data.total || 0, data.total_all);
             UI.updateCategoryCounts(data.category_counts || {});
 
             UI.renderPagination(data.page || 1, data.total_pages || 1, (newPage) => {
