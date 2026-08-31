@@ -55,13 +55,14 @@ class Filters {
     getFilterParams() {
         const activeCategoryEl = this.categorySidebar.querySelector('.active');
         const selectedCategory = activeCategoryEl ? activeCategoryEl.dataset.category : '';
+        const loaderCheckboxes = document.querySelectorAll('.loader-filter');
 
         return {
             search: this.searchInput.value.trim(),
             version: this.versionFilter.value,
             sort: this.sortSelect ? this.sortSelect.value : 'name_asc',
             platforms: this._getSelectedValues('.platform-filter'),
-            loaders: this._getSelectedValues('.loader-filter'),
+            loaders: loaderCheckboxes.length > 0 ? this._getSelectedValues('.loader-filter') : undefined,
             category: selectedCategory,
             include: this.includeExcludeSwitch.checked
         };
