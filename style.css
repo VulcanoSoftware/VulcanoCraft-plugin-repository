@@ -1882,15 +1882,27 @@ body {
 .server-info {
     display: block;
     font-size: 0.8rem;
-    color: #6c757d;
+    color: #495057;
     margin-left: calc(36px + 0.75rem); /* Align with text, considering icon width and gap */
     margin-top: -0.4rem;
     margin-bottom: 0.4rem;
+    font-weight: 500;
 }
 
 .category-item:hover .server-info,
 .category-item.active .server-info {
     color: #fff;
+}
+
+.results-count-badge {
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+    color: #ffffff;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: inline-block;
+    box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
 }
 
 .category-icon {
