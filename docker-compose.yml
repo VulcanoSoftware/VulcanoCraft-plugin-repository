@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   app:
     build: .
@@ -21,7 +19,8 @@ services:
         max-size: "10m"
         max-file: "3"
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
 
   mongo:
     image: mongo:4.4.18
@@ -34,6 +33,11 @@ services:
       - ./mongo-live-data:/data/db
     mem_limit: 1024m
     cpus: 1.0
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     logging:
       driver: "json-file"
       options:
@@ -49,7 +53,8 @@ services:
       - MONGO_DB_NAME=${MONGO_DB_NAME}
       - CURSEFORGE_API_KEY=${CURSEFORGE_API_KEY}
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     mem_limit: 256m
     cpus: 0.5
     logging:
@@ -61,7 +66,8 @@ services:
   backup:
     image: mongo:4.4.18
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     environment:
       - ENABLE_BACKUPS=${ENABLE_BACKUPS}
       - BACKUP_INTERVAL_HOURS=${BACKUP_INTERVAL_HOURS}
@@ -75,8 +81,8 @@ services:
           tail -f /dev/null;
         fi;
         while true; do
-          ts=$(date +%Y%m%d-%H%M%S);
-          mongodump --uri="$MONGO_BACKUP_URI" --out=/backups/$ts;
+          ts=$$(date +%Y%m%d-%H%M%S);
+          mongodump --uri="$MONGO_BACKUP_URI" --out=/backups/$$ts;
           find /backups -maxdepth 1 -mindepth 1 -type d -mtime +7 -exec rm -rf {} \;;
           sleep ${BACKUP_INTERVAL_HOURS:-24}h;
         done
