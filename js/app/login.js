@@ -19,6 +19,30 @@ class LoginPage {
         this.showLoginLink.addEventListener('click', (e) => this.showLoginForm(e));
         this.loginBtn.addEventListener('click', () => this.handleLogin());
         this.registerBtn.addEventListener('click', () => this.handleRegister());
+
+        const loginInputs = [document.getElementById('loginUsername'), document.getElementById('loginPassword')];
+        loginInputs.forEach(input => {
+            if (input) {
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.handleLogin();
+                    }
+                });
+            }
+        });
+
+        const registerInputs = [document.getElementById('registerUsername'), document.getElementById('registerPassword')];
+        registerInputs.forEach(input => {
+            if (input) {
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.handleRegister();
+                    }
+                });
+            }
+        });
     }
 
     async showRegisterForm(e) {

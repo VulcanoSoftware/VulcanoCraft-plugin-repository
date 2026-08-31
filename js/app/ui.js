@@ -326,7 +326,7 @@ class UI {
 
         const text = (totalCount === filteredCount)
             ? `Alle ${totalCount} plugins worden weergegeven`
-            : `${filteredCount} van ${totalCount} plugins gevonden`;
+            : `${filteredCount} van de ${totalCount} plugins worden weergegeven`;
 
         this.resultsCounter.innerHTML = `<span class="results-count-badge">${text}</span>`;
     }
