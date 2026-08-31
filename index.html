@@ -213,15 +213,15 @@
             <div class="col-lg-10">
               <div class="card shadow-sm border-0 filter-card">
                 <div class="card-body p-4">
-                  <div class="row g-3 align-items-end">
-                    <div class="col-md-3">
+                  <div class="row g-3 align-items-end mb-3">
+                    <div class="col-lg-4 col-md-6">
                       <label class="form-label fw-bold" for="searchInput">
                         <img class="input-icon" src="images/fetch-icon.png" alt="Zoeken" loading="lazy">
                         Zoeken
                       </label>
                       <input class="form-control search-input" id="searchInput" type="text" placeholder="Zoek plugins...">
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-lg-3 col-md-6">
                       <label class="form-label fw-bold" for="versionFilter">
                         <img class="input-icon" src="images/version-icon.png" alt="Versie" loading="lazy">
                         Versie
@@ -230,7 +230,26 @@
                         <option value="">Alle versies</option>
                       </select>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-lg-5 col-md-12">
+                      <label class="form-label fw-bold" for="sortSelect">
+                        <i class="fas fa-sort me-1"></i>
+                        Sorteren
+                      </label>
+                      <select class="form-select version-filter" id="sortSelect">
+                        <option value="name_asc">Naam (A-Z)</option>
+                        <option value="name_desc">Naam (Z-A)</option>
+                        <option value="platform_asc">Platform (A-Z)</option>
+                        <option value="platform_desc">Platform (Z-A)</option>
+                        <option value="updated_desc">Laatste wijziging (Nieuwste)</option>
+                        <option value="updated_asc">Laatste wijziging (Oudste)</option>
+                        <option value="added_desc">Recent toegevoegd (Nieuwste)</option>
+                        <option value="added_asc">Recent toegevoegd (Oudste)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="row g-3 align-items-end">
+                    <div class="col-lg-5 col-md-6">
                       <label class="form-label fw-bold">
                         <img class="input-icon" src="images/plugin-repo-icon.png" alt="Platform" loading="lazy">
                         Platform
@@ -265,12 +284,12 @@
                           <label class="form-check-label" for="planetminecraftFilter">PlanetMinecraft</label>
                         </div>
                       </div>
-<div class="mt-2 d-flex justify-content-center gap-2">
-    <button class="btn btn-sm btn-outline-success" id="checkAllPlatforms"><img src="images/check_all.png" width="30px" height="30px"></button>
-    <button class="btn btn-sm btn-outline-danger" id="uncheckAllPlatforms"><img src="images/uncheck_all.png" width="30px" height="30px"></button>
-</div>
+                      <div class="mt-2 d-flex justify-content-center gap-2">
+                        <button class="btn btn-sm btn-outline-success" id="checkAllPlatforms"><img src="images/check_all.png" width="30px" height="30px"></button>
+                        <button class="btn btn-sm btn-outline-danger" id="uncheckAllPlatforms"><img src="images/uncheck_all.png" width="30px" height="30px"></button>
+                      </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-lg-5 col-md-6">
                       <label class="form-label fw-bold">
                         <img class="input-icon" src="images/plugin-repo-icon.png" alt="Platform" loading="lazy">
                         Software/Loader
@@ -278,12 +297,12 @@
                       <div class="loader-filters" id="loaderFilters">
                         <!-- Loader checkboxes will be dynamically inserted here -->
                       </div>
-<div class="mt-2 d-flex justify-content-center gap-2">
-    <button class="btn btn-sm btn-outline-success" id="checkAllLoaders"><img src="images/check_all.png" width="30px" height="30px"></button>
-    <button class="btn btn-sm btn-outline-danger" id="uncheckAllLoaders"><img src="images/uncheck_all.png" width="30px" height="30px"></button>
-</div>
+                      <div class="mt-2 d-flex justify-content-center gap-2">
+                        <button class="btn btn-sm btn-outline-success" id="checkAllLoaders"><img src="images/check_all.png" width="30px" height="30px"></button>
+                        <button class="btn btn-sm btn-outline-danger" id="uncheckAllLoaders"><img src="images/uncheck_all.png" width="30px" height="30px"></button>
+                      </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-lg-2 col-md-12">
                       <button class="btn btn-outline-secondary w-100 reset-filters-btn" id="resetFilters" type="button">
                         <img class="btn-icon" src="images/cancel-icon.png" alt="Reset" loading="lazy">
                         Reset

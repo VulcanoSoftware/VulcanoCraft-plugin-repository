@@ -347,31 +347,84 @@ def compute_plugin_metadata(all_plugins):
 
     return list(version_set), list(loader_set), category_counts
 
+def _check_include_mode(matches_search, search_term, matches_version, selected_version, plugin_platform, selected_platforms, plugin_loaders, selected_loaders, matches_category, selected_category):
+    if search_term and not matches_search:
+        return False
+    if selected_version and not matches_version:
+        return False
+    if selected_platforms and plugin_platform not in selected_platforms:
+        return False
+    if selected_loaders and not any(loader in selected_loaders for loader in plugin_loaders):
+        return False
+    if selected_category and not matches_category:
+        return False
+    return True
+
+def _check_exclude_mode(matches_search, search_term, matches_version, selected_version, matches_category, selected_category, plugin_platform, selected_platforms, all_platforms, plugin_loaders, selected_loaders, all_loaders):
+    if search_term and matches_search:
+        return False
+    if selected_version and matches_version:
+        return False
+    if selected_category and matches_category:
+        return False
+    if selected_platforms and plugin_platform in selected_platforms:
+        return False
+    if selected_loaders and any(loader in selected_loaders for loader in plugin_loaders):
+        return False
+    return True
+
 def matches_plugin_criteria(plugin, search_term, selected_version, selected_platforms, selected_loaders, selected_category):
+    """Legacy helper function maintained for backwards compatibility."""
+    return is_plugin_included(plugin, search_term, selected_version, selected_platforms, selected_loaders, selected_category, include=True)
+
+def is_plugin_included(plugin, search_term, selected_version, selected_platforms, selected_loaders, selected_category, include, all_platforms=None, all_loaders=None):
+    if all_platforms is None:
+        all_platforms = ['hangar', 'spigot', 'modrinth', 'curseforge', 'bukkitdev', 'github', 'planetminecraft']
+
     title = (plugin.get('title') or '').lower()
     description = (plugin.get('description') or '').lower()
     author = (plugin.get('author') or '').lower()
 
-    if search_term and search_term not in title and search_term not in description and search_term not in author:
-        return False
+    matches_search = bool(search_term) and (search_term in title or search_term in description or search_term in author)
 
     v_str = plugin.get('versions') or ''
-    if selected_version and selected_version not in v_str.split():
-        return False
+    matches_version = bool(selected_version) and (selected_version in v_str.split())
 
     plugin_platform = get_platform_from_url(plugin.get('url', ''))
-    if selected_platforms and plugin_platform not in selected_platforms:
-        return False
-
     plugin_loaders = plugin.get('loaders') or []
-    if selected_loaders and not any(loader in selected_loaders for loader in plugin_loaders):
-        return False
-
     plugin_cats = extract_plugin_categories(plugin)
-    if selected_category and selected_category not in plugin_cats:
-        return False
+    matches_category = bool(selected_category) and (selected_category in plugin_cats)
 
-    return True
+    if include:
+        return _check_include_mode(
+            matches_search, search_term, matches_version, selected_version,
+            plugin_platform, selected_platforms, plugin_loaders, selected_loaders,
+            matches_category, selected_category
+        )
+    return _check_exclude_mode(
+        matches_search, search_term, matches_version, selected_version,
+        matches_category, selected_category, plugin_platform, selected_platforms,
+        all_platforms, plugin_loaders, selected_loaders, all_loaders
+    )
+
+def sort_plugins(plugins, sort_by):
+    if sort_by == 'name_asc':
+        return sorted(plugins, key=lambda p: (p.get('title') or '').lower())
+    elif sort_by == 'name_desc':
+        return sorted(plugins, key=lambda p: (p.get('title') or '').lower(), reverse=True)
+    elif sort_by == 'platform_asc':
+        return sorted(plugins, key=lambda p: get_platform_from_url(p.get('url', '')))
+    elif sort_by == 'platform_desc':
+        return sorted(plugins, key=lambda p: get_platform_from_url(p.get('url', '')), reverse=True)
+    elif sort_by == 'updated_asc':
+        return sorted(plugins, key=lambda p: str(p.get('last_modified') or p.get('updated_at') or p.get('created_at') or p.get('title') or ''))
+    elif sort_by == 'updated_desc':
+        return sorted(plugins, key=lambda p: str(p.get('last_modified') or p.get('updated_at') or p.get('created_at') or p.get('title') or ''), reverse=True)
+    elif sort_by == 'added_asc':
+        return sorted(plugins, key=lambda p: str(p.get('created_at') or p.get('added_at') or p.get('title') or ''))
+    elif sort_by == 'added_desc':
+        return sorted(plugins, key=lambda p: str(p.get('created_at') or p.get('added_at') or p.get('title') or ''), reverse=True)
+    return plugins
 
 def expand_plugin_categories(per_plugin_filtered, selected_category):
     filtered_expanded = []
@@ -407,44 +460,57 @@ def paginate_items(items, page, per_page):
 
     return items[start_idx:end_idx], total_items, current_page, total_pages
 
+def parse_public_api_params(req):
+    """Helper om de query parameters van de public API request te parsen."""
+    platforms_raw = req.args.get('platforms', '')
+    loaders_raw = req.args.get('loaders', '')
+    return {
+        'page': req.args.get('page', 1, type=int),
+        'per_page': req.args.get('per_page', 20, type=int),
+        'search_term': req.args.get('search', '').lower().strip(),
+        'selected_version': req.args.get('version', ''),
+        'selected_platforms': [p.strip() for p in platforms_raw.split(',') if p.strip()] if platforms_raw else [],
+        'selected_loaders': [loader.strip() for loader in loaders_raw.split(',') if loader.strip()] if loaders_raw else [],
+        'selected_category': req.args.get('category', ''),
+        'include': req.args.get('include', 'true').lower() != 'false',
+        'sort_by': req.args.get('sort', 'name_asc')
+    }
+
 @app.route('/api/plugins/public')
 def api_plugins_public():
     """API endpoint voor alle plugins data met filtering en paginering"""
     all_plugins = load_plugins()
-
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 20, type=int)
-    search_term = request.args.get('search', '').lower().strip()
-    selected_version = request.args.get('version', '')
-
-    platforms_raw = request.args.get('platforms', '')
-    selected_platforms = [p.strip() for p in platforms_raw.split(',') if p.strip()] if platforms_raw else []
-
-    loaders_raw = request.args.get('loaders', '')
-    selected_loaders = [loader.strip() for loader in loaders_raw.split(',') if loader.strip()] if loaders_raw else []
-
-    selected_category = request.args.get('category', '')
-    include = request.args.get('include', 'true').lower() != 'false'
+    params = parse_public_api_params(request)
 
     all_versions, all_loaders, category_counts = compute_plugin_metadata(all_plugins)
+    ALL_PLATFORMS = ['hangar', 'spigot', 'modrinth', 'curseforge', 'bukkitdev', 'github', 'planetminecraft']
 
-    per_plugin_filtered = []
-    for plugin in all_plugins:
-        match = matches_plugin_criteria(
-            plugin, search_term, selected_version, selected_platforms, selected_loaders, selected_category
+    per_plugin_filtered = [
+        plugin for plugin in all_plugins
+        if is_plugin_included(
+            plugin,
+            params['search_term'],
+            params['selected_version'],
+            params['selected_platforms'],
+            params['selected_loaders'],
+            params['selected_category'],
+            params['include'],
+            ALL_PLATFORMS,
+            all_loaders
         )
-        is_included = match if include else not match
-        if is_included:
-            per_plugin_filtered.append(plugin)
+    ]
 
-    filtered_expanded = expand_plugin_categories(per_plugin_filtered, selected_category)
-    paginated_plugins, total_items, current_page, total_pages = paginate_items(filtered_expanded, page, per_page)
+    per_plugin_filtered = sort_plugins(per_plugin_filtered, params['sort_by'])
+    filtered_expanded = expand_plugin_categories(per_plugin_filtered, params['selected_category'])
+    paginated_plugins, total_items, current_page, total_pages = paginate_items(
+        filtered_expanded, params['page'], params['per_page']
+    )
 
     return jsonify({
         'plugins': paginated_plugins,
         'total': total_items,
         'page': current_page,
-        'per_page': per_page,
+        'per_page': params['per_page'],
         'total_pages': total_pages,
         'all_versions': all_versions,
         'all_loaders': all_loaders,
