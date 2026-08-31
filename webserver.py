@@ -23,7 +23,17 @@ db.users.create_index("username", unique=True)
 def load_plugins():
     """Laad de plugins data"""
     try:
-        plugins = list(db.plugins.find({}, {"_id": 0}))
+        docs = list(db.plugins.find({}))
+        plugins = []
+        for doc in docs:
+            obj_id = doc.pop("_id", None)
+            if obj_id and hasattr(obj_id, "generation_time"):
+                gen_iso = obj_id.generation_time.isoformat()
+                doc.setdefault("created_at", gen_iso)
+                doc.setdefault("added_at", gen_iso)
+                doc.setdefault("updated_at", gen_iso)
+                doc.setdefault("last_modified", gen_iso)
+            plugins.append(doc)
         return plugins
     except Exception as e:
         print(f"Fout bij het laden van plugins: {e}")
@@ -347,29 +357,31 @@ def compute_plugin_metadata(all_plugins):
 
     return list(version_set), list(loader_set), category_counts
 
-def _check_include_mode(matches_search, search_term, matches_version, selected_version, plugin_platform, selected_platforms, plugin_loaders, selected_loaders, matches_category, selected_category):
+def _check_include_mode(matches_search, search_term, matches_version, selected_version, plugin_platform, selected_platforms, platforms_provided, plugin_loaders, selected_loaders, loaders_provided, matches_category, selected_category):
     if search_term and not matches_search:
         return False
     if selected_version and not matches_version:
         return False
-    if selected_platforms and plugin_platform not in selected_platforms:
-        return False
-    if selected_loaders and not any(loader in selected_loaders for loader in plugin_loaders):
-        return False
     if selected_category and not matches_category:
         return False
+    if platforms_provided:
+        if not selected_platforms or plugin_platform not in selected_platforms:
+            return False
+    if loaders_provided:
+        if not selected_loaders or not any(loader in selected_loaders for loader in plugin_loaders):
+            return False
     return True
 
-def _check_exclude_mode(matches_search, search_term, matches_version, selected_version, matches_category, selected_category, plugin_platform, selected_platforms, all_platforms, plugin_loaders, selected_loaders, all_loaders):
+def _check_exclude_mode(matches_search, search_term, matches_version, selected_version, matches_category, selected_category, plugin_platform, selected_platforms, platforms_provided, plugin_loaders, selected_loaders, loaders_provided):
     if search_term and matches_search:
         return False
     if selected_version and matches_version:
         return False
     if selected_category and matches_category:
         return False
-    if selected_platforms and plugin_platform in selected_platforms:
+    if platforms_provided and selected_platforms and plugin_platform in selected_platforms:
         return False
-    if selected_loaders and any(loader in selected_loaders for loader in plugin_loaders):
+    if loaders_provided and selected_loaders and any(loader in selected_loaders for loader in plugin_loaders):
         return False
     return True
 
@@ -377,9 +389,19 @@ def matches_plugin_criteria(plugin, search_term, selected_version, selected_plat
     """Legacy helper function maintained for backwards compatibility."""
     return is_plugin_included(plugin, search_term, selected_version, selected_platforms, selected_loaders, selected_category, include=True)
 
-def is_plugin_included(plugin, search_term, selected_version, selected_platforms, selected_loaders, selected_category, include, all_platforms=None, all_loaders=None):
+def is_plugin_included(plugin, search_term, selected_version, selected_platforms, selected_loaders, selected_category, include, all_platforms=None, all_loaders=None, platforms_provided=None, loaders_provided=None):
     if all_platforms is None:
         all_platforms = ['hangar', 'spigot', 'modrinth', 'curseforge', 'bukkitdev', 'github', 'planetminecraft']
+
+    if platforms_provided is None:
+        platforms_provided = selected_platforms is not None
+    if loaders_provided is None:
+        loaders_provided = selected_loaders is not None
+
+    if selected_platforms is None:
+        selected_platforms = []
+    if selected_loaders is None:
+        selected_loaders = []
 
     title = (plugin.get('title') or '').lower()
     description = (plugin.get('description') or '').lower()
@@ -398,13 +420,15 @@ def is_plugin_included(plugin, search_term, selected_version, selected_platforms
     if include:
         return _check_include_mode(
             matches_search, search_term, matches_version, selected_version,
-            plugin_platform, selected_platforms, plugin_loaders, selected_loaders,
+            plugin_platform, selected_platforms, platforms_provided,
+            plugin_loaders, selected_loaders, loaders_provided,
             matches_category, selected_category
         )
     return _check_exclude_mode(
         matches_search, search_term, matches_version, selected_version,
-        matches_category, selected_category, plugin_platform, selected_platforms,
-        all_platforms, plugin_loaders, selected_loaders, all_loaders
+        matches_category, selected_category,
+        plugin_platform, selected_platforms, platforms_provided,
+        plugin_loaders, selected_loaders, loaders_provided
     )
 
 def sort_plugins(plugins, sort_by):
@@ -413,17 +437,17 @@ def sort_plugins(plugins, sort_by):
     elif sort_by == 'name_desc':
         return sorted(plugins, key=lambda p: (p.get('title') or '').lower(), reverse=True)
     elif sort_by == 'platform_asc':
-        return sorted(plugins, key=lambda p: get_platform_from_url(p.get('url', '')))
+        return sorted(plugins, key=lambda p: (get_platform_from_url(p.get('url', '')), (p.get('title') or '').lower()))
     elif sort_by == 'platform_desc':
-        return sorted(plugins, key=lambda p: get_platform_from_url(p.get('url', '')), reverse=True)
+        return sorted(plugins, key=lambda p: (get_platform_from_url(p.get('url', '')), (p.get('title') or '').lower()), reverse=True)
     elif sort_by == 'updated_asc':
-        return sorted(plugins, key=lambda p: str(p.get('last_modified') or p.get('updated_at') or p.get('created_at') or p.get('title') or ''))
+        return sorted(plugins, key=lambda p: (str(p.get('last_modified') or p.get('updated_at') or p.get('created_at') or ''), (p.get('title') or '').lower()))
     elif sort_by == 'updated_desc':
-        return sorted(plugins, key=lambda p: str(p.get('last_modified') or p.get('updated_at') or p.get('created_at') or p.get('title') or ''), reverse=True)
+        return sorted(plugins, key=lambda p: (str(p.get('last_modified') or p.get('updated_at') or p.get('created_at') or ''), (p.get('title') or '').lower()), reverse=True)
     elif sort_by == 'added_asc':
-        return sorted(plugins, key=lambda p: str(p.get('created_at') or p.get('added_at') or p.get('title') or ''))
+        return sorted(plugins, key=lambda p: (str(p.get('created_at') or p.get('added_at') or ''), (p.get('title') or '').lower()))
     elif sort_by == 'added_desc':
-        return sorted(plugins, key=lambda p: str(p.get('created_at') or p.get('added_at') or p.get('title') or ''), reverse=True)
+        return sorted(plugins, key=lambda p: (str(p.get('created_at') or p.get('added_at') or ''), (p.get('title') or '').lower()), reverse=True)
     return plugins
 
 def expand_plugin_categories(per_plugin_filtered, selected_category):
@@ -462,6 +486,9 @@ def paginate_items(items, page, per_page):
 
 def parse_public_api_params(req):
     """Helper om de query parameters van de public API request te parsen."""
+    platforms_provided = 'platforms' in req.args
+    loaders_provided = 'loaders' in req.args
+
     platforms_raw = req.args.get('platforms', '')
     loaders_raw = req.args.get('loaders', '')
     return {
@@ -470,7 +497,9 @@ def parse_public_api_params(req):
         'search_term': req.args.get('search', '').lower().strip(),
         'selected_version': req.args.get('version', ''),
         'selected_platforms': [p.strip() for p in platforms_raw.split(',') if p.strip()] if platforms_raw else [],
+        'platforms_provided': platforms_provided,
         'selected_loaders': [loader.strip() for loader in loaders_raw.split(',') if loader.strip()] if loaders_raw else [],
+        'loaders_provided': loaders_provided,
         'selected_category': req.args.get('category', ''),
         'include': req.args.get('include', 'true').lower() != 'false',
         'sort_by': req.args.get('sort', 'name_asc')
@@ -496,7 +525,9 @@ def api_plugins_public():
             params['selected_category'],
             params['include'],
             ALL_PLATFORMS,
-            all_loaders
+            all_loaders,
+            params['platforms_provided'],
+            params['loaders_provided']
         )
     ]
 

@@ -241,12 +241,13 @@ class UI {
     renderPagination(currentPage, totalPages, onPageClick) {
         if (!this.paginationContainer || !this.paginationControls) return;
 
+        this.paginationContainer.style.display = 'flex';
+
         if (totalPages <= 1) {
-            this.paginationContainer.style.display = 'none';
+            this.paginationControls.innerHTML = '';
             return;
         }
 
-        this.paginationContainer.style.display = 'flex';
         let html = '';
 
         // Previous button
