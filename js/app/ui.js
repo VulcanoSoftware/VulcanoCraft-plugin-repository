@@ -316,7 +316,7 @@ class UI {
         }
     }
 
-    updateResultsCount(filteredCount, totalCount) {
+    updateResultsCount(pluginsOnCurrentPageCount, totalFilteredCount, totalAllPluginsCount) {
         if (!this.resultsCounter) {
             this.resultsCounter = document.createElement('div');
             this.resultsCounter.id = 'resultsCounter';
@@ -324,9 +324,18 @@ class UI {
             this.pluginsContainer.parentNode.insertBefore(this.resultsCounter, this.pluginsContainer);
         }
 
-        const text = (totalCount === filteredCount)
-            ? `Alle ${totalCount} plugins worden weergegeven`
-            : `${filteredCount} van de ${totalCount} plugins worden weergegeven`;
+        let text = '';
+        if (totalAllPluginsCount !== undefined && totalFilteredCount !== undefined) {
+            if (totalFilteredCount === totalAllPluginsCount) {
+                text = `Alle ${totalAllPluginsCount} plugins worden weergegeven`;
+            } else {
+                text = `${totalFilteredCount} van de ${totalAllPluginsCount} plugins worden weergegeven`;
+            }
+        } else {
+            text = (totalFilteredCount === pluginsOnCurrentPageCount)
+                ? `Alle ${totalFilteredCount} plugins worden weergegeven`
+                : `${pluginsOnCurrentPageCount} van de ${totalFilteredCount} plugins worden weergegeven`;
+        }
 
         this.resultsCounter.innerHTML = `<span class="results-count-badge">${text}</span>`;
     }

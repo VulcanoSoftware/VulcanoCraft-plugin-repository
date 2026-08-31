@@ -522,6 +522,7 @@ def api_plugins_public():
     return jsonify({
         'plugins': paginated_plugins,
         'total': total_items,
+        'total_all': len(all_plugins),
         'page': current_page,
         'per_page': params['per_page'],
         'total_pages': total_pages,
