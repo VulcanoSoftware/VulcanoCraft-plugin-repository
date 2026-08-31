@@ -372,19 +372,6 @@ def _check_include_mode(matches_search, search_term, matches_version, selected_v
             return False
     return True
 
-def _check_exclude_mode(matches_search, search_term, matches_version, selected_version, matches_category, selected_category, plugin_platform, selected_platforms, platforms_provided, plugin_loaders, selected_loaders, loaders_provided):
-    if search_term and matches_search:
-        return False
-    if selected_version and matches_version:
-        return False
-    if selected_category and matches_category:
-        return False
-    if platforms_provided and selected_platforms and plugin_platform in selected_platforms:
-        return False
-    if loaders_provided and selected_loaders and any(loader in selected_loaders for loader in plugin_loaders):
-        return False
-    return True
-
 def matches_plugin_criteria(plugin, search_term, selected_version, selected_platforms, selected_loaders, selected_category):
     """Legacy helper function maintained for backwards compatibility."""
     return is_plugin_included(plugin, search_term, selected_version, selected_platforms, selected_loaders, selected_category, include=True)
@@ -417,19 +404,14 @@ def is_plugin_included(plugin, search_term, selected_version, selected_platforms
     plugin_cats = extract_plugin_categories(plugin)
     matches_category = bool(selected_category) and (selected_category in plugin_cats)
 
-    if include:
-        return _check_include_mode(
-            matches_search, search_term, matches_version, selected_version,
-            plugin_platform, selected_platforms, platforms_provided,
-            plugin_loaders, selected_loaders, loaders_provided,
-            matches_category, selected_category
-        )
-    return _check_exclude_mode(
+    included = _check_include_mode(
         matches_search, search_term, matches_version, selected_version,
-        matches_category, selected_category,
         plugin_platform, selected_platforms, platforms_provided,
-        plugin_loaders, selected_loaders, loaders_provided
+        plugin_loaders, selected_loaders, loaders_provided,
+        matches_category, selected_category
     )
+
+    return included if include else not included
 
 def sort_plugins(plugins, sort_by):
     if sort_by == 'name_asc':
