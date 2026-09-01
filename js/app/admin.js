@@ -40,6 +40,14 @@ class AdminPage {
         this.logoutBtn.addEventListener('click', () => this._handleLogout());
         this.registrationToggle.addEventListener('change', (e) => this._handleRegistrationToggle(e));
         this.addCategoryBtn.addEventListener('click', () => this._handleAddCategory());
+        if (this.newCategoryName) {
+            this.newCategoryName.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this._handleAddCategory();
+                }
+            });
+        }
         if (this.checkUpdateBtn) {
             this.checkUpdateBtn.addEventListener('click', () => this._handleCheckUpdate());
         }
@@ -69,6 +77,13 @@ class AdminPage {
                 this._handleDeleteCategory(e.target.closest('.delete-category-btn'));
             } else if (e.target.closest('.delete-plugin-btn')) {
                 this._handleDeletePlugin(e.target.closest('.delete-plugin-btn'));
+            }
+        });
+
+        document.body.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && (e.target.matches('.category-field') || e.target.matches('.plugin-field'))) {
+                e.preventDefault();
+                e.target.blur();
             }
         });
     }
