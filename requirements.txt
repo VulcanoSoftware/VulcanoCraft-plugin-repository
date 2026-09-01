@@ -4,3 +4,4 @@ playwright
 pymongo
 gunicorn
 argon2-cffi
+Flask-Limiter

@@ -11,9 +11,22 @@ import shutil
 import requests
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError, VerificationError, InvalidHashError
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from pymongo import MongoClient
 
 app = Flask(__name__)
+
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=[],
+    storage_uri="memory://"
+)
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return jsonify({'error': 'Te veel verzoeken. Probeer het later opnieuw.'}), 429
 env_name = os.getenv("FLASK_ENV", "development")
 secret_key = os.getenv("FLASK_SECRET_KEY")
 if env_name == "production" and not secret_key:
@@ -615,6 +628,7 @@ def api_loaders():
         return jsonify({'error': 'Fout bij het laden van loaders'}), 500
 
 @app.route('/register', methods=['POST'])
+@limiter.limit("10 per minute")
 def register():
     """Registreer nieuwe gebruiker"""
     try:
@@ -651,6 +665,7 @@ def register():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/login', methods=['POST'])
+@limiter.limit("10 per minute")
 def login():
     """Login gebruiker"""
     try:
@@ -685,6 +700,7 @@ def logout():
     return jsonify({'success': True})
 
 @app.route('/api/change-password', methods=['POST'])
+@limiter.limit("10 per minute")
 @require_login
 def change_password():
     """Wijzig het wachtwoord van de ingelogde gebruiker"""
@@ -886,6 +902,7 @@ def admin_panel():
     return send_file('components/admin/admin.html')
 
 @app.route('/admin/login', methods=['POST'])
+@limiter.limit("10 per minute")
 def admin_login():
     """Admin login"""
     data = request.get_json()
