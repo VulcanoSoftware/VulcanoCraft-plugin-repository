@@ -35,9 +35,9 @@ services:
     cpus: 1.0
     healthcheck:
       test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      interval: 10s
+      timeout: 15s
+      retries: 10          # 100 seconden wachttijd (ruim voldoende)
     logging:
       driver: "json-file"
       options:
