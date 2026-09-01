@@ -295,55 +295,63 @@ class Modals {
             const activeCategory = document.querySelector('#categorySidebar .category-item.active')?.dataset.category;
 
             if (!this.isBulkMode) {
-                if (activeCategory) {
-                    this.cachedPluginData.category = activeCategory;
-                }
-                const data = await API.addPlugin(this.cachedPluginData);
-                if (data.success) {
-                    this.addSuccess = true;
-                    UI.showSuccessMessage('Plugin succesvol toegevoegd!');
-                    this.addModal.hide();
-                } else {
-                    this.showError(`Fout bij toevoegen: ${data.error}`);
-                }
+                await this._addSinglePlugin(activeCategory);
             } else {
-                const selectedItems = this.cachedBulkPlugins.filter(i => i.selected && i.status === 'success');
-                if (selectedItems.length === 0) {
-                    this.showError('Selecteer ten minste één plugin om toe te voegen.');
-                    return;
-                }
-
-                let addedCount = 0;
-                let failCount = 0;
-
-                for (const item of selectedItems) {
-                    if (activeCategory) {
-                        item.plugin.category = activeCategory;
-                    }
-                    try {
-                        const data = await API.addPlugin(item.plugin);
-                        if (data.success) {
-                            addedCount++;
-                        } else {
-                            failCount++;
-                        }
-                    } catch (err) {
-                        failCount++;
-                    }
-                }
-
-                if (addedCount > 0) {
-                    this.addSuccess = true;
-                    UI.showSuccessMessage(`${addedCount} plugin(s) succesvol toegevoegd!${failCount > 0 ? ` (${failCount} mislukt)` : ''}`);
-                    this.addModal.hide();
-                } else {
-                    this.showError(`Fout bij toevoegen van plugins (${failCount} mislukt)`);
-                }
+                await this._addBulkPlugins(activeCategory);
             }
         } catch (error) {
             this.showError(`Fout bij toevoegen: ${error.message}`);
         } finally {
             this._setConfirmYesLoading(false);
+        }
+    }
+
+    async _addSinglePlugin(activeCategory) {
+        if (activeCategory) {
+            this.cachedPluginData.category = activeCategory;
+        }
+        const data = await API.addPlugin(this.cachedPluginData);
+        if (data.success) {
+            this.addSuccess = true;
+            UI.showSuccessMessage('Plugin succesvol toegevoegd!');
+            this.addModal.hide();
+        } else {
+            this.showError(`Fout bij toevoegen: ${data.error}`);
+        }
+    }
+
+    async _addBulkPlugins(activeCategory) {
+        const selectedItems = this.cachedBulkPlugins.filter(i => i.selected && i.status === 'success');
+        if (selectedItems.length === 0) {
+            this.showError('Selecteer ten minste één plugin om toe te voegen.');
+            return;
+        }
+
+        let addedCount = 0;
+        let failCount = 0;
+
+        for (const item of selectedItems) {
+            if (activeCategory) {
+                item.plugin.category = activeCategory;
+            }
+            try {
+                const data = await API.addPlugin(item.plugin);
+                if (data.success) {
+                    addedCount++;
+                } else {
+                    failCount++;
+                }
+            } catch (err) {
+                failCount++;
+            }
+        }
+
+        if (addedCount > 0) {
+            this.addSuccess = true;
+            UI.showSuccessMessage(`${addedCount} plugin(s) succesvol toegevoegd!${failCount > 0 ? ` (${failCount} mislukt)` : ''}`);
+            this.addModal.hide();
+        } else {
+            this.showError(`Fout bij toevoegen van plugins (${failCount} mislukt)`);
         }
     }
 
