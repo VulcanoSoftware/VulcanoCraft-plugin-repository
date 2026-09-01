@@ -9,6 +9,8 @@ import threading
 import time
 import shutil
 import requests
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError, VerificationError, InvalidHashError
 from pymongo import MongoClient
 
 app = Flask(__name__)
@@ -203,9 +205,33 @@ def save_users(users):
     except Exception:
         return False
 
+ph = PasswordHasher()
+
 def hash_password(password):
-    """Hash wachtwoord"""
-    return hashlib.sha256(password.encode()).hexdigest()
+    """Hash wachtwoord met Argon2"""
+    return ph.hash(password)
+
+def verify_password(stored_hash, password):
+    """Verifieer wachtwoord (Argon2 of legacy SHA-256).
+
+    Returns: (is_valid: bool, needs_rehash: bool)
+    """
+    if not stored_hash or not password:
+        return False, False
+
+    if stored_hash.startswith("$argon2"):
+        try:
+            ph.verify(stored_hash, password)
+            needs_rehash = ph.check_needs_rehash(stored_hash)
+            return True, needs_rehash
+        except (VerifyMismatchError, VerificationError, InvalidHashError):
+            return False, False
+    else:
+        # Legacy SHA-256 check
+        legacy_hash = hashlib.sha256(password.encode()).hexdigest()
+        if legacy_hash == stored_hash:
+            return True, True
+        return False, False
 
 def require_login(f):
     """Decorator voor login vereiste"""
@@ -636,16 +662,18 @@ def login():
             return jsonify({'error': 'Gebruikersnaam en wachtwoord vereist'}), 400
         
         users = load_users()
-        hashed_password = hash_password(password)
-        
-        # Check username
-        user = next((u for u in users if u['username'] == username and u['password'] == hashed_password), None)
+        user = next((u for u in users if u['username'] == username), None)
         
         if user:
-            session['user'] = user['username']
-            return jsonify({'success': True})
-        else:
-            return jsonify({'error': 'Ongeldige inloggegevens'}), 401
+            is_valid, needs_rehash = verify_password(user.get('password', ''), password)
+            if is_valid:
+                if needs_rehash:
+                    new_hash = hash_password(password)
+                    db.users.update_one({"username": username}, {"$set": {"password": new_hash}})
+                session['user'] = user['username']
+                return jsonify({'success': True})
+
+        return jsonify({'error': 'Ongeldige inloggegevens'}), 401
             
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -672,29 +700,15 @@ def change_password():
         if not user:
             return jsonify({'error': 'Gebruiker niet ingelogd'}), 401
 
-        print(f"DEBUG: old_password: {old_password}")
-        print(f"DEBUG: new_password: {new_password}")
-        print(f"DEBUG: user: {user}")
-
         # Controleer of het oude wachtwoord correct is
-        hashed_old_password = hash_password(old_password)
-        print(f"DEBUG: hashed_old_password: {hashed_old_password}")
-        print(f"DEBUG: user['password']: {user['password']}")
-        if hashed_old_password != user['password']:
-            print("DEBUG: Old password mismatch")
+        is_valid, _ = verify_password(user.get('password', ''), old_password)
+        if not is_valid:
             return jsonify({'error': 'Oud wachtwoord is onjuist'}), 401
 
-        # Update het wachtwoord
-        users = load_users()
-        for u in users:
-            if u['username'] == user['username']:
-                u['password'] = hash_password(new_password)
-                print(f"DEBUG: Updating password for user {u['username']} to {u['password']}")
-                break
-        
-        save_success = save_users(users)
-        print(f"DEBUG: save_users success: {save_success}")
-        if save_success:
+        # Update het wachtwoord met nieuw Argon2 hash
+        new_hash = hash_password(new_password)
+        result = db.users.update_one({"username": user['username']}, {"$set": {"password": new_hash}})
+        if result.modified_count > 0 or result.matched_count > 0:
             return jsonify({'success': True, 'message': 'Wachtwoord succesvol gewijzigd'})
         else:
             return jsonify({'error': 'Fout bij opslaan van nieuw wachtwoord'}), 500
@@ -877,13 +891,21 @@ def admin_login():
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
-    
+
+    if not username or not password:
+        return jsonify({'error': 'Invalid credentials'}), 401
+
     users = load_users()
-    user = next((u for u in users if u['username'] == username and u['password'] == hash_password(password)), None)
-    
+    user = next((u for u in users if u['username'] == username), None)
+
     if user and user.get('role') in ['admin', 'co-admin']:
-        session['user'] = username
-        return jsonify({'success': True, 'role': user.get('role')})
+        is_valid, needs_rehash = verify_password(user.get('password', ''), password)
+        if is_valid:
+            if needs_rehash:
+                new_hash = hash_password(password)
+                db.users.update_one({"username": username}, {"$set": {"password": new_hash}})
+            session['user'] = username
+            return jsonify({'success': True, 'role': user.get('role')})
     return jsonify({'error': 'Invalid credentials'}), 401
 
 @app.route('/admin/logout', methods=['POST'])

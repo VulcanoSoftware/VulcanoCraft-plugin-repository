@@ -5,7 +5,7 @@
 ### 🔐 Authentication System
 - **User Registration & Login**: Complete authentication system with username/email login
 - **Session Management**: Persistent login sessions with proper logout functionality
-- **Password Security**: SHA-256 password hashing for secure storage
+- **Password Security**: Argon2 password hashing (OWASP-recommended) with automatic migration of legacy SHA-256 hashes
 
 ### 👑 Admin Panel
 - **Standalone Admin System**: Separate admin panel with independent login (`/admin`)

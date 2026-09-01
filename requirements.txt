@@ -3,3 +3,4 @@ requests
 playwright
 pymongo
 gunicorn
+argon2-cffi

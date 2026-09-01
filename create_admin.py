@@ -1,9 +1,11 @@
-import hashlib
 import os
+from argon2 import PasswordHasher
 from pymongo import MongoClient
 
+ph = PasswordHasher()
+
 def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+    return ph.hash(password)
 
 def create_admin():
     mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017")
