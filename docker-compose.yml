@@ -4,6 +4,8 @@ services:
     image: vulcanocraft-app
     ports:
       - "8000:8000"
+    volumes:
+      - ./:/host
     environment:
       - FLASK_ENV=production
       - MONGO_URI=${MONGO_URI}
