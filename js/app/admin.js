@@ -12,6 +12,12 @@ class AdminPage {
         this.pluginsGrid = document.getElementById('pluginsGrid');
         this.newCategoryName = document.getElementById('newCategoryName');
         this.addCategoryBtn = document.querySelector('#categoryManagement button');
+        this.checkUpdateBtn = document.getElementById('checkUpdateBtn');
+        this.applyUpdateBtn = document.getElementById('applyUpdateBtn');
+        this.updateStatusBadge = document.getElementById('updateStatusBadge');
+        this.updateDetails = document.getElementById('updateDetails');
+        this.updateAlert = document.getElementById('updateAlert');
+        this.softwareUpdateSection = document.getElementById('softwareUpdateSection');
         this.currentRole = null;
     }
 
@@ -33,6 +39,12 @@ class AdminPage {
         this.logoutBtn.addEventListener('click', () => this._handleLogout());
         this.registrationToggle.addEventListener('change', (e) => this._handleRegistrationToggle(e));
         this.addCategoryBtn.addEventListener('click', () => this._handleAddCategory());
+        if (this.checkUpdateBtn) {
+            this.checkUpdateBtn.addEventListener('click', () => this._handleCheckUpdate());
+        }
+        if (this.applyUpdateBtn) {
+            this.applyUpdateBtn.addEventListener('click', () => this._handleApplyUpdate());
+        }
 
         this._setupDynamicEventListeners();
     }
@@ -208,10 +220,87 @@ class AdminPage {
         }
     }
 
+    async _handleCheckUpdate() {
+        if (!this.checkUpdateBtn) return;
+        this.checkUpdateBtn.disabled = true;
+        this.checkUpdateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Controleren...';
+        this.updateAlert.style.display = 'none';
+
+        try {
+            const data = await ApiAdmin.checkUpdate();
+            this.updateDetails.style.display = 'block';
+            document.getElementById('currentCommit').textContent = data.current_commit || '-';
+            document.getElementById('latestCommit').textContent = data.latest_commit || '-';
+            document.getElementById('commitMessage').textContent = data.commit_message || '-';
+            document.getElementById('commitDate').textContent = data.commit_date ? new Date(data.commit_date).toLocaleString('nl-NL') : '-';
+
+            if (data.update_available) {
+                this.updateStatusBadge.className = 'badge bg-warning text-dark';
+                this.updateStatusBadge.textContent = 'Update beschikbaar!';
+                if (this.currentRole === 'admin') {
+                    this.applyUpdateBtn.style.display = 'inline-block';
+                } else {
+                    this.applyUpdateBtn.style.display = 'none';
+                }
+            } else {
+                this.updateStatusBadge.className = 'badge bg-success';
+                this.updateStatusBadge.textContent = 'Up-to-date';
+                this.applyUpdateBtn.style.display = 'none';
+            }
+        } catch (error) {
+            this.updateStatusBadge.className = 'badge bg-danger';
+            this.updateStatusBadge.textContent = 'Fout bij controleren';
+            this.updateAlert.className = 'alert alert-danger mt-3 mb-0';
+            this.updateAlert.textContent = `Fout bij controleren van updates: ${error.message}`;
+            this.updateAlert.style.display = 'block';
+        } finally {
+            this.checkUpdateBtn.disabled = false;
+            this.checkUpdateBtn.innerHTML = '<i class="fas fa-search me-1"></i>Check op Updates';
+        }
+    }
+
+    async _handleApplyUpdate() {
+        if (!confirm('Weet je zeker dat je de update wilt downloaden en toepassen? De server herstart automatisch na het updaten.')) {
+            return;
+        }
+
+        this.applyUpdateBtn.disabled = true;
+        this.checkUpdateBtn.disabled = true;
+        this.applyUpdateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Updaten...';
+
+        try {
+            const data = await ApiAdmin.applyUpdate();
+            this.updateAlert.className = 'alert alert-success mt-3 mb-0';
+            this.updateAlert.textContent = `${data.message || 'Update succesvol toegepast!'} Pagina wordt over 5 seconden herladen...`;
+            this.updateAlert.style.display = 'block';
+            this.applyUpdateBtn.style.display = 'none';
+
+            setTimeout(() => {
+                window.location.reload();
+            }, 5000);
+        } catch (error) {
+            this.updateAlert.className = 'alert alert-danger mt-3 mb-0';
+            this.updateAlert.textContent = `Fout bij toepassen van update: ${error.message}`;
+            this.updateAlert.style.display = 'block';
+            this.applyUpdateBtn.disabled = false;
+            this.checkUpdateBtn.disabled = false;
+            this.applyUpdateBtn.innerHTML = '<i class="fas fa-download me-1"></i>Update Toepassen';
+        }
+    }
+
     _showAdminPanel() {
         this.loginForm.style.display = 'none';
         this.adminPanel.style.display = 'block';
         document.getElementById('adminRole').textContent = this.currentRole.toUpperCase();
+
+        if (this.softwareUpdateSection) {
+            if (this.currentRole === 'admin') {
+                this.softwareUpdateSection.style.display = 'block';
+            } else {
+                this.softwareUpdateSection.style.display = 'none';
+            }
+        }
+
         this._loadAllData();
     }
 

@@ -5,6 +5,9 @@ import subprocess
 import sys
 import hashlib
 import secrets
+import threading
+import time
+import requests
 from pymongo import MongoClient
 
 app = Flask(__name__)
@@ -19,6 +22,29 @@ MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "vulcanocraft")
 mongo_client = MongoClient(MONGO_URI)
 db = mongo_client[MONGO_DB_NAME]
 db.users.create_index("username", unique=True)
+
+def run_migrations():
+    """Voer eventuele databasemigraties uit bij de opstart."""
+    try:
+        plugins = list(db.plugins.find({}))
+        for plugin in plugins:
+            updated = False
+            set_fields = {}
+            if "category" in plugin and "categories" not in plugin:
+                cat = plugin["category"]
+                set_fields["categories"] = [cat] if cat else []
+                updated = True
+            elif "categories" in plugin and "category" not in plugin:
+                cats = plugin["categories"]
+                set_fields["category"] = cats[0] if cats and isinstance(cats, list) else None
+                updated = True
+
+            if updated and set_fields:
+                db.plugins.update_one({"_id": plugin["_id"]}, {"$set": set_fields})
+    except Exception as e:
+        print(f"Fout bij uitvoeren van migraties: {e}")
+
+run_migrations()
 
 def load_plugins():
     """Laad de plugins data"""
@@ -674,6 +700,83 @@ def change_password():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/admin/update/check', methods=['GET'])
+@require_admin
+def admin_check_update():
+    """Controleer of er een update beschikbaar is op GitHub main branch."""
+    try:
+        local_sha = subprocess.check_output(
+            ['git', 'rev-parse', 'HEAD'],
+            text=True
+        ).strip()
+
+        headers = {'User-Agent': 'VulcanoCraft-Repository-App'}
+        response = requests.get(
+            'https://api.github.com/repos/VulcanoSoftware/VulcanoCraft-plugin-repository/commits/main',
+            headers=headers,
+            timeout=10
+        )
+
+        if response.status_code != 200:
+            return jsonify({
+                'error': f'Kon GitHub API niet bereiken (Status {response.status_code})'
+            }), 502
+
+        remote_data = response.json()
+        remote_sha = remote_data.get('sha', '')
+        commit_info = remote_data.get('commit', {})
+        commit_message = commit_info.get('message', '')
+        commit_date = commit_info.get('committer', {}).get('date', '')
+
+        update_available = (local_sha != remote_sha and len(remote_sha) > 0)
+
+        return jsonify({
+            'update_available': update_available,
+            'current_commit': local_sha[:7],
+            'latest_commit': remote_sha[:7] if remote_sha else '',
+            'full_current_commit': local_sha,
+            'full_latest_commit': remote_sha,
+            'commit_message': commit_message,
+            'commit_date': commit_date
+        })
+    except subprocess.CalledProcessError as e:
+        return jsonify({'error': f'Fout bij ophalen lokale git status: {str(e)}'}), 500
+    except Exception as e:
+        return jsonify({'error': f'Fout bij controleren van updates: {str(e)}'}), 500
+
+@app.route('/admin/update/apply', methods=['POST'])
+@require_admin
+def admin_apply_update():
+    """Download en pas de nieuwste update van GitHub main branch toe."""
+    try:
+        result = subprocess.run(
+            ['git', 'pull', 'origin', 'main'],
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+
+        if result.returncode != 0:
+            return jsonify({
+                'error': f'Git pull mislukt: {result.stderr or result.stdout}'
+            }), 500
+
+        run_migrations()
+
+        def restart_server():
+            time.sleep(1)
+            os._exit(0)
+
+        threading.Thread(target=restart_server, daemon=True).start()
+
+        return jsonify({
+            'success': True,
+            'message': 'Update succesvol toegepast! Server herstart nu...',
+            'output': result.stdout
+        })
+    except Exception as e:
+        return jsonify({'error': f'Fout bij toepassen van update: {str(e)}'}), 500
 
 @app.route('/auth-status')
 def auth_status():
