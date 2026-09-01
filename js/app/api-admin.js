@@ -96,6 +96,14 @@ class ApiAdmin {
     deletePlugin(url) {
         return this._fetch(`/admin/plugins/${encodeURIComponent(url)}`, { method: 'DELETE' });
     }
+
+    checkUpdate() {
+        return this._fetch('/admin/update/check');
+    }
+
+    applyUpdate() {
+        return this._fetch('/admin/update/apply', { method: 'POST' });
+    }
 }
 
 export default new ApiAdmin();
