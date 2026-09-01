@@ -15,6 +15,7 @@ class TestAuthArgon2(unittest.TestCase):
     def setUp(self):
         self.app = app.test_client()
         self.app.testing = True
+        webserver.limiter.reset()
 
     def test_argon2_hash_and_verify(self):
         password = "MySecurePassword123!"
@@ -146,6 +147,17 @@ class TestAuthArgon2(unittest.TestCase):
         self.assertTrue(is_valid)
 
         db.users.delete_many({"username": "change_pass_user"})
+
+    def test_rate_limiting(self):
+        # Perform requests to trigger rate limit (10 per minute)
+        for i in range(10):
+            self.app.post('/login', json={'username': 'nonexistent', 'password': 'wrong'})
+
+        # 11th request should be rate limited
+        resp = self.app.post('/login', json={'username': 'nonexistent', 'password': 'wrong'})
+        self.assertEqual(resp.status_code, 429)
+        data = resp.get_json()
+        self.assertIn('Te veel verzoeken', data.get('error', ''))
 
 if __name__ == '__main__':
     unittest.main()
