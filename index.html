@@ -33,64 +33,115 @@
           </div>
           <div class="modal-body">
             <div id="step1">
-              <div class="mb-4">
-                <label class="form-label" for="pluginUrl">
-                  <img class="input-icon" src="images/link-icon.png" alt="URL" loading="lazy">
-                  Plugin URL
-                </label>
-                <input class="form-control" id="pluginUrl" type="url" placeholder="https://modrinth.com/plugin/...">
+              <ul class="nav nav-tabs mb-3" id="addPluginTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="singleUrlTab" data-bs-toggle="tab" data-bs-target="#singleUrlPane" type="button" role="tab" aria-controls="singleUrlPane" aria-selected="true">
+                    <i class="fas fa-link me-1"></i> Enkele URL
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="bulkUrlTab" data-bs-toggle="tab" data-bs-target="#bulkUrlPane" type="button" role="tab" aria-controls="bulkUrlPane" aria-selected="false">
+                    <i class="fas fa-layer-group me-1"></i> Meerdere URL's (Bulk)
+                  </button>
+                </li>
+              </ul>
+
+              <div class="tab-content" id="addPluginTabContent">
+                <div class="tab-pane fade show active" id="singleUrlPane" role="tabpanel" aria-labelledby="singleUrlTab">
+                  <div class="mb-3">
+                    <label class="form-label" for="pluginUrl">
+                      <img class="input-icon" src="images/link-icon.png" alt="URL" loading="lazy">
+                      Plugin URL
+                    </label>
+                    <input class="form-control" id="pluginUrl" type="url" placeholder="https://modrinth.com/plugin/...">
+                  </div>
+                </div>
+                <div class="tab-pane fade" id="bulkUrlPane" role="tabpanel" aria-labelledby="bulkUrlTab">
+                  <div class="mb-3">
+                    <label class="form-label" for="bulkPluginUrls">
+                      <img class="input-icon" src="images/link-icon.png" alt="URLs" loading="lazy">
+                      Plugin URL's (één per regel)
+                    </label>
+                    <textarea class="form-control" id="bulkPluginUrls" rows="6" placeholder="https://modrinth.com/plugin/1&#10;https://spigotmc.org/resources/2&#10;https://hangar.papermc.io/author/3"></textarea>
+                    <div class="form-text">Plak meerdere plugin URL's, gescheiden door een nieuwe regel. Druk op Ctrl+Enter om op te halen.</div>
+                  </div>
+                </div>
               </div>
             </div>
 
             <div id="step2" style="display: none">
-              <div class="alert alert-info d-flex align-items-center">
+              <div class="alert alert-info d-flex align-items-center mb-2">
                 <img class="loading-icon me-2" src="images/loading-icon.gif" alt="Laden" loading="lazy">
-                <span>Plugin informatie wordt opgehaald...</span>
+                <span id="fetchProgressText">Plugin informatie wordt opgehaald...</span>
+              </div>
+              <div class="progress" style="height: 10px; display: none;" id="fetchProgressBarContainer">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" id="fetchProgressBar" role="progressbar" style="width: 0%"></div>
               </div>
             </div>
 
             <div id="step3" style="display: none">
-              <h5>
-                <img class="modal-icon" src="images/details-icon.png" alt="Info" loading="lazy">
-                Plugin details
-              </h5>
-              <div class="card mb-3 preview-card">
-                <div class="card-body">
-                  <div class="d-flex align-items-center mb-3">
-                    <img class="plugin-icon me-3" id="previewIcon" alt="Plugin icon" loading="lazy">
-                    <h5 class="card-title mb-0" id="previewTitle"></h5>
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">
+                  <img class="modal-icon" src="images/details-icon.png" alt="Info" loading="lazy">
+                  Plugin details &amp; Controle
+                </h5>
+                <span id="selectedCountBadge" class="badge bg-primary" style="display: none;">0 geselecteerd</span>
+              </div>
+
+              <!-- Single Preview Container -->
+              <div id="singlePreviewContainer">
+                <div class="card mb-3 preview-card">
+                  <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                      <img class="plugin-icon me-3" id="previewIcon" alt="Plugin icon" loading="lazy">
+                      <h5 class="card-title mb-0" id="previewTitle"></h5>
+                    </div>
+                    <p class="card-text" id="previewDescription"></p>
+                    <div class="mb-3">
+                      <p class="me-4 mb-0">
+                        <strong><img class="info-icon" src="images/author-icon.png" alt="Auteur" loading="lazy">
+                          Auteur:</strong>
+                        <span id="previewAuthor"></span>
+                      </p>
+                    </div>
+                    <div>
+                      <p class="mb-1">
+                        <strong><img class="info-icon" src="images/version-icon.png" alt="Versies" loading="lazy">
+                          Versies:</strong>
+                      </p>
+                      <div class="versions-container" id="previewVersions"></div>
+                    </div>
                   </div>
-                  <p class="card-text" id="previewDescription"></p>
-                  <div class="mb-3">
-                    <p class="me-4">
-                      <strong><img class="info-icon" src="images/author-icon.png" alt="Auteur" loading="lazy">
-                        Auteur:</strong>
-                      <span id="previewAuthor"></span>
-                    </p>
+                </div>
+              </div>
+
+              <!-- Bulk Preview Container -->
+              <div id="bulkPreviewContainer" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <div class="btn-group btn-group-sm">
+                    <button type="button" class="btn btn-outline-secondary" id="selectAllBtn"><i class="fas fa-check-square me-1"></i> Alles selecteren</button>
+                    <button type="button" class="btn btn-outline-secondary" id="deselectAllBtn"><i class="far fa-square me-1"></i> Alles deselecteren</button>
                   </div>
-                  <div>
-                    <p>
-                      <strong><img class="info-icon" src="images/version-icon.png" alt="Versies" loading="lazy">
-                        Versies:</strong>
-                    </p>
-                    <div class="versions-container" id="previewVersions"></div>
-                  </div>
+                  <small class="text-muted" id="bulkSummaryText"></small>
+                </div>
+                <div id="bulkPreviewList" class="bulk-preview-scroll-container">
+                  <!-- Bulk review cards dynamically rendered here -->
                 </div>
               </div>
 
               <div class="confirmation-question">
                 <img class="info-icon" src="images/details-icon.png" alt="Vraag" loading="lazy">
-                Is dit de correcte plugin?
+                <span id="confirmationQuestionText">Is dit de correcte plugin?</span>
               </div>
 
               <div class="confirmation-buttons">
                 <button class="btn btn-yes" id="confirmYes" type="button">
                   <img class="btn-icon" src="images/confirm-icon.png" alt="Ja">
-                  Ja
+                  Ja, toevoegen
                 </button>
                 <button class="btn btn-no" id="confirmNo" type="button">
                   <img class="btn-icon" src="images/cancel-icon.png" alt="Nee">
-                  Nee
+                  Annuleren
                 </button>
               </div>
             </div>
