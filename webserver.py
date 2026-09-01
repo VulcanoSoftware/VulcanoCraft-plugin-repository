@@ -706,10 +706,19 @@ def change_password():
 def admin_check_update():
     """Controleer of er een update beschikbaar is op GitHub main branch."""
     try:
-        local_sha = subprocess.check_output(
-            ['git', 'rev-parse', 'HEAD'],
-            text=True
-        ).strip()
+        try:
+            local_sha = subprocess.check_output(
+                ['git', 'rev-parse', 'HEAD'],
+                text=True
+            ).strip()
+        except FileNotFoundError:
+            return jsonify({
+                'error': 'Git is niet geïnstalleerd op de server of container.'
+            }), 500
+        except subprocess.CalledProcessError:
+            return jsonify({
+                'error': 'Geen git repository gevonden in de applicatie directory.'
+            }), 500
 
         headers = {'User-Agent': 'VulcanoCraft-Repository-App'}
         response = requests.get(
@@ -750,12 +759,17 @@ def admin_check_update():
 def admin_apply_update():
     """Download en pas de nieuwste update van GitHub main branch toe."""
     try:
-        result = subprocess.run(
-            ['git', 'pull', 'origin', 'main'],
-            capture_output=True,
-            text=True,
-            timeout=60
-        )
+        try:
+            result = subprocess.run(
+                ['git', 'pull', 'origin', 'main'],
+                capture_output=True,
+                text=True,
+                timeout=60
+            )
+        except FileNotFoundError:
+            return jsonify({
+                'error': 'Git is niet geïnstalleerd op de server of container.'
+            }), 500
 
         if result.returncode != 0:
             return jsonify({
