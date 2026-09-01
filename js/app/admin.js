@@ -14,6 +14,7 @@ class AdminPage {
         this.addCategoryBtn = document.querySelector('#categoryManagement button');
         this.checkUpdateBtn = document.getElementById('checkUpdateBtn');
         this.applyUpdateBtn = document.getElementById('applyUpdateBtn');
+        this.syncToHostToggle = document.getElementById('syncToHostToggle');
         this.updateStatusBadge = document.getElementById('updateStatusBadge');
         this.updateDetails = document.getElementById('updateDetails');
         this.updateAlert = document.getElementById('updateAlert');
@@ -264,12 +265,14 @@ class AdminPage {
             return;
         }
 
+        const syncToHost = this.syncToHostToggle ? this.syncToHostToggle.checked : false;
+
         this.applyUpdateBtn.disabled = true;
         this.checkUpdateBtn.disabled = true;
         this.applyUpdateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Updaten...';
 
         try {
-            const data = await ApiAdmin.applyUpdate();
+            const data = await ApiAdmin.applyUpdate(syncToHost);
             this.updateAlert.className = 'alert alert-success mt-3 mb-0';
             this.updateAlert.textContent = `${data.message || 'Update succesvol toegepast!'} Pagina wordt over 5 seconden herladen...`;
             this.updateAlert.style.display = 'block';
