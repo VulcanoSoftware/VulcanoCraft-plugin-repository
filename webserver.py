@@ -7,6 +7,7 @@ import hashlib
 import secrets
 import threading
 import time
+import shutil
 import requests
 from pymongo import MongoClient
 
@@ -701,6 +702,50 @@ def change_password():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+def sync_files_to_host(source_dir=".", host_dir="/host"):
+    """
+    Synchroniseer bijgewerkte bestanden van de container naar de host via de bind mount.
+
+    Veiligheidsregels:
+    1. Alleen bestanden die AL BESTAAN op de host worden geüpdatet (geen nieuwe bestanden worden toegevoegd).
+    2. Gevoelige of dynamische bestanden en mappen zoals .env, .env.*, MongoDB-data (mongo-live-data),
+       backups, .git, .venv en __pycache__ worden strikt genegeerd en ongewijzigd gelaten.
+    """
+    if not os.path.exists(host_dir):
+        print(f"Host directory {host_dir} bestaat niet of is niet gemount. Synchronisatie overgeslagen.")
+        return False
+
+    ignored_dirs = {'.git', '.venv', '__pycache__', 'mongo-live-data', 'backups'}
+
+    try:
+        for root, dirs, files in os.walk(source_dir):
+            # Filter mappen zodat genegeerde mappen niet worden doorzocht
+            dirs[:] = [d for d in dirs if d not in ignored_dirs]
+
+            rel_root = os.path.relpath(root, source_dir)
+            if rel_root == '.':
+                rel_root = ''
+
+            for file_name in files:
+                # Bescherm .env en .env.* bestanden tegen overschrijven
+                if file_name == '.env' or file_name.startswith('.env.'):
+                    continue
+
+                rel_path = os.path.join(rel_root, file_name) if rel_root else file_name
+                source_file = os.path.join(root, file_name)
+                host_file = os.path.join(host_dir, rel_path)
+
+                # Veiligheidscontrole: update alleen als het bestand al op de host bestaat
+                if os.path.isfile(host_file):
+                    shutil.copy2(source_file, host_file)
+                    print(f"Bestand gesynchroniseerd naar host: {rel_path}")
+
+        return True
+    except Exception as e:
+        print(f"Fout bij synchroniseren naar host: {e}")
+        return False
+
+
 @app.route('/admin/update/check', methods=['GET'])
 @require_admin
 def admin_check_update():
@@ -778,6 +823,16 @@ def admin_apply_update():
 
         run_migrations()
 
+        # Controleer de optionele vlag ?sync_to_host=true (via query arg of JSON body)
+        sync_to_host_arg = request.args.get('sync_to_host', '').lower()
+        req_data = request.get_json(silent=True) or {}
+        sync_to_host_body = str(req_data.get('sync_to_host', '')).lower()
+        sync_to_host = (sync_to_host_arg in ['true', '1']) or (sync_to_host_body in ['true', '1'])
+
+        synced_to_host = False
+        if sync_to_host:
+            synced_to_host = sync_files_to_host()
+
         def restart_server():
             time.sleep(1)
             os._exit(0)
@@ -787,6 +842,7 @@ def admin_apply_update():
         return jsonify({
             'success': True,
             'message': 'Update succesvol toegepast! Server herstart nu...',
+            'synced_to_host': synced_to_host,
             'output': result.stdout
         })
     except Exception as e:
