@@ -101,8 +101,12 @@ class ApiAdmin {
         return this._fetch('/admin/update/check');
     }
 
-    applyUpdate() {
-        return this._fetch('/admin/update/apply', { method: 'POST' });
+    applyUpdate(syncToHost = false) {
+        return this._fetch('/admin/update/apply', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sync_to_host: syncToHost }),
+        });
     }
 }
 
