@@ -159,5 +159,20 @@ class TestAuthArgon2(unittest.TestCase):
         data = resp.get_json()
         self.assertIn('Te veel verzoeken', data.get('error', ''))
 
+    def test_nosql_injection_prevention(self):
+        # Attempt NoSQL operator injection in username (sanitized to empty string -> 400 Bad Request)
+        resp1 = self.app.post('/login', json={
+            'username': {'$gt': ''},
+            'password': 'somepassword'
+        })
+        self.assertIn(resp1.status_code, [400, 401])
+
+        # Attempt NoSQL operator injection in password
+        resp2 = self.app.post('/login', json={
+            'username': 'admin',
+            'password': {'$ne': None}
+        })
+        self.assertIn(resp2.status_code, [400, 401])
+
 if __name__ == '__main__':
     unittest.main()

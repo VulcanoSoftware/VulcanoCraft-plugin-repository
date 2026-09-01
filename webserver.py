@@ -218,6 +218,20 @@ def save_users(users):
     except Exception:
         return False
 
+def sanitize_str(val):
+    """Ensure value is strictly a string to prevent NoSQL injection."""
+    if not isinstance(val, str):
+        return ""
+    return val.strip()
+
+def sanitize_nosql(val):
+    """Recursively strip dicts containing MongoDB query operators ($) or dot notation to prevent NoSQL injection."""
+    if isinstance(val, dict):
+        return {str(k): sanitize_nosql(v) for k, v in val.items() if not str(k).startswith('$') and '.' not in str(k)}
+    elif isinstance(val, list):
+        return [sanitize_nosql(v) for v in val]
+    return val
+
 ph = PasswordHasher()
 
 def hash_password(password):
@@ -636,9 +650,10 @@ def register():
         if not settings.get('registration_enabled', True):
             return jsonify({'error': 'Registratie is uitgeschakeld'}), 403
             
-        data = request.get_json()
-        username = data.get('username', '').strip()
-        password = data.get('password', '')
+        data = request.get_json() or {}
+        username = sanitize_str(data.get('username', ''))
+        raw_password = data.get('password', '')
+        password = raw_password if isinstance(raw_password, str) else ''
         
         if not username or not password:
             return jsonify({'error': 'Gebruikersnaam en wachtwoord zijn vereist'}), 400
@@ -669,9 +684,10 @@ def register():
 def login():
     """Login gebruiker"""
     try:
-        data = request.get_json()
-        username = data.get('username', '').strip()
-        password = data.get('password', '')
+        data = request.get_json() or {}
+        username = sanitize_str(data.get('username', ''))
+        raw_password = data.get('password', '')
+        password = raw_password if isinstance(raw_password, str) else ''
         
         if not username or not password:
             return jsonify({'error': 'Gebruikersnaam en wachtwoord vereist'}), 400
@@ -705,9 +721,11 @@ def logout():
 def change_password():
     """Wijzig het wachtwoord van de ingelogde gebruiker"""
     try:
-        data = request.get_json()
-        old_password = data.get('old_password', '')
-        new_password = data.get('new_password', '')
+        data = request.get_json() or {}
+        raw_old = data.get('old_password', '')
+        raw_new = data.get('new_password', '')
+        old_password = raw_old if isinstance(raw_old, str) else ''
+        new_password = raw_new if isinstance(raw_new, str) else ''
 
         if not old_password or not new_password:
             return jsonify({'error': 'Oud en nieuw wachtwoord zijn vereist'}), 400
@@ -905,9 +923,10 @@ def admin_panel():
 @limiter.limit("10 per minute")
 def admin_login():
     """Admin login"""
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
+    data = request.get_json() or {}
+    username = sanitize_str(data.get('username', ''))
+    raw_password = data.get('password', '')
+    password = raw_password if isinstance(raw_password, str) else ''
 
     if not username or not password:
         return jsonify({'error': 'Invalid credentials'}), 401
