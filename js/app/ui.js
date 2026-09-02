@@ -225,7 +225,10 @@ class UI {
                 const img = document.createElement('img');
                 img.className = 'category-icon';
                 img.src = cat.image_url;
-                img.onerror = function () { this.style.display = 'none'; };
+                img.onerror = function () {
+                    this.onerror = function() { this.style.display = 'none'; };
+                    this.src = 'images/server-icon.png';
+                };
                 img.alt = '';
                 img.width = 32;
                 img.height = 32;
@@ -237,7 +240,7 @@ class UI {
                 img.src = `images/category-${slug}.svg`;
                 img.onerror = function () {
                     this.onerror = function() { this.style.display = 'none'; };
-                    this.src = 'images/categories-icon.svg';
+                    this.src = 'images/server-icon.png';
                 };
                 img.alt = '';
                 img.width = 32;
