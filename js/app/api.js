@@ -78,12 +78,12 @@ class API {
         try {
             const response = await fetch('/api/server_categories');
             if (!response.ok) {
-                return null;
+                return [];
             }
             const data = await response.json();
-            return (Array.isArray(data) && data.length) ? data : null;
+            return Array.isArray(data) ? data : [];
         } catch (error) {
-            return null;
+            return [];
         }
     }
 }

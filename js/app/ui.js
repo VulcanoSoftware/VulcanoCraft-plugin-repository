@@ -178,38 +178,55 @@ class UI {
         }
     }
 
-    buildCategorySidebar(plugins, serverCategories, serverInfo) {
+    buildCategorySidebar(plugins = [], serverCategories = [], serverInfo = {}) {
         const list = this.categorySidebar;
         if (!list) return;
 
-        let finalCategories = [];
-        if (serverCategories && serverCategories.length) {
-            finalCategories = serverCategories;
-        } else {
-            const categories = new Set(
-                 plugins.flatMap(p => p.categories || [p.category] || p.tags || []).filter(c => c)
-            );
-            finalCategories = Array.from(categories).sort((a, b) => a.localeCompare(b));
+        const activeItem = list.querySelector('.category-item.active');
+        const activeCategory = activeItem ? activeItem.dataset.category : '';
+
+        const categoryMap = new Map();
+
+        if (Array.isArray(serverCategories)) {
+            serverCategories.forEach(cat => {
+                const isObj = typeof cat === 'object' && cat !== null;
+                const name = isObj ? cat.name : cat;
+                if (name) {
+                    categoryMap.set(name, isObj ? cat : { name });
+                }
+            });
         }
 
-        list.innerHTML = '<li class="category-item active" data-category="">Alles <span class="badge bg-primary rounded-pill ms-auto">0</span></li>';
+        if (Array.isArray(plugins)) {
+            plugins.forEach(p => {
+                const cats = p.categories || (p.category ? [p.category] : []) || p.tags || [];
+                cats.forEach(cat => {
+                    if (cat && !categoryMap.has(cat)) {
+                        categoryMap.set(cat, { name: cat });
+                    }
+                });
+            });
+        }
 
-        finalCategories.forEach(cat => {
-            const isObject = typeof cat === 'object' && cat !== null;
-            const categoryName = isObject ? cat.name : cat;
-            if (!categoryName) return;
+        const sortedCategories = Array.from(categoryMap.values()).sort((a, b) =>
+            (a.name || '').localeCompare(b.name || '')
+        );
 
+        list.innerHTML = `<li class="category-item ${activeCategory === '' ? 'active' : ''}" data-category="">Alles <span class="badge bg-primary rounded-pill ms-auto">0</span></li>`;
+
+        sortedCategories.forEach(cat => {
+            const categoryName = cat.name;
             const li = document.createElement('li');
-            li.className = 'category-item';
+            li.className = `category-item ${activeCategory === categoryName ? 'active' : ''}`;
             li.dataset.category = categoryName;
 
-            if (isObject && cat.show_image && cat.image_url) {
+            if (cat.show_image && cat.image_url) {
                 li.innerHTML += `<img class="category-icon" src="${cat.image_url}" alt="${categoryName} icon" width="32" height="32" onerror="this.style.display='none';">`;
             }
 
             li.innerHTML += `<span class="category-text">${categoryName}</span>`;
 
-            const info = serverInfo[categoryName] || {};
+            const info = (serverInfo && serverInfo[categoryName]) || {};
             if (info.software || info.version) {
                 li.innerHTML += `<small class="server-info">${info.software || ''} ${info.version || ''}</small>`;
             }
