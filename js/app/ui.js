@@ -201,8 +201,9 @@ class UI {
             plugins.forEach(p => {
                 const cats = p.categories || (p.category ? [p.category] : []) || p.tags || [];
                 cats.forEach(cat => {
-                    if (cat && !categoryMap.has(cat)) {
-                        categoryMap.set(cat, { name: cat });
+                    const catName = typeof cat === 'object' && cat !== null ? cat.name : cat;
+                    if (catName && !categoryMap.has(catName)) {
+                        categoryMap.set(catName, typeof cat === 'object' && cat !== null ? cat : { name: catName });
                     }
                 });
             });
@@ -221,22 +222,52 @@ class UI {
             li.dataset.category = categoryName;
 
             if (cat.show_image && cat.image_url) {
-                li.innerHTML += `<img class="category-icon" src="${cat.image_url}" alt="${categoryName} icon" width="32" height="32" onerror="this.style.display='none';">`;
+                const img = document.createElement('img');
+                img.className = 'category-icon';
+                img.src = cat.image_url;
+                img.onerror = function () { this.style.display = 'none'; };
+                img.alt = '';
+                img.width = 32;
+                img.height = 32;
+                li.appendChild(img);
+            } else {
+                const img = document.createElement('img');
+                img.className = 'category-icon';
+                const slug = categoryName.toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                img.src = `images/category-${slug}.svg`;
+                img.onerror = function () {
+                    this.onerror = function() { this.style.display = 'none'; };
+                    this.src = 'images/categories-icon.svg';
+                };
+                img.alt = '';
+                img.width = 32;
+                img.height = 32;
+                li.appendChild(img);
             }
 
-            li.innerHTML += `<span class="category-text">${categoryName}</span>`;
+            const text = document.createElement('span');
+            text.textContent = categoryName;
+            text.className = 'category-text';
+            li.appendChild(text);
 
             const info = (serverInfo && serverInfo[categoryName]) || {};
             if (info.software || info.version) {
-                li.innerHTML += `<small class="server-info">${info.software || ''} ${info.version || ''}</small>`;
+                const serverInfoEl = document.createElement('small');
+                serverInfoEl.className = 'server-info';
+                serverInfoEl.textContent = `${info.software || ''} ${info.version || ''}`.trim();
+                li.appendChild(serverInfoEl);
             }
 
-            li.innerHTML += '<span class="badge bg-primary rounded-pill ms-auto">0</span>';
+            const badge = document.createElement('span');
+            badge.className = 'badge bg-primary rounded-pill ms-auto';
+            badge.textContent = '0';
+            li.appendChild(badge);
+
             list.appendChild(li);
         });
     }
 
-    updateCategoryCounts(categoryCountsMap) {
+    updateCategoryCounts(categoryCountsMap, totalAllCount) {
         if (!categoryCountsMap) return;
 
         let totalAssignments = 0;
@@ -247,7 +278,7 @@ class UI {
             const badge = item.querySelector('.badge');
             if (badge) {
                 if (categoryName === '') {
-                    badge.textContent = totalAssignments;
+                    badge.textContent = totalAllCount !== undefined ? totalAllCount : totalAssignments;
                 } else {
                     badge.textContent = categoryCountsMap[categoryName] || 0;
                 }

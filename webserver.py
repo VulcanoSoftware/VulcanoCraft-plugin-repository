@@ -422,6 +422,13 @@ def compute_plugin_metadata(all_plugins):
     loader_set = set()
     category_counts = {}
 
+    server_cats = load_server_categories()
+    if isinstance(server_cats, list):
+        for sc in server_cats:
+            sc_name = sc.get('name') if isinstance(sc, dict) else sc
+            if sc_name:
+                category_counts[sc_name] = 0
+
     for plugin in all_plugins:
         v_str = plugin.get('versions', '') or ''
         for ver in v_str.split():

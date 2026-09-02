@@ -57,7 +57,7 @@ class App {
 
             UI.renderPlugins(data.plugins || [], this.authStatus, Auth.currentUser);
             UI.updateResultsCount(data.plugins ? data.plugins.length : 0, data.total || 0, data.total_all);
-            UI.updateCategoryCounts(data.category_counts || {});
+            UI.updateCategoryCounts(data.category_counts || {}, data.total_all);
 
             UI.renderPagination(data.page || 1, data.total_pages || 1, (newPage) => {
                 this.currentPage = newPage;
