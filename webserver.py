@@ -801,66 +801,123 @@ def sync_files_to_host(source_dir=".", host_dir="/host"):
         return False
 
 
+def _check_github_update(local_sha, headers):
+    """Helper function to fetch remote commit info and check update availability."""
+    response = requests.get(
+        'https://api.github.com/repos/VulcanoSoftware/VulcanoCraft-plugin-repository/commits/main',
+        headers=headers,
+        timeout=10
+    )
+    if response.status_code != 200:
+        return None, f'Kon GitHub API niet bereiken (Status {response.status_code})'
+
+    remote_data = response.json()
+    remote_sha = remote_data.get('sha', '')
+    commit_info = remote_data.get('commit', {})
+    commit_message = commit_info.get('message', '')
+    commit_date = commit_info.get('committer', {}).get('date', '')
+
+    update_available = False
+    if remote_sha and local_sha != remote_sha:
+        try:
+            compare_url = f'https://api.github.com/repos/VulcanoSoftware/VulcanoCraft-plugin-repository/compare/{local_sha}...{remote_sha}'
+            comp_resp = requests.get(compare_url, headers=headers, timeout=10)
+            if comp_resp.status_code == 200:
+                comp_data = comp_resp.json()
+                ahead_by = comp_data.get('ahead_by', 0)
+                status = comp_data.get('status', '')
+                update_available = (ahead_by > 0) or (status in ['ahead', 'diverged'])
+            else:
+                update_available = True
+        except Exception:
+            update_available = True
+
+    return {
+        'remote_sha': remote_sha,
+        'commit_message': commit_message,
+        'commit_date': commit_date,
+        'update_available': update_available
+    }, None
+
+def _get_git_history(local_sha, count=15):
+    """Helper function to fetch local git commit history."""
+    history = []
+    try:
+        log_output = subprocess.check_output(
+            ['git', 'log', '-n', str(count), '--format=%H|%h|%an|%ad|%s', '--date=iso'],
+            text=True
+        )
+        for line in log_output.strip().split('\n'):
+            if not line:
+                continue
+            parts = line.split('|', 4)
+            if len(parts) == 5:
+                c_sha, c_short, c_author, c_date, c_msg = parts
+                history.append({
+                    'sha': c_sha,
+                    'short_sha': c_short,
+                    'author': c_author,
+                    'date': c_date,
+                    'message': c_msg,
+                    'is_current': (c_sha == local_sha)
+                })
+    except Exception as log_err:
+        print(f"Fout bij ophalen commit geschiedenis: {log_err}")
+    return history
+
+def _get_previous_commit(local_sha, history):
+    """Helper function to locate the previous commit SHA."""
+    previous_sha = ""
+    for ref in ['ORIG_HEAD', 'HEAD~1']:
+        res = subprocess.run(['git', 'rev-parse', ref], capture_output=True, text=True)
+        if res.returncode == 0 and res.stdout.strip():
+            candidate = res.stdout.strip()
+            if candidate != local_sha:
+                previous_sha = candidate
+                break
+
+    if not previous_sha and len(history) > 1:
+        for item in history:
+            if item['sha'] != local_sha:
+                previous_sha = item['sha']
+                break
+    return previous_sha
+
 @app.route('/admin/update/check', methods=['GET'])
 @require_admin
 def admin_check_update():
-    """Controleer of er een update beschikbaar is op GitHub main branch."""
+    """Controleer of er een update beschikbaar is op GitHub main branch en haal commit historie op."""
     try:
         try:
             local_sha = subprocess.check_output(
                 ['git', 'rev-parse', 'HEAD'],
                 text=True
             ).strip()
-        except FileNotFoundError:
-            return jsonify({
-                'error': 'Git is niet geïnstalleerd op de server of container.'
-            }), 500
-        except subprocess.CalledProcessError:
-            return jsonify({
-                'error': 'Geen git repository gevonden in de applicatie directory.'
-            }), 500
+        except (FileNotFoundError, subprocess.CalledProcessError):
+            return jsonify({'error': 'Geen git repository of git executable gevonden op de server.'}), 500
 
         headers = {'User-Agent': 'VulcanoCraft-Repository-App'}
-        response = requests.get(
-            'https://api.github.com/repos/VulcanoSoftware/VulcanoCraft-plugin-repository/commits/main',
-            headers=headers,
-            timeout=10
-        )
+        remote_info, err = _check_github_update(local_sha, headers)
+        if err:
+            return jsonify({'error': err}), 502
 
-        if response.status_code != 200:
-            return jsonify({
-                'error': f'Kon GitHub API niet bereiken (Status {response.status_code})'
-            }), 502
+        history = _get_git_history(local_sha, count=15)
+        previous_sha = _get_previous_commit(local_sha, history)
 
-        remote_data = response.json()
-        remote_sha = remote_data.get('sha', '')
-        commit_info = remote_data.get('commit', {})
-        commit_message = commit_info.get('message', '')
-        commit_date = commit_info.get('committer', {}).get('date', '')
-
-        update_available = (local_sha != remote_sha and len(remote_sha) > 0)
-
-        previous_sha = ""
-        for ref in ['ORIG_HEAD', 'HEAD~1']:
-            res = subprocess.run(['git', 'rev-parse', ref], capture_output=True, text=True)
-            if res.returncode == 0 and res.stdout.strip():
-                previous_sha = res.stdout.strip()
-                break
-
+        remote_sha = remote_info['remote_sha']
         return jsonify({
-            'update_available': update_available,
-            'rollback_available': bool(previous_sha),
+            'update_available': remote_info['update_available'],
+            'rollback_available': bool(previous_sha or len(history) > 1),
             'previous_commit': previous_sha[:7] if previous_sha else '',
             'full_previous_commit': previous_sha,
             'current_commit': local_sha[:7],
             'latest_commit': remote_sha[:7] if remote_sha else '',
             'full_current_commit': local_sha,
             'full_latest_commit': remote_sha,
-            'commit_message': commit_message,
-            'commit_date': commit_date
+            'commit_message': remote_info['commit_message'],
+            'commit_date': remote_info['commit_date'],
+            'history': history
         })
-    except subprocess.CalledProcessError as e:
-        return jsonify({'error': f'Fout bij ophalen lokale git status: {str(e)}'}), 500
     except Exception as e:
         return jsonify({'error': f'Fout bij controleren van updates: {str(e)}'}), 500
 
@@ -929,21 +986,31 @@ def admin_apply_update():
 @app.route('/admin/update/rollback', methods=['POST'])
 @require_admin
 def admin_rollback_update():
-    """Rol de applicatie terug naar de vorige git commit (ORIG_HEAD of HEAD~1)."""
+    """Rol de applicatie terug naar een opgegeven git commit SHA of naar de vorige versie."""
     try:
-        target_commit = None
-        for ref in ['ORIG_HEAD', 'HEAD~1']:
-            res = subprocess.run(['git', 'rev-parse', ref], capture_output=True, text=True)
-            if res.returncode == 0 and res.stdout.strip():
-                target_commit = res.stdout.strip()
-                break
+        req_data = request.get_json(silent=True) or {}
+        target_commit = sanitize_str(req_data.get('commit', '')) or request.args.get('commit', '').strip()
 
         if not target_commit:
-            return jsonify({'error': 'Geen vorige versie/commit gevonden om naar terug te rollen.'}), 400
+            for ref in ['ORIG_HEAD', 'HEAD~1']:
+                res = subprocess.run(['git', 'rev-parse', ref], capture_output=True, text=True)
+                if res.returncode == 0 and res.stdout.strip():
+                    target_commit = res.stdout.strip()
+                    break
+
+        if not target_commit:
+            return jsonify({'error': 'Geen geldige commit gevonden om naar terug te rollen.'}), 400
+
+        # Valideer commit SHA via git rev-parse
+        valid_res = subprocess.run(['git', 'rev-parse', '--verify', f'{target_commit}^{{commit}}'], capture_output=True, text=True)
+        if valid_res.returncode != 0:
+            return jsonify({'error': f'Ongeldige commit SHA: {target_commit}'}), 400
+
+        full_commit_sha = valid_res.stdout.strip()
 
         try:
             result = subprocess.run(
-                ['git', 'reset', '--hard', target_commit],
+                ['git', 'reset', '--hard', full_commit_sha],
                 capture_output=True,
                 text=True,
                 timeout=60
@@ -974,7 +1041,6 @@ def admin_rollback_update():
         run_migrations()
 
         sync_to_host_arg = request.args.get('sync_to_host', '').lower()
-        req_data = request.get_json(silent=True) or {}
         sync_to_host_body = str(req_data.get('sync_to_host', '')).lower()
         sync_to_host = (sync_to_host_arg in ['true', '1']) or (sync_to_host_body in ['true', '1'])
 
@@ -990,7 +1056,7 @@ def admin_rollback_update():
 
         return jsonify({
             'success': True,
-            'message': f'Succesvol teruggerold naar commit {target_commit[:7]}! Server herstart nu...',
+            'message': f'Succesvol teruggerold naar commit {full_commit_sha[:7]}! Server herstart nu...',
             'synced_to_host': synced_to_host,
             'output': result.stdout
         })
