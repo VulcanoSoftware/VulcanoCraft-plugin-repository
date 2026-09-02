@@ -218,9 +218,12 @@
         <!-- Auth buttons -->
         <div class="btn-container text-center">
           <div id="authButtons">
-            <a class="btn btn-outline-light" href="/login-page">
+            <a class="btn btn-outline-light me-2" href="/login-page">
               <i class="fas fa-sign-in-alt me-2"></i>Inloggen
             </a>
+            <button class="btn btn-outline-info" id="exportTxtBtn" type="button" title="Exporteer huidige plugin lijst als TXT">
+              <i class="fas fa-file-download me-1"></i> Exporteer TXT
+            </button>
           </div>
           <div id="userButtons" style="display: none">
             <span class="text-light me-3">Welkom, <span id="username"></span></span>
@@ -229,6 +232,15 @@
               <img class="btn-icon-lg" src="images/add-icon.png" alt="Toevoegen">
               Toevoegen
             </button>
+            <button class="btn btn-outline-info me-2" id="exportTxtUserBtn" type="button" title="Exporteer huidige plugin lijst als TXT">
+              <i class="fas fa-file-download me-1"></i> Exporteer TXT
+            </button>
+            <button class="btn btn-outline-warning me-2" id="replaceTxtBtn" type="button" title="Vervang huidige lijst door TXT bestand">
+              <i class="fas fa-file-import me-1"></i> Lijst Vervangen (TXT)
+            </button>
+            <button class="btn btn-outline-success me-2" id="appendTxtBtn" type="button" title="Voeg plugins uit TXT bestand toe">
+              <i class="fas fa-file-upload me-1"></i> TXT Bijvoegen
+            </button>
             <a class="btn btn-outline-warning me-2" id="adminBtn" href="/admin" style="display: none">
               <i class="fas fa-cog me-2"></i>Admin
             </a>
@@ -236,6 +248,8 @@
               <i class="fas fa-sign-out-alt me-2"></i>Uitloggen
             </button>
           </div>
+          <input type="file" id="replaceFileInput" accept=".txt" style="display: none;">
+          <input type="file" id="appendFileInput" accept=".txt" style="display: none;">
         </div>
       </header>
 

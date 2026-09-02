@@ -54,6 +54,14 @@ class API {
         });
     }
 
+    clearPlugins(all = false) {
+        return this._fetch('/api/plugins/clear', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ all }),
+        });
+    }
+
     deletePlugin(url, category) {
         return this._fetch('/delete_plugin', {
             method: 'POST',
@@ -70,12 +78,12 @@ class API {
         try {
             const response = await fetch('/api/server_categories');
             if (!response.ok) {
-                return null;
+                return [];
             }
             const data = await response.json();
-            return (Array.isArray(data) && data.length) ? data : null;
+            return Array.isArray(data) ? data : [];
         } catch (error) {
-            return null;
+            return [];
         }
     }
 }

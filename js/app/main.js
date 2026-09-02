@@ -26,7 +26,10 @@ class App {
             API.getServerInfo()
         ]);
 
-        UI.buildCategorySidebar([], serverCategories, serverInfo);
+        this.serverCategories = serverCategories || [];
+        this.serverInfo = serverInfo || {};
+
+        UI.buildCategorySidebar([], this.serverCategories, this.serverInfo);
 
         this.setupEventListeners();
 
@@ -46,6 +49,12 @@ class App {
             if (data.all_versions) UI.populateVersionFilter(data.all_versions);
             if (data.all_loaders) UI.populateLoaderFilter(data.all_loaders);
 
+            if (data.category_counts) {
+                const countCategoryNames = Object.keys(data.category_counts);
+                const extraPlugins = countCategoryNames.map(name => ({ category: name }));
+                UI.buildCategorySidebar(extraPlugins, this.serverCategories, this.serverInfo);
+            }
+
             UI.renderPlugins(data.plugins || [], this.authStatus, Auth.currentUser);
             UI.updateResultsCount(data.plugins ? data.plugins.length : 0, data.total || 0, data.total_all);
             UI.updateCategoryCounts(data.category_counts || {});
@@ -61,6 +70,35 @@ class App {
         }
     }
 
+    async exportCurrentPlugins() {
+        try {
+            const filterParams = this.filters ? this.filters.getFilterParams() : {};
+            const data = await API.getPlugins({ perPage: 0, ...filterParams });
+            const plugins = data.plugins || [];
+            const urls = Array.from(new Set(plugins.map(p => p.url).filter(Boolean)));
+
+            if (urls.length === 0) {
+                UI.showEmptyMessage('Geen plugins om te exporteren.');
+                return;
+            }
+
+            const textContent = urls.join('\n');
+            const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+            const downloadUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = 'plugin-list.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(downloadUrl);
+            UI.showSuccessMessage('Plugin lijst succesvol geëxporteerd als TXT-bestand!');
+        } catch (error) {
+            console.error('Export failed:', error);
+            UI.showEmptyMessage('Fout bij het exporteren van plugins.');
+        }
+    }
+
     setupEventListeners() {
         if (UI.perPageSelect) {
             UI.perPageSelect.addEventListener('change', (e) => {
@@ -68,6 +106,25 @@ class App {
                 this.currentPage = 1;
                 this.loadAndRenderPlugins(this.filters.getFilterParams());
             });
+        }
+
+        const exportBtn = document.getElementById('exportTxtBtn');
+        const exportUserBtn = document.getElementById('exportTxtUserBtn');
+        if (exportBtn) exportBtn.addEventListener('click', () => this.exportCurrentPlugins());
+        if (exportUserBtn) exportUserBtn.addEventListener('click', () => this.exportCurrentPlugins());
+
+        const replaceBtn = document.getElementById('replaceTxtBtn');
+        const replaceFileInput = document.getElementById('replaceFileInput');
+        if (replaceBtn && replaceFileInput) {
+            replaceBtn.addEventListener('click', () => replaceFileInput.click());
+            replaceFileInput.addEventListener('change', (e) => this.handleReplaceFileSelect(e));
+        }
+
+        const appendBtn = document.getElementById('appendTxtBtn');
+        const appendFileInput = document.getElementById('appendFileInput');
+        if (appendBtn && appendFileInput) {
+            appendBtn.addEventListener('click', () => appendFileInput.click());
+            appendFileInput.addEventListener('change', (e) => this.handleAppendFileSelect(e));
         }
 
         // Reload plugins when a plugin is successfully added or deleted
@@ -92,6 +149,54 @@ class App {
                 Modals.showDeleteModal(url, title, categoryContext);
             }
         });
+    }
+
+    handleReplaceFileSelect(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const text = event.target.result;
+            const urls = Array.from(new Set(
+                text.split(/[\n\r]+/).map(u => u.trim()).filter(u => u.length > 0 && (u.startsWith('http://') || u.startsWith('https://')))
+            ));
+
+            if (urls.length === 0) {
+                alert('Geen geldige plugin URL\'s gevonden in het TXT bestand.');
+                e.target.value = '';
+                return;
+            }
+
+            if (confirm(`Weet je zeker dat je de huidige plugin lijst wilt VERVANGEN door de ${urls.length} URL's uit "${file.name}"? Alle huidige plugins in jouw lijst worden verwijderd bij het bevestigen.`)) {
+                Modals.openWithBulkUrls(urls, true);
+            }
+            e.target.value = '';
+        };
+        reader.readAsText(file);
+    }
+
+    handleAppendFileSelect(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const text = event.target.result;
+            const urls = Array.from(new Set(
+                text.split(/[\n\r]+/).map(u => u.trim()).filter(u => u.length > 0 && (u.startsWith('http://') || u.startsWith('https://')))
+            ));
+
+            if (urls.length === 0) {
+                alert('Geen geldige plugin URL\'s gevonden in het TXT bestand.');
+                e.target.value = '';
+                return;
+            }
+
+            Modals.openWithBulkUrls(urls, false);
+            e.target.value = '';
+        };
+        reader.readAsText(file);
     }
 }
 
