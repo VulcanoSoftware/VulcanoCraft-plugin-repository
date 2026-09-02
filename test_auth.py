@@ -2,7 +2,8 @@ import unittest
 import hashlib
 from argon2 import PasswordHasher
 import mongomock
-from unittest.mock import patch
+import sys
+from unittest.mock import patch, MagicMock, call
 
 mongo_patcher = patch('pymongo.MongoClient', mongomock.MongoClient)
 mongo_patcher.start()
@@ -173,6 +174,38 @@ class TestAuthArgon2(unittest.TestCase):
             'password': {'$ne': None}
         })
         self.assertIn(resp2.status_code, [400, 401])
+
+    @patch('subprocess.run')
+    @patch('os._exit')
+    def test_admin_apply_update_executes_pip_install(self, mock_exit, mock_subprocess_run):
+        db.users.delete_many({"username": "admin_test"})
+        db.users.insert_one({
+            'username': 'admin_test',
+            'password': hash_password('adminpass'),
+            'role': 'admin'
+        })
+
+        mock_process = MagicMock()
+        mock_process.returncode = 0
+        mock_process.stdout = "Already up to date."
+        mock_process.stderr = ""
+        mock_subprocess_run.return_value = mock_process
+
+        with self.app.session_transaction() as sess:
+            sess['user'] = 'admin_test'
+
+        resp = self.app.post('/admin/update/apply')
+        self.assertEqual(resp.status_code, 200)
+        data = resp.get_json()
+        self.assertTrue(data.get('success'))
+
+        expected_calls = [
+            call(['git', 'pull', 'origin', 'main'], capture_output=True, text=True, timeout=60),
+            call([sys.executable, '-m', 'pip', 'install', '-r', 'requirements.txt'], capture_output=True, text=True, timeout=120)
+        ]
+        mock_subprocess_run.assert_has_calls(expected_calls, any_order=False)
+
+        db.users.delete_many({"username": "admin_test"})
 
 if __name__ == '__main__':
     unittest.main()
