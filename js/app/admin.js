@@ -20,6 +20,18 @@ class AdminPage {
         this.updateDetails = document.getElementById('updateDetails');
         this.updateAlert = document.getElementById('updateAlert');
         this.softwareUpdateSection = document.getElementById('softwareUpdateSection');
+
+        this.rollbackSection = document.getElementById('rollbackSection');
+        this.rollbackCommitSelect = document.getElementById('rollbackCommitSelect');
+        this.selectedCommitDetails = document.getElementById('selectedCommitDetails');
+        this.rollbackSelectedSha = document.getElementById('rollbackSelectedSha');
+        this.rollbackSelectedAuthor = document.getElementById('rollbackSelectedAuthor');
+        this.rollbackSelectedDate = document.getElementById('rollbackSelectedDate');
+        this.rollbackSelectedMsg = document.getElementById('rollbackSelectedMsg');
+        this.rollbackSyncToHostToggle = document.getElementById('rollbackSyncToHostToggle');
+        this.rollbackAlert = document.getElementById('rollbackAlert');
+
+        this.commitHistory = [];
         this.currentRole = null;
     }
 
@@ -57,6 +69,9 @@ class AdminPage {
         }
         if (this.rollbackUpdateBtn) {
             this.rollbackUpdateBtn.addEventListener('click', () => this._handleRollbackUpdate());
+        }
+        if (this.rollbackCommitSelect) {
+            this.rollbackCommitSelect.addEventListener('change', () => this._handleRollbackSelectChange());
         }
 
         this._setupDynamicEventListeners();
@@ -268,11 +283,7 @@ class AdminPage {
                 this.applyUpdateBtn.style.display = 'none';
             }
 
-            if (data.rollback_available && this.currentRole === 'admin') {
-                if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.style.display = 'inline-block';
-            } else {
-                if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.style.display = 'none';
-            }
+            this._populateRollbackHistory(data);
         } catch (error) {
             this.updateStatusBadge.className = 'badge bg-danger';
             this.updateStatusBadge.textContent = 'Fout bij controleren';
@@ -282,6 +293,78 @@ class AdminPage {
         } finally {
             this.checkUpdateBtn.disabled = false;
             this.checkUpdateBtn.innerHTML = '<i class="fas fa-search me-1"></i>Check op Updates';
+        }
+    }
+
+    _populateRollbackHistory(data) {
+        if (!this.rollbackCommitSelect) return;
+        this.commitHistory = data.history || [];
+        this.rollbackCommitSelect.innerHTML = '';
+
+        if (this.commitHistory.length === 0) {
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = 'Geen commit historie beschikbaar';
+            this.rollbackCommitSelect.appendChild(opt);
+            if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.disabled = true;
+            return;
+        }
+
+        const defaultTargetSha = data.full_previous_commit || '';
+        let defaultSelectedIndex = -1;
+
+        this.commitHistory.forEach((item, index) => {
+            const opt = document.createElement('option');
+            opt.value = item.sha;
+            let label = `[${item.short_sha}] ${item.message} (${item.author}, ${new Date(item.date).toLocaleDateString('nl-NL')})`;
+            if (item.is_current) {
+                label += ' - (HUIDIGE VERSIE)';
+            } else if (item.sha === defaultTargetSha) {
+                label += ' - (VORIGE RELEASE)';
+            }
+            opt.textContent = label;
+            this.rollbackCommitSelect.appendChild(opt);
+
+            if (item.sha === defaultTargetSha && defaultSelectedIndex === -1) {
+                defaultSelectedIndex = index;
+            }
+        });
+
+        // If previous commit SHA not matched directly, select second item in history (if current is first)
+        if (defaultSelectedIndex === -1 && this.commitHistory.length > 1) {
+            if (this.commitHistory[0].is_current) {
+                defaultSelectedIndex = 1;
+            } else {
+                defaultSelectedIndex = 0;
+            }
+        } else if (defaultSelectedIndex === -1) {
+            defaultSelectedIndex = 0;
+        }
+
+        this.rollbackCommitSelect.selectedIndex = defaultSelectedIndex;
+        this._handleRollbackSelectChange();
+    }
+
+    _handleRollbackSelectChange() {
+        if (!this.rollbackCommitSelect) return;
+        const selectedSha = this.rollbackCommitSelect.value;
+        const item = this.commitHistory.find(c => c.sha === selectedSha);
+
+        if (item) {
+            this.selectedCommitDetails.style.display = 'block';
+            this.rollbackSelectedSha.textContent = item.sha;
+            this.rollbackSelectedAuthor.textContent = item.author || '-';
+            this.rollbackSelectedDate.textContent = item.date ? new Date(item.date).toLocaleString('nl-NL') : '-';
+            this.rollbackSelectedMsg.textContent = item.message || '-';
+
+            if (this.rollbackUpdateBtn) {
+                this.rollbackUpdateBtn.disabled = (this.currentRole !== 'admin');
+            }
+        } else {
+            this.selectedCommitDetails.style.display = 'none';
+            if (this.rollbackUpdateBtn) {
+                this.rollbackUpdateBtn.disabled = true;
+            }
         }
     }
 
@@ -319,35 +402,41 @@ class AdminPage {
     }
 
     async _handleRollbackUpdate() {
-        if (!confirm('Weet je zeker dat je wilt terugrollen naar de vorige versie? De server herstart automatisch na het terugrollen.')) {
+        const selectedCommit = this.rollbackCommitSelect ? this.rollbackCommitSelect.value : '';
+        if (!selectedCommit) {
+            alert('Selecteer eerst een commit om naar terug te rollen.');
             return;
         }
 
-        const syncToHost = this.syncToHostToggle ? this.syncToHostToggle.checked : false;
+        if (!confirm(`Weet je zeker dat je wilt terugrollen naar commit ${selectedCommit.slice(0, 7)}? De server herstart automatisch na het terugrollen.`)) {
+            return;
+        }
+
+        const syncToHost = this.rollbackSyncToHostToggle ? this.rollbackSyncToHostToggle.checked : false;
 
         if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.disabled = true;
-        this.checkUpdateBtn.disabled = true;
+        if (this.checkUpdateBtn) this.checkUpdateBtn.disabled = true;
         if (this.applyUpdateBtn) this.applyUpdateBtn.disabled = true;
         if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Terugrollen...';
+        this.rollbackAlert.style.display = 'none';
 
         try {
-            const data = await ApiAdmin.rollbackUpdate(syncToHost);
-            this.updateAlert.className = 'alert alert-success mt-3 mb-0';
-            this.updateAlert.textContent = `${data.message || 'Succesvol teruggerold!'} Pagina wordt over 5 seconden herladen...`;
-            this.updateAlert.style.display = 'block';
-            if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.style.display = 'none';
+            const data = await ApiAdmin.rollbackUpdate(selectedCommit, syncToHost);
+            this.rollbackAlert.className = 'alert alert-success mt-3 mb-0';
+            this.rollbackAlert.textContent = `${data.message || 'Succesvol teruggerold!'} Pagina wordt over 5 seconden herladen...`;
+            this.rollbackAlert.style.display = 'block';
 
             setTimeout(() => {
                 window.location.reload();
             }, 5000);
         } catch (error) {
-            this.updateAlert.className = 'alert alert-danger mt-3 mb-0';
-            this.updateAlert.textContent = `Fout bij terugrollen van update: ${error.message}`;
-            this.updateAlert.style.display = 'block';
+            this.rollbackAlert.className = 'alert alert-danger mt-3 mb-0';
+            this.rollbackAlert.textContent = `Fout bij terugrollen van update: ${error.message}`;
+            this.rollbackAlert.style.display = 'block';
             if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.disabled = false;
-            this.checkUpdateBtn.disabled = false;
+            if (this.checkUpdateBtn) this.checkUpdateBtn.disabled = false;
             if (this.applyUpdateBtn) this.applyUpdateBtn.disabled = false;
-            if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.innerHTML = '<i class="fas fa-undo me-1"></i>Terugrollen';
+            if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.innerHTML = '<i class="fas fa-undo me-1"></i>Geselecteerde Versie Terugrollen';
         }
     }
 
@@ -357,14 +446,16 @@ class AdminPage {
         document.getElementById('adminRole').textContent = this.currentRole.toUpperCase();
 
         if (this.softwareUpdateSection) {
-            if (this.currentRole === 'admin') {
-                this.softwareUpdateSection.style.display = 'block';
-            } else {
-                this.softwareUpdateSection.style.display = 'none';
-            }
+            this.softwareUpdateSection.style.display = (this.currentRole === 'admin') ? 'block' : 'none';
+        }
+        if (this.rollbackSection) {
+            this.rollbackSection.style.display = (this.currentRole === 'admin') ? 'block' : 'none';
         }
 
         this._loadAllData();
+        if (this.currentRole === 'admin') {
+            this._handleCheckUpdate();
+        }
     }
 
     _loadAllData() {
