@@ -14,6 +14,7 @@ class AdminPage {
         this.addCategoryBtn = document.querySelector('#categoryManagement button');
         this.checkUpdateBtn = document.getElementById('checkUpdateBtn');
         this.applyUpdateBtn = document.getElementById('applyUpdateBtn');
+        this.rollbackUpdateBtn = document.getElementById('rollbackUpdateBtn');
         this.syncToHostToggle = document.getElementById('syncToHostToggle');
         this.updateStatusBadge = document.getElementById('updateStatusBadge');
         this.updateDetails = document.getElementById('updateDetails');
@@ -53,6 +54,9 @@ class AdminPage {
         }
         if (this.applyUpdateBtn) {
             this.applyUpdateBtn.addEventListener('click', () => this._handleApplyUpdate());
+        }
+        if (this.rollbackUpdateBtn) {
+            this.rollbackUpdateBtn.addEventListener('click', () => this._handleRollbackUpdate());
         }
 
         this._setupDynamicEventListeners();
@@ -263,6 +267,12 @@ class AdminPage {
                 this.updateStatusBadge.textContent = 'Up-to-date';
                 this.applyUpdateBtn.style.display = 'none';
             }
+
+            if (data.rollback_available && this.currentRole === 'admin') {
+                if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.style.display = 'inline-block';
+            } else {
+                if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.style.display = 'none';
+            }
         } catch (error) {
             this.updateStatusBadge.className = 'badge bg-danger';
             this.updateStatusBadge.textContent = 'Fout bij controleren';
@@ -284,6 +294,7 @@ class AdminPage {
 
         this.applyUpdateBtn.disabled = true;
         this.checkUpdateBtn.disabled = true;
+        if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.disabled = true;
         this.applyUpdateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Updaten...';
 
         try {
@@ -302,7 +313,41 @@ class AdminPage {
             this.updateAlert.style.display = 'block';
             this.applyUpdateBtn.disabled = false;
             this.checkUpdateBtn.disabled = false;
+            if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.disabled = false;
             this.applyUpdateBtn.innerHTML = '<i class="fas fa-download me-1"></i>Update Toepassen';
+        }
+    }
+
+    async _handleRollbackUpdate() {
+        if (!confirm('Weet je zeker dat je wilt terugrollen naar de vorige versie? De server herstart automatisch na het terugrollen.')) {
+            return;
+        }
+
+        const syncToHost = this.syncToHostToggle ? this.syncToHostToggle.checked : false;
+
+        if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.disabled = true;
+        this.checkUpdateBtn.disabled = true;
+        if (this.applyUpdateBtn) this.applyUpdateBtn.disabled = true;
+        if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Terugrollen...';
+
+        try {
+            const data = await ApiAdmin.rollbackUpdate(syncToHost);
+            this.updateAlert.className = 'alert alert-success mt-3 mb-0';
+            this.updateAlert.textContent = `${data.message || 'Succesvol teruggerold!'} Pagina wordt over 5 seconden herladen...`;
+            this.updateAlert.style.display = 'block';
+            if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.style.display = 'none';
+
+            setTimeout(() => {
+                window.location.reload();
+            }, 5000);
+        } catch (error) {
+            this.updateAlert.className = 'alert alert-danger mt-3 mb-0';
+            this.updateAlert.textContent = `Fout bij terugrollen van update: ${error.message}`;
+            this.updateAlert.style.display = 'block';
+            if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.disabled = false;
+            this.checkUpdateBtn.disabled = false;
+            if (this.applyUpdateBtn) this.applyUpdateBtn.disabled = false;
+            if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.innerHTML = '<i class="fas fa-undo me-1"></i>Terugrollen';
         }
     }
 

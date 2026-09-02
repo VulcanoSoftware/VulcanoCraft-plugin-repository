@@ -108,6 +108,14 @@ class ApiAdmin {
             body: JSON.stringify({ sync_to_host: syncToHost }),
         });
     }
+
+    rollbackUpdate(syncToHost = false) {
+        return this._fetch('/admin/update/rollback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sync_to_host: syncToHost }),
+        });
+    }
 }
 
 export default new ApiAdmin();

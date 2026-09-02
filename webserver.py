@@ -833,8 +833,18 @@ def admin_check_update():
 
         update_available = (local_sha != remote_sha and len(remote_sha) > 0)
 
+        previous_sha = ""
+        for ref in ['ORIG_HEAD', 'HEAD~1']:
+            res = subprocess.run(['git', 'rev-parse', ref], capture_output=True, text=True)
+            if res.returncode == 0 and res.stdout.strip():
+                previous_sha = res.stdout.strip()
+                break
+
         return jsonify({
             'update_available': update_available,
+            'rollback_available': bool(previous_sha),
+            'previous_commit': previous_sha[:7] if previous_sha else '',
+            'full_previous_commit': previous_sha,
             'current_commit': local_sha[:7],
             'latest_commit': remote_sha[:7] if remote_sha else '',
             'full_current_commit': local_sha,
@@ -908,6 +918,77 @@ def admin_apply_update():
         })
     except Exception as e:
         return jsonify({'error': f'Fout bij toepassen van update: {str(e)}'}), 500
+
+@app.route('/admin/update/rollback', methods=['POST'])
+@require_admin
+def admin_rollback_update():
+    """Rol de applicatie terug naar de vorige git commit (ORIG_HEAD of HEAD~1)."""
+    try:
+        target_commit = None
+        for ref in ['ORIG_HEAD', 'HEAD~1']:
+            res = subprocess.run(['git', 'rev-parse', ref], capture_output=True, text=True)
+            if res.returncode == 0 and res.stdout.strip():
+                target_commit = res.stdout.strip()
+                break
+
+        if not target_commit:
+            return jsonify({'error': 'Geen vorige versie/commit gevonden om naar terug te rollen.'}), 400
+
+        try:
+            result = subprocess.run(
+                ['git', 'reset', '--hard', target_commit],
+                capture_output=True,
+                text=True,
+                timeout=60
+            )
+        except FileNotFoundError:
+            return jsonify({
+                'error': 'Git is niet geïnstalleerd op de server of container.'
+            }), 500
+
+        if result.returncode != 0:
+            return jsonify({
+                'error': f'Git reset mislukt: {result.stderr or result.stdout}'
+            }), 500
+
+        # Installeer of update Python dependencies in requirements.txt
+        try:
+            pip_res = subprocess.run(
+                [sys.executable, '-m', 'pip', 'install', '-r', 'requirements.txt'],
+                capture_output=True,
+                text=True,
+                timeout=120
+            )
+            if pip_res.returncode != 0:
+                print(f"Waarschuwing bij pip install tijdens rollback: {pip_res.stderr or pip_res.stdout}")
+        except Exception as e:
+            print(f"Fout bij installeren van dependencies tijdens rollback: {e}")
+
+        run_migrations()
+
+        sync_to_host_arg = request.args.get('sync_to_host', '').lower()
+        req_data = request.get_json(silent=True) or {}
+        sync_to_host_body = str(req_data.get('sync_to_host', '')).lower()
+        sync_to_host = (sync_to_host_arg in ['true', '1']) or (sync_to_host_body in ['true', '1'])
+
+        synced_to_host = False
+        if sync_to_host:
+            synced_to_host = sync_files_to_host()
+
+        def restart_server():
+            time.sleep(1)
+            os._exit(0)
+
+        threading.Thread(target=restart_server, daemon=True).start()
+
+        return jsonify({
+            'success': True,
+            'message': f'Succesvol teruggerold naar commit {target_commit[:7]}! Server herstart nu...',
+            'synced_to_host': synced_to_host,
+            'output': result.stdout
+        })
+    except Exception as e:
+        return jsonify({'error': f'Fout bij terugrollen van update: {str(e)}'}), 500
 
 @app.route('/auth-status')
 def auth_status():
@@ -1227,6 +1308,25 @@ def add_plugin():
         
     except Exception as e:
         return jsonify({'error': f'Onverwachte fout: {str(e)}'}), 500
+
+@app.route('/api/plugins/clear', methods=['POST'])
+@require_login
+def clear_plugins():
+    """Verwijder alle plugins van de ingelogde gebruiker (of alle plugins indien admin/co-admin en `all=True`)."""
+    try:
+        username = session['user']
+        user = get_current_user()
+        req_data = request.get_json(silent=True) or {}
+        delete_all = req_data.get('all', False) and user.get('role') in ['admin', 'co-admin']
+
+        if delete_all:
+            result = db.plugins.delete_many({})
+        else:
+            result = db.plugins.delete_many({"owner": username})
+
+        return jsonify({'success': True, 'deleted_count': result.deleted_count})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/delete_plugin', methods=['POST'])
 @require_login
