@@ -80,9 +80,9 @@
             </div>
 
             <div id="step3" style="display: none">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">
-                  <img class="modal-icon" src="images/details-icon.png" alt="Info" loading="lazy">
+              <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <h5 class="mb-0 d-flex align-items-center">
+                  <img class="modal-icon me-2" src="images/details-icon.png" alt="Info" loading="lazy">
                   Plugin details &amp; Controle
                 </h5>
                 <span id="selectedCountBadge" class="badge bg-primary" style="display: none;">0 geselecteerd</span>
@@ -92,9 +92,9 @@
               <div id="singlePreviewContainer">
                 <div class="card mb-3 preview-card">
                   <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                      <img class="plugin-icon me-3" id="previewIcon" alt="Plugin icon" loading="lazy">
-                      <h5 class="card-title mb-0" id="previewTitle"></h5>
+                    <div class="d-flex align-items-center mb-3 min-w-0">
+                      <img class="plugin-icon me-3 flex-shrink-0" id="previewIcon" alt="Plugin icon" loading="lazy">
+                      <h5 class="card-title mb-0 text-truncate min-w-0" id="previewTitle"></h5>
                     </div>
                     <p class="card-text" id="previewDescription"></p>
                     <div class="mb-3">
@@ -117,12 +117,12 @@
 
               <!-- Bulk Preview Container -->
               <div id="bulkPreviewContainer" style="display: none;">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <div class="btn-group btn-group-sm">
+                <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                  <div class="btn-group btn-group-sm flex-shrink-0">
                     <button type="button" class="btn btn-outline-secondary" id="selectAllBtn"><i class="fas fa-check-square me-1"></i> Alles selecteren</button>
                     <button type="button" class="btn btn-outline-secondary" id="deselectAllBtn"><i class="far fa-square me-1"></i> Alles deselecteren</button>
                   </div>
-                  <small class="text-muted" id="bulkSummaryText"></small>
+                  <small class="text-muted text-truncate min-w-0" id="bulkSummaryText"></small>
                 </div>
                 <div id="bulkPreviewList" class="bulk-preview-scroll-container">
                   <!-- Bulk review cards dynamically rendered here -->

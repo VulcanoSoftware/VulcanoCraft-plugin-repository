@@ -682,6 +682,11 @@ body {
   margin-top: 1rem;
 }
 
+/* Utility helper */
+.min-w-0 {
+  min-width: 0 !important;
+}
+
 /* Bulk Plugin Add & Review Modern Visual Polish */
 #addPluginTabs {
   border-bottom: 2px solid #e2e8f0;
@@ -730,6 +735,7 @@ body {
 .bulk-preview-scroll-container {
   max-height: 420px;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 14px;
   margin-bottom: 1.2rem;
   border: 1px solid #e2e8f0;
@@ -746,12 +752,21 @@ body {
   margin-bottom: 12px;
   transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
 }
 
 .bulk-review-item:hover {
   border-color: #667eea;
-  transform: translateY(-3px) scale(1.005);
-  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
+}
+
+.bulk-review-item .badge {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
 }
 
 .bulk-review-item.border-danger {

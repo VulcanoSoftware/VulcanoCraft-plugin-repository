@@ -208,25 +208,25 @@ class Modals {
                 const versionsStr = plugin.versions ? plugin.versions.split(' ').slice(0, 3).join(', ') : 'Geen';
                 const firstLetter = (plugin.title || 'P')[0].toUpperCase();
                 const iconHtml = plugin.icon
-                    ? `<img src="${plugin.icon}" class="bulk-preview-icon me-2" alt="icon" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="bulk-preview-icon-letter me-2" style="display:none;">${firstLetter}</div>`
-                    : `<div class="bulk-preview-icon-letter me-2">${firstLetter}</div>`;
+                    ? `<img src="${plugin.icon}" class="bulk-preview-icon flex-shrink-0 me-2" alt="icon" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="bulk-preview-icon-letter flex-shrink-0 me-2" style="display:none;">${firstLetter}</div>`
+                    : `<div class="bulk-preview-icon-letter flex-shrink-0 me-2">${firstLetter}</div>`;
 
                 html += `
                     <div class="bulk-review-item">
-                        <div class="d-flex align-items-center">
-                            <div class="form-check me-3">
+                        <div class="d-flex align-items-center min-w-0">
+                            <div class="form-check me-3 flex-shrink-0">
                                 <input class="form-check-input bulk-item-checkbox" type="checkbox" data-index="${index}" id="bulkCheck_${index}" ${item.selected ? 'checked' : ''}>
                             </div>
                             ${iconHtml}
                             <div class="flex-grow-1 min-w-0">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0 text-truncate" title="${plugin.title || 'Geen titel'}">${plugin.title || 'Geen titel'}</h6>
-                                    <small class="text-muted ms-2">${plugin.author || 'Onbekend'}</small>
+                                <div class="d-flex justify-content-between align-items-center gap-2 min-w-0">
+                                    <h6 class="mb-0 text-truncate min-w-0" title="${plugin.title || 'Geen titel'}">${plugin.title || 'Geen titel'}</h6>
+                                    <small class="text-muted text-nowrap flex-shrink-0">${plugin.author || 'Onbekend'}</small>
                                 </div>
-                                <div class="small text-muted text-truncate">${plugin.description || 'Geen beschrijving'}</div>
-                                <div class="small mt-1">
-                                    <span class="badge bg-info text-dark me-1">v: ${versionsStr}</span>
-                                    <span class="badge bg-secondary">${item.url}</span>
+                                <div class="small text-muted text-truncate min-w-0" title="${plugin.description || 'Geen beschrijving'}">${plugin.description || 'Geen beschrijving'}</div>
+                                <div class="small mt-1 d-flex flex-wrap align-items-center gap-1 min-w-0">
+                                    <span class="badge bg-info text-dark flex-shrink-0">v: ${versionsStr}</span>
+                                    <span class="badge bg-secondary text-truncate mw-100" title="${item.url}">${item.url}</span>
                                 </div>
                             </div>
                         </div>
@@ -234,14 +234,14 @@ class Modals {
             } else {
                 html += `
                     <div class="bulk-review-item border-danger">
-                        <div class="d-flex align-items-center">
-                            <div class="form-check me-3">
+                        <div class="d-flex align-items-center min-w-0">
+                            <div class="form-check me-3 flex-shrink-0">
                                 <input class="form-check-input bulk-item-checkbox" type="checkbox" data-index="${index}" id="bulkCheck_${index}" disabled>
                             </div>
-                            <div class="flex-grow-1">
+                            <div class="flex-grow-1 min-w-0">
                                 <h6 class="mb-0 text-danger"><i class="fas fa-exclamation-circle me-1"></i> Fout bij ophalen</h6>
-                                <div class="small text-muted">${item.url}</div>
-                                <div class="small text-danger">${item.error}</div>
+                                <div class="small text-muted text-truncate min-w-0" title="${item.url}">${item.url}</div>
+                                <div class="small text-danger text-truncate min-w-0" title="${item.error}">${item.error}</div>
                             </div>
                         </div>
                     </div>`;
