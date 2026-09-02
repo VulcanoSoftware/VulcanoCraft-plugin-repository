@@ -54,6 +54,14 @@ class API {
         });
     }
 
+    clearPlugins(all = false) {
+        return this._fetch('/api/plugins/clear', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ all }),
+        });
+    }
+
     deletePlugin(url, category) {
         return this._fetch('/delete_plugin', {
             method: 'POST',

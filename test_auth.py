@@ -207,5 +207,60 @@ class TestAuthArgon2(unittest.TestCase):
 
         db.users.delete_many({"username": "admin_test"})
 
+    def test_clear_plugins_user(self):
+        db.users.delete_many({"username": "user_clear"})
+        db.plugins.delete_many({"owner": "user_clear"})
+
+        db.users.insert_one({
+            'username': 'user_clear',
+            'password': hash_password('clearpass'),
+            'role': 'user'
+        })
+        db.plugins.insert_one({
+            'title': 'Plugin 1',
+            'url': 'https://spigotmc.org/resources/1',
+            'owner': 'user_clear'
+        })
+
+        with self.app.session_transaction() as sess:
+            sess['user'] = 'user_clear'
+
+        resp = self.app.post('/api/plugins/clear')
+        self.assertEqual(resp.status_code, 200)
+        data = resp.get_json()
+        self.assertTrue(data.get('success'))
+        self.assertEqual(data.get('deleted_count'), 1)
+
+        user_plugins = list(db.plugins.find({"owner": "user_clear"}))
+        self.assertEqual(len(user_plugins), 0)
+
+        db.users.delete_many({"username": "user_clear"})
+
+    @patch('subprocess.run')
+    @patch('os._exit')
+    def test_admin_rollback_update(self, mock_exit, mock_subprocess_run):
+        db.users.delete_many({"username": "admin_rollback"})
+        db.users.insert_one({
+            'username': 'admin_rollback',
+            'password': hash_password('adminpass'),
+            'role': 'admin'
+        })
+
+        mock_process = MagicMock()
+        mock_process.returncode = 0
+        mock_process.stdout = "e24c88d5e6489593183622146742bca77ee26aef\n"
+        mock_process.stderr = ""
+        mock_subprocess_run.return_value = mock_process
+
+        with self.app.session_transaction() as sess:
+            sess['user'] = 'admin_rollback'
+
+        resp = self.app.post('/admin/update/rollback')
+        self.assertEqual(resp.status_code, 200)
+        data = resp.get_json()
+        self.assertTrue(data.get('success'))
+
+        db.users.delete_many({"username": "admin_rollback"})
+
 if __name__ == '__main__':
     unittest.main()

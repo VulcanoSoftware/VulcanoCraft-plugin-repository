@@ -27,6 +27,7 @@ class Modals {
         this.cachedPluginData = null;
         this.cachedBulkPlugins = []; // [{ url, plugin, status, error, selected }]
         this.isBulkMode = false;
+        this.isReplaceMode = false;
         this.currentDeleteUrl = null;
         this.addSuccess = false;
 
@@ -294,6 +295,11 @@ class Modals {
             this._setConfirmYesLoading(true);
             const activeCategory = document.querySelector('#categorySidebar .category-item.active')?.dataset.category;
 
+            if (this.isReplaceMode) {
+                await API.clearPlugins();
+                this.isReplaceMode = false;
+            }
+
             if (!this.isBulkMode) {
                 await this._addSinglePlugin(activeCategory);
             } else {
@@ -304,6 +310,24 @@ class Modals {
         } finally {
             this._setConfirmYesLoading(false);
         }
+    }
+
+    openWithBulkUrls(urls, isReplace = false) {
+        this.isReplaceMode = isReplace;
+        this.showStep(1);
+
+        const bulkTabBtn = document.getElementById('bulkUrlTab');
+        if (bulkTabBtn) {
+            const tab = bootstrap.Tab.getOrCreateInstance(bulkTabBtn);
+            tab.show();
+        }
+
+        if (this.bulkPluginUrlsInput) {
+            this.bulkPluginUrlsInput.value = urls.join('\n');
+        }
+
+        this.addModal.show();
+        this.handleFetch();
     }
 
     async _addSinglePlugin(activeCategory) {
@@ -361,6 +385,7 @@ class Modals {
         if (this.bulkPluginUrlsInput) this.bulkPluginUrlsInput.value = '';
         this.cachedPluginData = null;
         this.cachedBulkPlugins = [];
+        this.isReplaceMode = false;
         this._toggleAddModalButtons(true);
         this._setModalStatic(false);
     }
@@ -403,8 +428,11 @@ class Modals {
     resetAddModal() {
         this.showStep(1);
         this.hideError();
-        this.pluginUrlInput.value = '';
+        if (this.pluginUrlInput) this.pluginUrlInput.value = '';
+        if (this.bulkPluginUrlsInput) this.bulkPluginUrlsInput.value = '';
         this.cachedPluginData = null;
+        this.cachedBulkPlugins = [];
+        this.isReplaceMode = false;
         this.addSuccess = false;
         this._toggleAddModalButtons(true);
         this._setConfirmYesLoading(false);
