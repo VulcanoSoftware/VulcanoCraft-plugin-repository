@@ -26,7 +26,10 @@ class App {
             API.getServerInfo()
         ]);
 
-        UI.buildCategorySidebar([], serverCategories, serverInfo);
+        this.serverCategories = serverCategories || [];
+        this.serverInfo = serverInfo || {};
+
+        UI.buildCategorySidebar([], this.serverCategories, this.serverInfo);
 
         this.setupEventListeners();
 
@@ -45,6 +48,12 @@ class App {
 
             if (data.all_versions) UI.populateVersionFilter(data.all_versions);
             if (data.all_loaders) UI.populateLoaderFilter(data.all_loaders);
+
+            if (data.category_counts) {
+                const countCategoryNames = Object.keys(data.category_counts);
+                const extraPlugins = countCategoryNames.map(name => ({ category: name }));
+                UI.buildCategorySidebar(extraPlugins, this.serverCategories, this.serverInfo);
+            }
 
             UI.renderPlugins(data.plugins || [], this.authStatus, Auth.currentUser);
             UI.updateResultsCount(data.plugins ? data.plugins.length : 0, data.total || 0, data.total_all);
