@@ -75,11 +75,8 @@
                         <button class="btn btn-outline-primary me-2" id="checkUpdateBtn">
                           <i class="fas fa-search me-1"></i>Check op Updates
                         </button>
-                        <button class="btn btn-success me-2" id="applyUpdateBtn" style="display: none;">
+                        <button class="btn btn-success" id="applyUpdateBtn" style="display: none;">
                           <i class="fas fa-download me-1"></i>Update Toepassen
-                        </button>
-                        <button class="btn btn-warning" id="rollbackUpdateBtn" style="display: none;">
-                          <i class="fas fa-undo me-1"></i>Terugrollen
                         </button>
                       </div>
                     </div>
@@ -97,6 +94,41 @@
                       <p class="mb-0"><strong>Datum:</strong> <span id="commitDate"></span></p>
                     </div>
                     <div class="alert alert-info mt-3 mb-0" id="updateAlert" style="display: none;"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-5" id="rollbackSection">
+                <h4><i class="fas fa-history me-2"></i>Terugrol Systeem</h4>
+                <div class="card bg-light">
+                  <div class="card-body">
+                    <p class="text-muted small mb-3">
+                      Selecteer een commit uit de geschiedenis om de applicatie nauwkeurig naar die versie terug te rollen. De vorige release is standaard geselecteerd.
+                    </p>
+                    <div class="mb-3">
+                      <label for="rollbackCommitSelect" class="form-label fw-bold">Kies Commit / Versie om naar terug te rollen:</label>
+                      <select class="form-select" id="rollbackCommitSelect">
+                        <option value="">Laden van commit geschiedenis...</option>
+                      </select>
+                    </div>
+                    <div id="selectedCommitDetails" class="small alert alert-secondary mb-3" style="display: none;">
+                      <p class="mb-1"><strong>Geselecteerde Commit SHA:</strong> <code id="rollbackSelectedSha"></code></p>
+                      <p class="mb-1"><strong>Auteur:</strong> <span id="rollbackSelectedAuthor"></span></p>
+                      <p class="mb-1"><strong>Datum:</strong> <span id="rollbackSelectedDate"></span></p>
+                      <p class="mb-0"><strong>Bericht:</strong> <span id="rollbackSelectedMsg"></span></p>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                      <input class="form-check-input" type="checkbox" id="rollbackSyncToHostToggle">
+                      <label class="form-check-label small text-muted" for="rollbackSyncToHostToggle">
+                        Synchroniseer na terugrollen naar het host-systeem (sync_to_host)
+                      </label>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                      <button class="btn btn-warning" id="rollbackUpdateBtn" disabled>
+                        <i class="fas fa-undo me-1"></i>Geselecteerde Versie Terugrollen
+                      </button>
+                    </div>
+                    <div class="alert alert-info mt-3 mb-0" id="rollbackAlert" style="display: none;"></div>
                   </div>
                 </div>
               </div>
