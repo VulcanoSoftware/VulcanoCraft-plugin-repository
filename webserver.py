@@ -869,6 +869,19 @@ def admin_apply_update():
                 'error': f'Git pull mislukt: {result.stderr or result.stdout}'
             }), 500
 
+        # Installeer of update Python dependencies in requirements.txt
+        try:
+            pip_res = subprocess.run(
+                [sys.executable, '-m', 'pip', 'install', '-r', 'requirements.txt'],
+                capture_output=True,
+                text=True,
+                timeout=120
+            )
+            if pip_res.returncode != 0:
+                print(f"Waarschuwing bij pip install: {pip_res.stderr or pip_res.stdout}")
+        except Exception as e:
+            print(f"Fout bij installeren van dependencies: {e}")
+
         run_migrations()
 
         # Controleer de optionele vlag ?sync_to_host=true (via query arg of JSON body)
