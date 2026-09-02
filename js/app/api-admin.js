@@ -109,11 +109,11 @@ class ApiAdmin {
         });
     }
 
-    rollbackUpdate(syncToHost = false) {
+    rollbackUpdate(commit = '', syncToHost = false) {
         return this._fetch('/admin/update/rollback', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sync_to_host: syncToHost }),
+            body: JSON.stringify({ commit, sync_to_host: syncToHost }),
         });
     }
 }
