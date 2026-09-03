@@ -236,6 +236,59 @@ class TestAuthArgon2(unittest.TestCase):
 
         db.users.delete_many({"username": "user_clear"})
 
+    def test_clear_plugins_by_category(self):
+        db.users.delete_many({"username": "user_cat_clear"})
+        db.plugins.delete_many({"owner": "user_cat_clear"})
+
+        db.users.insert_one({
+            'username': 'user_cat_clear',
+            'password': hash_password('clearpass'),
+            'role': 'user'
+        })
+        db.plugins.insert_one({
+            'title': 'Paper Only Plugin',
+            'url': 'https://spigotmc.org/resources/100',
+            'owner': 'user_cat_clear',
+            'category': 'paper',
+            'categories': ['paper']
+        })
+        db.plugins.insert_one({
+            'title': 'Dual Category Plugin',
+            'url': 'https://spigotmc.org/resources/101',
+            'owner': 'user_cat_clear',
+            'category': 'paper',
+            'categories': ['paper', 'velocity']
+        })
+        db.plugins.insert_one({
+            'title': 'Velocity Only Plugin',
+            'url': 'https://spigotmc.org/resources/102',
+            'owner': 'user_cat_clear',
+            'category': 'velocity',
+            'categories': ['velocity']
+        })
+
+        with self.app.session_transaction() as sess:
+            sess['user'] = 'user_cat_clear'
+
+        resp = self.app.post('/api/plugins/clear', json={'category': 'paper'})
+        self.assertEqual(resp.status_code, 200)
+        data = resp.get_json()
+        self.assertTrue(data.get('success'))
+        self.assertEqual(data.get('deleted_count'), 2)
+
+        remaining_plugins = list(db.plugins.find({"owner": "user_cat_clear"}))
+        self.assertEqual(len(remaining_plugins), 2)
+        urls = [p['url'] for p in remaining_plugins]
+        self.assertNotIn('https://spigotmc.org/resources/100', urls)
+        self.assertIn('https://spigotmc.org/resources/101', urls)
+        self.assertIn('https://spigotmc.org/resources/102', urls)
+
+        dual_p = db.plugins.find_one({"owner": "user_cat_clear", "url": "https://spigotmc.org/resources/101"})
+        self.assertEqual(dual_p['categories'], ['velocity'])
+
+        db.users.delete_many({"username": "user_cat_clear"})
+        db.plugins.delete_many({"owner": "user_cat_clear"})
+
     @patch('subprocess.run')
     @patch('os._exit')
     def test_admin_rollback_update(self, mock_exit, mock_subprocess_run):

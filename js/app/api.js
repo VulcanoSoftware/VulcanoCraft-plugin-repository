@@ -54,11 +54,11 @@ class API {
         });
     }
 
-    clearPlugins(all = false) {
+    clearPlugins(all = false, category = null) {
         return this._fetch('/api/plugins/clear', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ all }),
+            body: JSON.stringify({ all, category }),
         });
     }
 
