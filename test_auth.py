@@ -293,6 +293,27 @@ class TestAuthArgon2(unittest.TestCase):
     @patch('os._exit')
     def test_admin_rollback_update(self, mock_exit, mock_subprocess_run):
         db.users.delete_many({"username": "admin_rollback"})
+        db.users.insert_one({
+            'username': 'admin_rollback',
+            'password': hash_password('adminpass'),
+            'role': 'admin'
+        })
+
+        mock_process = MagicMock()
+        mock_process.returncode = 0
+        mock_process.stdout = "e24c88d5e6489593183622146742bca77ee26aef\n"
+        mock_process.stderr = ""
+        mock_subprocess_run.return_value = mock_process
+
+        with self.app.session_transaction() as sess:
+            sess['user'] = 'admin_rollback'
+
+        resp = self.app.post('/admin/update/rollback')
+        self.assertEqual(resp.status_code, 200)
+        data = resp.get_json()
+        self.assertTrue(data.get('success'))
+
+        db.users.delete_many({"username": "admin_rollback"})
 
     def test_public_plugins_category_filtering(self):
         db.plugins.delete_many({})
@@ -328,27 +349,6 @@ class TestAuthArgon2(unittest.TestCase):
         self.assertEqual(len(data_all['plugins']), 2)
 
         db.plugins.delete_many({})
-        db.users.insert_one({
-            'username': 'admin_rollback',
-            'password': hash_password('adminpass'),
-            'role': 'admin'
-        })
-
-        mock_process = MagicMock()
-        mock_process.returncode = 0
-        mock_process.stdout = "e24c88d5e6489593183622146742bca77ee26aef\n"
-        mock_process.stderr = ""
-        mock_subprocess_run.return_value = mock_process
-
-        with self.app.session_transaction() as sess:
-            sess['user'] = 'admin_rollback'
-
-        resp = self.app.post('/admin/update/rollback')
-        self.assertEqual(resp.status_code, 200)
-        data = resp.get_json()
-        self.assertTrue(data.get('success'))
-
-        db.users.delete_many({"username": "admin_rollback"})
 
 if __name__ == '__main__':
     unittest.main()
