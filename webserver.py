@@ -1385,19 +1385,50 @@ def add_plugin():
 @app.route('/api/plugins/clear', methods=['POST'])
 @require_login
 def clear_plugins():
-    """Verwijder alle plugins van de ingelogde gebruiker (of alle plugins indien admin/co-admin en `all=True`)."""
+    """Verwijder alle plugins van de ingelogde gebruiker (of alle plugins indien admin/co-admin en `all=True`).
+    Indien `category` is opgegeven, worden enkel de plugins van die specifieke categorie verwijderd.
+    """
     try:
         username = session['user']
         user = get_current_user()
         req_data = request.get_json(silent=True) or {}
         delete_all = req_data.get('all', False) and user.get('role') in ['admin', 'co-admin']
+        category = req_data.get('category')
 
-        if delete_all:
-            result = db.plugins.delete_many({})
+        if category:
+            query = {} if delete_all else {"owner": username}
+            plugins = list(db.plugins.find(query))
+            deleted_count = 0
+            for plugin in plugins:
+                plugin_cats = extract_plugin_categories(plugin)
+                if category in plugin_cats:
+                    if delete_all:
+                        categories = plugin.get("categories")
+                        if isinstance(categories, list):
+                            categories = [c for c in categories if c != category]
+                        else:
+                            categories = []
+                        primary_cat = plugin.get("category")
+                        if primary_cat == category:
+                            primary_cat = categories[0] if categories else None
+
+                        if not categories and not primary_cat:
+                            db.plugins.delete_one({"_id": plugin["_id"]})
+                        else:
+                            db.plugins.update_one({"_id": plugin["_id"]}, {"$set": {"categories": categories, "category": primary_cat}})
+                        deleted_count += 1
+                    else:
+                        if remove_user_plugin_category(username, plugin.get("url"), category):
+                            deleted_count += 1
+
+            return jsonify({'success': True, 'deleted_count': deleted_count})
         else:
-            result = db.plugins.delete_many({"owner": username})
+            if delete_all:
+                result = db.plugins.delete_many({})
+            else:
+                result = db.plugins.delete_many({"owner": username})
 
-        return jsonify({'success': True, 'deleted_count': result.deleted_count})
+            return jsonify({'success': True, 'deleted_count': result.deleted_count})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

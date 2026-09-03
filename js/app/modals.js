@@ -296,7 +296,7 @@ class Modals {
             const activeCategory = document.querySelector('#categorySidebar .category-item.active')?.dataset.category;
 
             if (this.isReplaceMode) {
-                await API.clearPlugins();
+                await API.clearPlugins(false, activeCategory || null);
                 this.isReplaceMode = false;
             }
 
