@@ -350,5 +350,103 @@ class TestAuthArgon2(unittest.TestCase):
 
         db.plugins.delete_many({})
 
+    def test_admin_delete_category_updates_plugins(self):
+        db.users.delete_many({"username": "coadmin_user"})
+        db.server_categories.delete_many({})
+        db.plugins.delete_many({})
+
+        db.users.insert_one({
+            'username': 'coadmin_user',
+            'password': hash_password('pass123'),
+            'role': 'co-admin'
+        })
+        db.server_categories.insert_many([
+            {'name': 'Survival'},
+            {'name': 'Lobby'}
+        ])
+        db.plugins.insert_one({
+            'title': 'Test Plugin 1',
+            'url': 'https://spigotmc.org/resources/1111',
+            'category': 'Survival',
+            'categories': ['Survival', 'Lobby']
+        })
+        db.plugins.insert_one({
+            'title': 'Test Plugin 2',
+            'url': 'https://spigotmc.org/resources/2222',
+            'category': 'Survival',
+            'categories': ['Survival']
+        })
+
+        with self.app.session_transaction() as sess:
+            sess['user'] = 'coadmin_user'
+
+        resp = self.app.delete('/admin/categories/Survival')
+        self.assertEqual(resp.status_code, 200)
+
+        p1 = db.plugins.find_one({'url': 'https://spigotmc.org/resources/1111'})
+        self.assertEqual(p1['categories'], ['Lobby'])
+        self.assertEqual(p1['category'], 'Lobby')
+
+        p2 = db.plugins.find_one({'url': 'https://spigotmc.org/resources/2222'})
+        self.assertEqual(p2['categories'], [])
+        self.assertIsNone(p2['category'])
+
+        db.users.delete_many({"username": "coadmin_user"})
+        db.server_categories.delete_many({})
+        db.plugins.delete_many({})
+
+    def test_admin_update_category_updates_plugins(self):
+        db.users.delete_many({"username": "coadmin_user"})
+        db.server_categories.delete_many({})
+        db.plugins.delete_many({})
+
+        db.users.insert_one({
+            'username': 'coadmin_user',
+            'password': hash_password('pass123'),
+            'role': 'co-admin'
+        })
+        db.server_categories.insert_one({'name': 'OldName'})
+        db.plugins.insert_one({
+            'title': 'Test Plugin',
+            'url': 'https://spigotmc.org/resources/3333',
+            'category': 'OldName',
+            'categories': ['OldName', 'Lobby']
+        })
+
+        with self.app.session_transaction() as sess:
+            sess['user'] = 'coadmin_user'
+
+        resp = self.app.put('/admin/categories/OldName', json={'new_name': 'NewName'})
+        self.assertEqual(resp.status_code, 200)
+
+        p = db.plugins.find_one({'url': 'https://spigotmc.org/resources/3333'})
+        self.assertEqual(p['categories'], ['NewName', 'Lobby'])
+        self.assertEqual(p['category'], 'NewName')
+
+        db.users.delete_many({"username": "coadmin_user"})
+        db.server_categories.delete_many({})
+        db.plugins.delete_many({})
+
+    def test_run_migrations_removes_orphaned_categories(self):
+        db.server_categories.delete_many({})
+        db.plugins.delete_many({})
+
+        db.server_categories.insert_one({'name': 'ValidCategory'})
+        db.plugins.insert_one({
+            'title': 'Orphan Plugin',
+            'url': 'https://spigotmc.org/resources/4444',
+            'category': 'DeletedCategory',
+            'categories': ['DeletedCategory', 'ValidCategory']
+        })
+
+        webserver.run_migrations()
+
+        p = db.plugins.find_one({'url': 'https://spigotmc.org/resources/4444'})
+        self.assertEqual(p['categories'], ['ValidCategory'])
+        self.assertEqual(p['category'], 'ValidCategory')
+
+        db.server_categories.delete_many({})
+        db.plugins.delete_many({})
+
 if __name__ == '__main__':
     unittest.main()
