@@ -87,7 +87,7 @@ class App {
             const downloadUrl = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = downloadUrl;
-            a.download = 'plugin-list.txt';
+            a.download = filterParams.category ? `plugin-list-${filterParams.category}.txt` : 'plugin-list.txt';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -168,7 +168,15 @@ class App {
                 return;
             }
 
-            if (confirm(`Weet je zeker dat je de huidige plugin lijst wilt VERVANGEN door de ${urls.length} URL's uit "${file.name}"? Alle huidige plugins in jouw lijst worden verwijderd bij het bevestigen.`)) {
+            const activeCategory = document.querySelector('#categorySidebar .category-item.active')?.dataset.category;
+            const categoryMsg = activeCategory
+                ? `van de categorie "${activeCategory}"`
+                : 'van ALLE categorieën';
+            const detailMsg = activeCategory
+                ? `Enkel de plugins in categorie "${activeCategory}" worden vervangen.`
+                : 'Alle huidige plugins in jouw lijst worden verwijderd bij het bevestigen.';
+
+            if (confirm(`Weet je zeker dat je de huidige plugin lijst ${categoryMsg} wilt VERVANGEN door de ${urls.length} URL's uit "${file.name}"? ${detailMsg}`)) {
                 Modals.openWithBulkUrls(urls, true);
             }
             e.target.value = '';
