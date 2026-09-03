@@ -293,6 +293,41 @@ class TestAuthArgon2(unittest.TestCase):
     @patch('os._exit')
     def test_admin_rollback_update(self, mock_exit, mock_subprocess_run):
         db.users.delete_many({"username": "admin_rollback"})
+
+    def test_public_plugins_category_filtering(self):
+        db.plugins.delete_many({})
+
+        db.plugins.insert_one({
+            'title': 'Plugin Category A',
+            'url': 'https://spigotmc.org/resources/111',
+            'category': 'Survival',
+            'categories': ['Survival'],
+            'versions': '1.20',
+            'loaders': ['Paper']
+        })
+        db.plugins.insert_one({
+            'title': 'Plugin Category B',
+            'url': 'https://spigotmc.org/resources/222',
+            'category': 'Lobby',
+            'categories': ['Lobby'],
+            'versions': '1.20',
+            'loaders': ['Paper']
+        })
+
+        # Test filtering by category 'Survival'
+        resp = self.app.get('/api/plugins/public?per_page=0&category=Survival')
+        self.assertEqual(resp.status_code, 200)
+        data = resp.get_json()
+        self.assertEqual(len(data['plugins']), 1)
+        self.assertEqual(data['plugins'][0]['url'], 'https://spigotmc.org/resources/111')
+
+        # Test fetching all plugins (category='')
+        resp_all = self.app.get('/api/plugins/public?per_page=0&category=')
+        self.assertEqual(resp_all.status_code, 200)
+        data_all = resp_all.get_json()
+        self.assertEqual(len(data_all['plugins']), 2)
+
+        db.plugins.delete_many({})
         db.users.insert_one({
             'username': 'admin_rollback',
             'password': hash_password('adminpass'),

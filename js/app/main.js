@@ -72,8 +72,8 @@ class App {
 
     async exportCurrentPlugins() {
         try {
-            const filterParams = this.filters ? this.filters.getFilterParams() : {};
-            const data = await API.getPlugins({ perPage: 0, ...filterParams });
+            const activeCategory = document.querySelector('#categorySidebar .category-item.active')?.dataset.category || '';
+            const data = await API.getPlugins({ perPage: 0, category: activeCategory });
             const plugins = data.plugins || [];
             const urls = Array.from(new Set(plugins.map(p => p.url).filter(Boolean)));
 
@@ -87,7 +87,7 @@ class App {
             const downloadUrl = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = downloadUrl;
-            a.download = filterParams.category ? `plugin-list-${filterParams.category}.txt` : 'plugin-list.txt';
+            a.download = activeCategory ? `plugin-list-${activeCategory}.txt` : 'plugin-list.txt';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -168,7 +168,7 @@ class App {
                 return;
             }
 
-            const activeCategory = document.querySelector('#categorySidebar .category-item.active')?.dataset.category;
+            const activeCategory = document.querySelector('#categorySidebar .category-item.active')?.dataset.category || '';
             const categoryMsg = activeCategory
                 ? `van de categorie "${activeCategory}"`
                 : 'van ALLE categorieën';
@@ -177,7 +177,7 @@ class App {
                 : 'Alle huidige plugins in jouw lijst worden verwijderd bij het bevestigen.';
 
             if (confirm(`Weet je zeker dat je de huidige plugin lijst ${categoryMsg} wilt VERVANGEN door de ${urls.length} URL's uit "${file.name}"? ${detailMsg}`)) {
-                Modals.openWithBulkUrls(urls, true);
+                Modals.openWithBulkUrls(urls, true, activeCategory);
             }
             e.target.value = '';
         };
@@ -201,7 +201,8 @@ class App {
                 return;
             }
 
-            Modals.openWithBulkUrls(urls, false);
+            const activeCategory = document.querySelector('#categorySidebar .category-item.active')?.dataset.category || '';
+            Modals.openWithBulkUrls(urls, false, activeCategory);
             e.target.value = '';
         };
         reader.readAsText(file);
