@@ -1228,19 +1228,42 @@ def admin_add_category():
         return jsonify({'success': True})
     return jsonify({'error': 'Fout bij opslaan'}), 500
 
+def _rename_category_in_plugins(old_name, new_name):
+    """Helper om de naam van een categorie in alle plugin documenten te updaten."""
+    plugins = list(db.plugins.find({}))
+    for plugin in plugins:
+        p_updated = False
+        raw_cats = plugin.get("categories")
+        if isinstance(raw_cats, list) and old_name in raw_cats:
+            new_cats = [new_name if c == old_name else c for c in raw_cats]
+            p_updated = True
+        else:
+            new_cats = raw_cats
+
+        primary = plugin.get("category")
+        new_primary = new_name if primary == old_name else primary
+        if primary == old_name:
+            p_updated = True
+
+        if p_updated:
+            db.plugins.update_one({"_id": plugin["_id"]}, {"$set": {"categories": new_cats, "category": new_primary}})
+
+
+def _update_category_fields(category_obj, data):
+    """Helper om categorie instellingen bij te werken."""
+    for key in ['image_url', 'show_image', 'software', 'version']:
+        if key in data and data[key] is not None:
+            category_obj[key] = data[key]
+
+
 @app.route('/admin/categories/<name>', methods=['PUT'])
 @require_co_admin
 def admin_update_category(name):
-    """Hernoem categorie"""
-    data = request.get_json()
+    """Hernoem/bewerk categorie"""
+    data = request.get_json() or {}
     new_name = data.get('new_name')
-    image_url = data.get('image_url')
-    show_image = data.get('show_image')
-    software = data.get('software')
-    version = data.get('version')
 
     categories = load_server_categories()
-
     category_to_update = next((c for c in categories if c.get('name') == name), None)
     if not category_to_update:
         return jsonify({'error': 'Categorie niet gevonden'}), 404
@@ -1250,37 +1273,11 @@ def admin_update_category(name):
             return jsonify({'error': 'Categorie naam bestaat al'}), 400
         category_to_update['name'] = new_name
 
-    if image_url is not None:
-        category_to_update['image_url'] = image_url
-
-    if show_image is not None:
-        category_to_update['show_image'] = show_image
-
-    if software is not None:
-        category_to_update['software'] = software
-
-    if version is not None:
-        category_to_update['version'] = version
+    _update_category_fields(category_to_update, data)
 
     if save_server_categories(categories):
         if new_name and new_name != name:
-            plugins = list(db.plugins.find({}))
-            for plugin in plugins:
-                p_updated = False
-                raw_cats = plugin.get("categories")
-                if isinstance(raw_cats, list) and name in raw_cats:
-                    new_cats = [new_name if c == name else c for c in raw_cats]
-                    p_updated = True
-                else:
-                    new_cats = raw_cats
-
-                primary = plugin.get("category")
-                new_primary = new_name if primary == name else primary
-                if primary == name:
-                    p_updated = True
-
-                if p_updated:
-                    db.plugins.update_one({"_id": plugin["_id"]}, {"$set": {"categories": new_cats, "category": new_primary}})
+            _rename_category_in_plugins(name, new_name)
         return jsonify({'success': True})
     return jsonify({'error': 'Fout bij opslaan'}), 500
 
