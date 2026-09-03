@@ -70,32 +70,264 @@ class App {
         }
     }
 
-    async exportCurrentPlugins() {
+    openExportModal() {
+        const modalEl = document.getElementById('exportTxtModal');
+        if (!modalEl) return;
+
+        const select = document.getElementById('exportCategorySelect');
+        if (select) {
+            let html = '<option value="ALL">Alle categorieën</option>';
+            this.serverCategories.forEach(cat => {
+                const name = typeof cat === 'object' ? cat.name : cat;
+                if (name) {
+                    html += `<option value="${name}">${name}</option>`;
+                }
+            });
+            select.innerHTML = html;
+
+            const activeCat = document.querySelector('#categorySidebar .category-item.active')?.dataset.category;
+            select.value = activeCat ? activeCat : 'ALL';
+        }
+
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+
+    async executeExport() {
+        const select = document.getElementById('exportCategorySelect');
+        const selectedCategory = select ? select.value : 'ALL';
+
+        const modalEl = document.getElementById('exportTxtModal');
+        if (modalEl) {
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+        }
+
         try {
-            const activeCategory = document.querySelector('#categorySidebar .category-item.active')?.dataset.category || '';
-            const data = await API.getPlugins({ perPage: 0, category: activeCategory });
-            const plugins = data.plugins || [];
-            const urls = Array.from(new Set(plugins.map(p => p.url).filter(Boolean)));
+            if (selectedCategory === 'ALL') {
+                const data = await API.getPlugins({ perPage: 0 });
+                const plugins = data.plugins || [];
+                if (plugins.length === 0) {
+                    UI.showEmptyMessage('Geen plugins om te exporteren.');
+                    return;
+                }
 
-            if (urls.length === 0) {
-                UI.showEmptyMessage('Geen plugins om te exporteren.');
-                return;
+                const categoryMap = new Map();
+                plugins.forEach(p => {
+                    if (!p.url) return;
+                    const cats = (p.categories && p.categories.length > 0)
+                        ? p.categories
+                        : (p.category ? [p.category] : ['Algemeen']);
+                    cats.forEach(c => {
+                        const catName = c || 'Algemeen';
+                        if (!categoryMap.has(catName)) {
+                            categoryMap.set(catName, new Set());
+                        }
+                        categoryMap.get(catName).add(p.url);
+                    });
+                });
+
+                let textContent = '';
+                for (const [catName, urlsSet] of categoryMap.entries()) {
+                    if (textContent.length > 0) textContent += '\n\n';
+                    textContent += `[${catName}]\n` + Array.from(urlsSet).join('\n');
+                }
+
+                this.triggerDownload(textContent, 'plugin-list-all.txt');
+                UI.showSuccessMessage('Alle categorieën succesvol geëxporteerd als TXT-bestand!');
+            } else {
+                const data = await API.getPlugins({ perPage: 0, category: selectedCategory });
+                const plugins = data.plugins || [];
+                const urls = Array.from(new Set(plugins.map(p => p.url).filter(Boolean)));
+
+                if (urls.length === 0) {
+                    UI.showEmptyMessage(`Geen plugins te exporteren voor categorie "${selectedCategory}".`);
+                    return;
+                }
+
+                const textContent = `[${selectedCategory}]\n` + urls.join('\n');
+                this.triggerDownload(textContent, `plugin-list-${selectedCategory}.txt`);
+                UI.showSuccessMessage(`Categorie "${selectedCategory}" succesvol geëxporteerd als TXT-bestand!`);
             }
-
-            const textContent = urls.join('\n');
-            const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
-            const downloadUrl = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = downloadUrl;
-            a.download = activeCategory ? `plugin-list-${activeCategory}.txt` : 'plugin-list.txt';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(downloadUrl);
-            UI.showSuccessMessage('Plugin lijst succesvol geëxporteerd als TXT-bestand!');
         } catch (error) {
             console.error('Export failed:', error);
             UI.showEmptyMessage('Fout bij het exporteren van plugins.');
+        }
+    }
+
+    triggerDownload(content, fileName) {
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        const downloadUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(downloadUrl);
+    }
+
+    openImportModal(isReplace) {
+        this.isReplaceMode = isReplace;
+        const modalEl = document.getElementById('importTxtModal');
+        if (!modalEl) return;
+
+        const titleText = document.getElementById('importModalTitleText');
+        if (titleText) {
+            titleText.textContent = isReplace ? 'Lijst Vervangen (TXT)' : 'TXT Bijvoegen';
+        }
+
+        const select = document.getElementById('importCategorySelect');
+        if (select) {
+            let html = '<option value="ALL">Alle categorieën</option>';
+            this.serverCategories.forEach(cat => {
+                const name = typeof cat === 'object' ? cat.name : cat;
+                if (name) {
+                    html += `<option value="${name}">${name}</option>`;
+                }
+            });
+            select.innerHTML = html;
+
+            const activeCat = document.querySelector('#categorySidebar .category-item.active')?.dataset.category;
+            select.value = activeCat ? activeCat : 'ALL';
+        }
+
+        const fileInput = document.getElementById('importModalFileInput');
+        if (fileInput) fileInput.value = '';
+
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+
+    async handleImportSubmit() {
+        const select = document.getElementById('importCategorySelect');
+        const selectedCategory = select ? select.value : 'ALL';
+        const fileInput = document.getElementById('importModalFileInput');
+        const file = fileInput ? fileInput.files[0] : null;
+
+        if (!file) {
+            alert('Selecteer a.u.b. een TXT bestand.');
+            return;
+        }
+
+        const modalEl = document.getElementById('importTxtModal');
+        const importModal = modalEl ? bootstrap.Modal.getInstance(modalEl) : null;
+
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            const text = event.target.result;
+            const items = this.parseTxtContent(text, selectedCategory);
+
+            if (items.length === 0) {
+                alert('Geen geldige plugin URL\'s gevonden in het TXT bestand.');
+                return;
+            }
+
+            if (importModal) importModal.hide();
+
+            // Check for missing categories
+            const existingCatNames = this.serverCategories.map(c => typeof c === 'object' ? c.name : c);
+            const fileCategories = Array.from(new Set(items.map(i => i.category)));
+            const missingCats = fileCategories.filter(c => c && c !== 'Algemeen' && !existingCatNames.includes(c));
+
+            if (missingCats.length > 0) {
+                this.promptForMissingCategories(missingCats, () => {
+                    this.proceedToBulkImport(items, this.isReplaceMode, selectedCategory, file.name);
+                });
+            } else {
+                this.proceedToBulkImport(items, this.isReplaceMode, selectedCategory, file.name);
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    parseTxtContent(text, defaultCategory) {
+        const lines = text.split(/[\r\n]+/);
+        let currentCategory = (defaultCategory && defaultCategory !== 'ALL') ? defaultCategory : 'Algemeen';
+        const items = [];
+        const isAllMode = (defaultCategory === 'ALL');
+
+        for (let line of lines) {
+            line = line.trim();
+            if (!line) continue;
+
+            const catHeaderMatch = line.match(/^(?:\[(?:Categorie:\s*|Category:\s*)?([^\]]+)\]|#\s*(?:Categorie|Category):\s*(.+))$/i);
+            if (catHeaderMatch) {
+                const extractedCat = (catHeaderMatch[1] || catHeaderMatch[2]).trim();
+                if (extractedCat && isAllMode) {
+                    currentCategory = extractedCat;
+                }
+                continue;
+            }
+
+            if (line.startsWith('http://') || line.startsWith('https://')) {
+                const cat = (defaultCategory && defaultCategory !== 'ALL') ? defaultCategory : currentCategory;
+                items.push({ url: line, category: cat });
+            }
+        }
+        return items;
+    }
+
+    promptForMissingCategories(missingCats, onComplete) {
+        const modalEl = document.getElementById('missingCategoriesModal');
+        if (!modalEl) {
+            onComplete();
+            return;
+        }
+
+        const listEl = document.getElementById('missingCategoriesList');
+        if (listEl) {
+            listEl.innerHTML = missingCats.map(c => `
+                <li class="list-group-item d-flex align-items-center">
+                    <i class="fas fa-folder me-2 text-primary"></i>${c}
+                </li>`).join('');
+        }
+
+        const missingModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+        const confirmBtn = document.getElementById('confirmCreateCategoriesBtn');
+        const skipBtn = document.getElementById('skipCreateCategoriesBtn');
+
+        const cleanupAndRun = () => {
+            confirmBtn.replaceWith(confirmBtn.cloneNode(true));
+            skipBtn.replaceWith(skipBtn.cloneNode(true));
+            missingModal.hide();
+            onComplete();
+        };
+
+        const onConfirm = async () => {
+            try {
+                await API.ensureCategories(missingCats);
+                this.serverCategories = await API.getServerCategories();
+                UI.buildCategorySidebar([], this.serverCategories, this.serverInfo);
+            } catch (err) {
+                console.error('Fout bij aanmaken nieuwe categorieën:', err);
+            }
+            cleanupAndRun();
+        };
+
+        const onSkip = () => {
+            cleanupAndRun();
+        };
+
+        confirmBtn.addEventListener('click', onConfirm, { once: true });
+        skipBtn.addEventListener('click', onSkip, { once: true });
+
+        missingModal.show();
+    }
+
+    proceedToBulkImport(items, isReplaceMode, selectedCategory, fileName) {
+        let confirmMsg = '';
+        const catText = selectedCategory === 'ALL' ? 'ALLE categorieën' : `categorie "${selectedCategory}"`;
+
+        if (isReplaceMode) {
+            confirmMsg = `Weet je zeker dat je de huidige plugin lijst van ${catText} wilt VERVANGEN door de ${items.length} URL's uit "${fileName}"?`;
+        } else {
+            confirmMsg = `Weet je zeker dat je de ${items.length} URL's uit "${fileName}" wilt bijvoegen bij ${catText}?`;
+        }
+
+        if (confirm(confirmMsg)) {
+            Modals.openWithBulkItems(items, isReplaceMode, selectedCategory);
         }
     }
 
@@ -110,22 +342,20 @@ class App {
 
         const exportBtn = document.getElementById('exportTxtBtn');
         const exportUserBtn = document.getElementById('exportTxtUserBtn');
-        if (exportBtn) exportBtn.addEventListener('click', () => this.exportCurrentPlugins());
-        if (exportUserBtn) exportUserBtn.addEventListener('click', () => this.exportCurrentPlugins());
+        if (exportBtn) exportBtn.addEventListener('click', () => this.openExportModal());
+        if (exportUserBtn) exportUserBtn.addEventListener('click', () => this.openExportModal());
+
+        const confirmExportBtn = document.getElementById('confirmExportBtn');
+        if (confirmExportBtn) confirmExportBtn.addEventListener('click', () => this.executeExport());
 
         const replaceBtn = document.getElementById('replaceTxtBtn');
-        const replaceFileInput = document.getElementById('replaceFileInput');
-        if (replaceBtn && replaceFileInput) {
-            replaceBtn.addEventListener('click', () => replaceFileInput.click());
-            replaceFileInput.addEventListener('change', (e) => this.handleReplaceFileSelect(e));
-        }
+        if (replaceBtn) replaceBtn.addEventListener('click', () => this.openImportModal(true));
 
         const appendBtn = document.getElementById('appendTxtBtn');
-        const appendFileInput = document.getElementById('appendFileInput');
-        if (appendBtn && appendFileInput) {
-            appendBtn.addEventListener('click', () => appendFileInput.click());
-            appendFileInput.addEventListener('change', (e) => this.handleAppendFileSelect(e));
-        }
+        if (appendBtn) appendBtn.addEventListener('click', () => this.openImportModal(false));
+
+        const confirmImportBtn = document.getElementById('confirmImportBtn');
+        if (confirmImportBtn) confirmImportBtn.addEventListener('click', () => this.handleImportSubmit());
 
         // Reload plugins when a plugin is successfully added or deleted
         Modals.addModalEl.addEventListener('hidden.bs.modal', async () => {
@@ -149,63 +379,6 @@ class App {
                 Modals.showDeleteModal(url, title, categoryContext);
             }
         });
-    }
-
-    handleReplaceFileSelect(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const text = event.target.result;
-            const urls = Array.from(new Set(
-                text.split(/[\n\r]+/).map(u => u.trim()).filter(u => u.length > 0 && (u.startsWith('http://') || u.startsWith('https://')))
-            ));
-
-            if (urls.length === 0) {
-                alert('Geen geldige plugin URL\'s gevonden in het TXT bestand.');
-                e.target.value = '';
-                return;
-            }
-
-            const activeCategory = document.querySelector('#categorySidebar .category-item.active')?.dataset.category || '';
-            const categoryMsg = activeCategory
-                ? `van de categorie "${activeCategory}"`
-                : 'van ALLE categorieën';
-            const detailMsg = activeCategory
-                ? `Enkel de plugins in categorie "${activeCategory}" worden vervangen.`
-                : 'Alle huidige plugins in jouw lijst worden verwijderd bij het bevestigen.';
-
-            if (confirm(`Weet je zeker dat je de huidige plugin lijst ${categoryMsg} wilt VERVANGEN door de ${urls.length} URL's uit "${file.name}"? ${detailMsg}`)) {
-                Modals.openWithBulkUrls(urls, true, activeCategory);
-            }
-            e.target.value = '';
-        };
-        reader.readAsText(file);
-    }
-
-    handleAppendFileSelect(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const text = event.target.result;
-            const urls = Array.from(new Set(
-                text.split(/[\n\r]+/).map(u => u.trim()).filter(u => u.length > 0 && (u.startsWith('http://') || u.startsWith('https://')))
-            ));
-
-            if (urls.length === 0) {
-                alert('Geen geldige plugin URL\'s gevonden in het TXT bestand.');
-                e.target.value = '';
-                return;
-            }
-
-            const activeCategory = document.querySelector('#categorySidebar .category-item.active')?.dataset.category || '';
-            Modals.openWithBulkUrls(urls, false, activeCategory);
-            e.target.value = '';
-        };
-        reader.readAsText(file);
     }
 }
 
