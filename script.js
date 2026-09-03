@@ -723,29 +723,14 @@ document.addEventListener("DOMContentLoaded", function () {
             li.setAttribute('data-category', categoryName);
 
             // Image logic
-            if (isObject) {
-                if (cat.show_image && cat.image_url) {
-                    const img = document.createElement('img');
-                    img.className = 'category-icon';
-                    img.src = cat.image_url;
-                    img.onerror = function () { this.style.display = 'none'; };
-                    img.alt = categoryName + ' icon';
-                    img.width = 32;
-                    img.height = 32;
-                    li.appendChild(img);
-                }
-            } else {
-                // Fallback for string-based categories (old logic)
-                const img = document.createElement('img');
-                img.className = 'category-icon';
-                const slug = categoryName.toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-                img.src = `images/category-${slug}.svg`;
-                img.onerror = function () { this.onerror = null; this.src = 'images/category-default.svg'; };
-                img.alt = categoryName + ' icon';
-                img.width = 32;
-                img.height = 32;
-                li.appendChild(img);
-            }
+            const img = document.createElement('img');
+            img.className = 'category-icon';
+            img.src = (isObject && cat.show_image && cat.image_url) ? cat.image_url : 'images/server-icon.png';
+            img.onerror = function () { this.onerror = function() { this.style.display = 'none'; }; this.src = 'images/server-icon.png'; };
+            img.alt = categoryName + ' icon';
+            img.width = 32;
+            img.height = 32;
+            li.appendChild(img);
 
             const text = document.createElement('span');
             text.textContent = categoryName;
