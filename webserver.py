@@ -130,7 +130,7 @@ def add_user_plugin(username, plugin_data):
 
             if categories:
                 plugin_data["categories"] = categories
-                plugin_data["category"] = categories[0]
+                plugin_data["category"] = new_category if new_category else categories[0]
 
             db.plugins.update_one({"_id": existing_plugin["_id"]}, {"$set": plugin_data})
         else:
