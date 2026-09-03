@@ -28,6 +28,7 @@ class Modals {
         this.cachedBulkPlugins = []; // [{ url, plugin, status, error, selected }]
         this.isBulkMode = false;
         this.isReplaceMode = false;
+        this.targetCategory = null;
         this.currentDeleteUrl = null;
         this.addSuccess = false;
 
@@ -293,17 +294,19 @@ class Modals {
             }
 
             this._setConfirmYesLoading(true);
-            const activeCategory = document.querySelector('#categorySidebar .category-item.active')?.dataset.category;
+            const targetCat = this.targetCategory !== null && this.targetCategory !== undefined
+                ? this.targetCategory
+                : (document.querySelector('#categorySidebar .category-item.active')?.dataset.category || '');
 
             if (this.isReplaceMode) {
-                await API.clearPlugins(false, activeCategory || null);
+                await API.clearPlugins(false, targetCat || null);
                 this.isReplaceMode = false;
             }
 
             if (!this.isBulkMode) {
-                await this._addSinglePlugin(activeCategory);
+                await this._addSinglePlugin(targetCat);
             } else {
-                await this._addBulkPlugins(activeCategory);
+                await this._addBulkPlugins(targetCat);
             }
         } catch (error) {
             this.showError(`Fout bij toevoegen: ${error.message}`);
@@ -312,8 +315,9 @@ class Modals {
         }
     }
 
-    openWithBulkUrls(urls, isReplace = false) {
+    openWithBulkUrls(urls, isReplace = false, category = null) {
         this.isReplaceMode = isReplace;
+        this.targetCategory = category !== null ? category : (document.querySelector('#categorySidebar .category-item.active')?.dataset.category || '');
         this.showStep(1);
 
         const bulkTabBtn = document.getElementById('bulkUrlTab');
@@ -331,7 +335,7 @@ class Modals {
     }
 
     async _addSinglePlugin(activeCategory) {
-        if (activeCategory) {
+        if (activeCategory !== undefined && activeCategory !== null) {
             this.cachedPluginData.category = activeCategory;
         }
         const data = await API.addPlugin(this.cachedPluginData);
@@ -355,7 +359,7 @@ class Modals {
         let failCount = 0;
 
         for (const item of selectedItems) {
-            if (activeCategory) {
+            if (activeCategory !== undefined && activeCategory !== null) {
                 item.plugin.category = activeCategory;
             }
             try {
@@ -386,6 +390,7 @@ class Modals {
         this.cachedPluginData = null;
         this.cachedBulkPlugins = [];
         this.isReplaceMode = false;
+        this.targetCategory = null;
         this._toggleAddModalButtons(true);
         this._setModalStatic(false);
     }
@@ -433,6 +438,7 @@ class Modals {
         this.cachedPluginData = null;
         this.cachedBulkPlugins = [];
         this.isReplaceMode = false;
+        this.targetCategory = null;
         this.addSuccess = false;
         this._toggleAddModalButtons(true);
         this._setConfirmYesLoading(false);
