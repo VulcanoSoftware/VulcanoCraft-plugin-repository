@@ -625,6 +625,41 @@ def api_server_categories():
     categories = load_server_categories()
     return jsonify(categories)
 
+@app.route('/api/server_categories/ensure', methods=['POST'])
+@require_login
+def ensure_server_categories():
+    """Ensure specified categories exist in server_categories."""
+    data = request.get_json() or {}
+    category_names = data.get('categories', [])
+    if isinstance(category_names, str):
+        category_names = [category_names]
+    if not isinstance(category_names, list):
+        return jsonify({'error': 'Ongeldige categorieën indeling'}), 400
+
+    categories = load_server_categories()
+    existing_names = {c.get('name') for c in categories if isinstance(c, dict)}
+    added = []
+
+    for name in category_names:
+        if isinstance(name, str):
+            clean_name = sanitize_str(name.strip())
+            if clean_name and clean_name not in existing_names:
+                new_cat = {
+                    'name': clean_name,
+                    'image_url': '',
+                    'show_image': False,
+                    'software': '',
+                    'version': ''
+                }
+                categories.append(new_cat)
+                existing_names.add(clean_name)
+                added.append(clean_name)
+
+    if added:
+        save_server_categories(categories)
+
+    return jsonify({'success': True, 'added': added, 'categories': load_server_categories()})
+
 @app.route('/api/server_info')
 def api_server_info():
     """API endpoint for server software and version info for categories."""

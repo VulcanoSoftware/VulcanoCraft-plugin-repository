@@ -86,6 +86,14 @@ class API {
             return [];
         }
     }
+
+    ensureCategories(categories) {
+        return this._fetch('/api/server_categories/ensure', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ categories }),
+        });
+    }
 }
 
 export default new API();
