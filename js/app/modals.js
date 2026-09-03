@@ -168,10 +168,15 @@ class Modals {
                 progressBar.style.width = `${percent}%`;
             }
 
+            const itemCategory = (this.bulkItemMap && this.bulkItemMap.has(url))
+                ? this.bulkItemMap.get(url)
+                : (this.targetCategory && this.targetCategory !== 'ALL' ? this.targetCategory : null);
+
             try {
                 const plugin = await API.fetchPlugin(url);
                 this.cachedBulkPlugins.push({
                     url,
+                    targetCategory: itemCategory,
                     plugin,
                     status: 'success',
                     selected: true
@@ -179,6 +184,7 @@ class Modals {
             } catch (err) {
                 this.cachedBulkPlugins.push({
                     url,
+                    targetCategory: itemCategory,
                     plugin: null,
                     status: 'error',
                     error: err.message,
@@ -227,6 +233,7 @@ class Modals {
                                 </div>
                                 <div class="small text-muted text-truncate min-w-0" title="${plugin.description || 'Geen beschrijving'}">${plugin.description || 'Geen beschrijving'}</div>
                                 <div class="small mt-1 d-flex flex-wrap align-items-center gap-1 min-w-0">
+                                    ${item.targetCategory ? `<span class="badge bg-primary text-truncate flex-shrink-0"><i class="fas fa-folder me-1"></i>${item.targetCategory}</span>` : ''}
                                     <span class="badge bg-info text-dark flex-shrink-0">v: ${versionsStr}</span>
                                     <span class="badge bg-secondary text-truncate mw-100" title="${item.url}">${item.url}</span>
                                 </div>
@@ -334,9 +341,23 @@ class Modals {
         this.handleFetch();
     }
 
+    openWithBulkItems(items, isReplace = false, category = null) {
+        this.bulkItemMap = new Map();
+        items.forEach(i => {
+            if (i.url && i.category) {
+                this.bulkItemMap.set(i.url, i.category);
+            }
+        });
+        const urls = Array.from(new Set(items.map(i => i.url)));
+        this.openWithBulkUrls(urls, isReplace, category);
+    }
+
     async _addSinglePlugin(activeCategory) {
-        if (activeCategory !== undefined && activeCategory !== null) {
-            this.cachedPluginData.category = activeCategory;
+        const catToAssign = (this.targetCategory && this.targetCategory !== 'ALL')
+            ? this.targetCategory
+            : (activeCategory !== undefined && activeCategory !== null ? activeCategory : '');
+        if (catToAssign) {
+            this.cachedPluginData.category = catToAssign;
         }
         const data = await API.addPlugin(this.cachedPluginData);
         if (data.success) {
@@ -359,8 +380,9 @@ class Modals {
         let failCount = 0;
 
         for (const item of selectedItems) {
-            if (activeCategory !== undefined && activeCategory !== null) {
-                item.plugin.category = activeCategory;
+            const catToAssign = item.targetCategory || (this.targetCategory && this.targetCategory !== 'ALL' ? this.targetCategory : (activeCategory !== undefined && activeCategory !== null ? activeCategory : ''));
+            if (catToAssign) {
+                item.plugin.category = catToAssign;
             }
             try {
                 const data = await API.addPlugin(item.plugin);
@@ -389,6 +411,7 @@ class Modals {
         if (this.bulkPluginUrlsInput) this.bulkPluginUrlsInput.value = '';
         this.cachedPluginData = null;
         this.cachedBulkPlugins = [];
+        this.bulkItemMap = null;
         this.isReplaceMode = false;
         this.targetCategory = null;
         this._toggleAddModalButtons(true);
@@ -437,6 +460,7 @@ class Modals {
         if (this.bulkPluginUrlsInput) this.bulkPluginUrlsInput.value = '';
         this.cachedPluginData = null;
         this.cachedBulkPlugins = [];
+        this.bulkItemMap = null;
         this.isReplaceMode = false;
         this.targetCategory = null;
         this.addSuccess = false;

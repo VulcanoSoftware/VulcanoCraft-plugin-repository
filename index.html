@@ -165,6 +165,103 @@
       </div>
     </div>
 
+    <!-- Exporteer TXT Modal -->
+    <div class="modal fade" id="exportTxtModal" tabindex="-1" aria-labelledby="exportTxtModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exportTxtModalLabel">
+              <i class="fas fa-file-download me-2"></i>Exporteer Plugins als TXT
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="exportCategorySelect" class="form-label fw-bold">
+                <i class="fas fa-list me-1"></i> Kies Categorie om te exporteren
+              </label>
+              <select class="form-select" id="exportCategorySelect">
+                <option value="ALL">Alle categorieën</option>
+              </select>
+            </div>
+            <div class="form-text text-muted">
+              Selecteer de specifieke categorie die je wilt exporteren, of kies "Alle categorieën" voor het volledige overzicht ingedeeld per categorie.
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuleren</button>
+            <button type="button" class="btn btn-info text-white" id="confirmExportBtn">
+              <i class="fas fa-download me-1"></i> Exporteer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Importeer TXT Modal -->
+    <div class="modal fade" id="importTxtModal" tabindex="-1" aria-labelledby="importTxtModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="importTxtModalLabel">
+              <i class="fas fa-file-import me-2"></i><span id="importModalTitleText">Importeer TXT</span>
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="importCategorySelect" class="form-label fw-bold">
+                <i class="fas fa-list me-1"></i> Kies Categorie
+              </label>
+              <select class="form-select" id="importCategorySelect">
+                <option value="ALL">Alle categorieën</option>
+              </select>
+              <div class="form-text mt-1" id="importCategoryHelpText">
+                Als je "Alle categorieën" kiest, worden categoriekopjes in het TXT bestand (bijv. [Survival]) automatisch ingelezen.
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="importModalFileInput" class="form-label fw-bold">
+                <i class="fas fa-file-alt me-1"></i> Kies TXT Bestand
+              </label>
+              <input class="form-control" type="file" id="importModalFileInput" accept=".txt">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuleren</button>
+            <button type="button" class="btn btn-primary" id="confirmImportBtn">
+              <i class="fas fa-arrow-right me-1"></i> Verder
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ontbrekende Categorieën Modal -->
+    <div class="modal fade" id="missingCategoriesModal" tabindex="-1" aria-labelledby="missingCategoriesModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="missingCategoriesModalLabel">
+              <i class="fas fa-folder-plus me-2 text-warning"></i>Nieuwe Categorieën Gevonden
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>De volgende categorieën uit het geïmporteerde TXT-bestand bestaan nog niet op de site:</p>
+            <ul id="missingCategoriesList" class="list-group mb-3"></ul>
+            <p class="mb-0">Wilt u deze categorieën automatisch aanmaken op de site?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="skipCreateCategoriesBtn">Nee, overslaan</button>
+            <button type="button" class="btn btn-success" id="confirmCreateCategoriesBtn">
+              <i class="fas fa-plus me-1"></i> Ja, aanmaken
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Verwijder Bevestigingsmodal -->
     <div class="modal fade" id="deleteConfirmModal" aria-hidden="true" aria-labelledby="deleteConfirmModalLabel" tabindex="-1">
       <div class="modal-dialog">
