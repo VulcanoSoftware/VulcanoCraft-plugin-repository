@@ -902,6 +902,13 @@ body {
   /* Remove margin, use gap from container instead */
 }
 
+.authors-container {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 /* Author badge */
 .author-badge {
   background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
@@ -2030,6 +2037,97 @@ body {
     font-size: 0.95rem;
     display: inline-block;
     box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
+}
+
+/* Results Counter Bar */
+.counter-bar-card {
+  background: rgba(30, 41, 59, 0.65) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease;
+}
+
+.counter-badge-item {
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0.85rem 1.1rem;
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+.counter-badge-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.counter-badge-item.counter-total {
+  border-left: 4px solid #3b82f6;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(15, 23, 42, 0.5) 100%);
+}
+
+.counter-badge-item.counter-category {
+  border-left: 4px solid #06b6d4;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(15, 23, 42, 0.5) 100%);
+}
+
+.counter-badge-item.counter-filtered {
+  border-left: 4px solid #a855f7;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(15, 23, 42, 0.5) 100%);
+}
+
+.counter-badge-item.counter-shown {
+  border-left: 4px solid #22c55e;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, rgba(15, 23, 42, 0.5) 100%);
+}
+
+.counter-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.counter-total .counter-icon-box {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+.counter-category .counter-icon-box {
+  background: rgba(6, 182, 212, 0.2);
+  color: #22d3ee;
+}
+
+.counter-filtered .counter-icon-box {
+  background: rgba(168, 85, 247, 0.2);
+  color: #c084fc;
+}
+
+.counter-shown .counter-icon-box {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+
+.counter-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #94a3b8;
+  margin-bottom: 2px;
+}
+
+.counter-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f8fafc;
 }
 
 .category-icon {

@@ -372,41 +372,62 @@
             </span>
           </div>
         </h1>
-        <p class="lead text-light">Overzicht van alle beschikbare plugins</p>
+        <p class="lead text-light" data-i18n="app.subtitle">Overzicht van alle beschikbare plugins</p>
 
-        <!-- Auth buttons -->
-        <div class="btn-container text-center">
-          <div id="authButtons">
-            <a class="btn btn-outline-light me-2" href="/login-page">
-              <i class="fas fa-sign-in-alt me-2"></i>Inloggen
+        <!-- Auth buttons & Language selector -->
+        <div class="btn-container text-center d-flex flex-wrap align-items-center justify-content-center gap-2">
+          <div id="authButtons" class="d-inline-flex align-items-center gap-2">
+            <a class="btn btn-outline-light" href="/login-page">
+              <i class="fas fa-sign-in-alt me-2"></i><span data-i18n="nav.login">Inloggen</span>
             </a>
             <button class="btn btn-outline-info" id="exportTxtBtn" type="button" title="Exporteer huidige plugin lijst als TXT">
-              <i class="fas fa-file-download me-1"></i> Exporteer TXT
+              <i class="fas fa-file-download me-1"></i> <span data-i18n="nav.export_txt">Exporteer TXT</span>
             </button>
           </div>
-          <div id="userButtons" style="display: none">
-            <span class="text-light me-3">Welkom, <span id="username"></span></span>
-            <a class="btn btn-outline-light me-2" href="/change_password">Wachtwoord Wijzigen</a>
-            <button class="btn button-creative btn-lg floating-add-btn me-2" data-bs-target="#addPluginModal" data-bs-toggle="modal" type="button">
+          <div id="userButtons" style="display: none" class="align-items-center flex-wrap gap-2">
+            <span class="text-light me-2"><span data-i18n="nav.welcome">Welkom</span>, <span id="username"></span></span>
+            <a class="btn btn-outline-light me-1" href="/change_password" data-i18n="nav.change_password">Wachtwoord Wijzigen</a>
+            <button class="btn button-creative btn-lg floating-add-btn me-1" data-bs-target="#addPluginModal" data-bs-toggle="modal" type="button">
               <img class="btn-icon-lg" src="images/add-icon.png" alt="Toevoegen">
-              Toevoegen
+              <span data-i18n="nav.add">Toevoegen</span>
             </button>
-            <button class="btn btn-outline-info me-2" id="exportTxtUserBtn" type="button" title="Exporteer huidige plugin lijst als TXT">
-              <i class="fas fa-file-download me-1"></i> Exporteer TXT
+            <button class="btn btn-outline-info me-1" id="exportTxtUserBtn" type="button" title="Exporteer huidige plugin lijst als TXT">
+              <i class="fas fa-file-download me-1"></i> <span data-i18n="nav.export_txt">Exporteer TXT</span>
             </button>
-            <button class="btn btn-outline-warning me-2" id="replaceTxtBtn" type="button" title="Vervang huidige lijst door TXT bestand">
-              <i class="fas fa-file-import me-1"></i> Lijst Vervangen (TXT)
+            <button class="btn btn-outline-warning me-1" id="replaceTxtBtn" type="button" title="Vervang huidige lijst door TXT bestand">
+              <i class="fas fa-file-import me-1"></i> <span data-i18n="nav.replace_txt">Lijst Vervangen (TXT)</span>
             </button>
-            <button class="btn btn-outline-success me-2" id="appendTxtBtn" type="button" title="Voeg plugins uit TXT bestand toe">
-              <i class="fas fa-file-upload me-1"></i> TXT Bijvoegen
+            <button class="btn btn-outline-success me-1" id="appendTxtBtn" type="button" title="Voeg plugins uit TXT bestand toe">
+              <i class="fas fa-file-upload me-1"></i> <span data-i18n="nav.append_txt">TXT Bijvoegen</span>
             </button>
-            <a class="btn btn-outline-warning me-2" id="adminBtn" href="/admin" style="display: none">
-              <i class="fas fa-cog me-2"></i>Admin
+            <a class="btn btn-outline-warning me-1" id="adminBtn" href="/admin" style="display: none">
+              <i class="fas fa-cog me-2"></i><span data-i18n="nav.admin">Admin</span>
             </a>
-            <button class="btn btn-outline-light" id="logoutBtn" type="button">
-              <i class="fas fa-sign-out-alt me-2"></i>Uitloggen
+            <button class="btn btn-outline-light me-1" id="logoutBtn" type="button">
+              <i class="fas fa-sign-out-alt me-2"></i><span data-i18n="nav.logout">Uitloggen</span>
             </button>
           </div>
+
+          <!-- Language Selector Dropdown -->
+          <div class="dropdown d-inline-block ms-1" id="languageDropdownContainer">
+            <button class="btn btn-outline-light dropdown-toggle d-inline-flex align-items-center gap-2" type="button" id="languageDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="images/flags/nl.svg" id="currentLanguageFlag" alt="NL" width="22" height="16" class="rounded-1 shadow-sm">
+              <span id="currentLanguageText">Nederlands</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="languageDropdownBtn" style="background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.15) !important;">
+              <li>
+                <a class="dropdown-item d-flex align-items-center gap-2 text-light py-2" href="#" id="langSelectNl">
+                  <img src="images/flags/nl.svg" alt="NL" width="22" height="16" class="rounded-1 shadow-sm"> Nederlands
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item d-flex align-items-center gap-2 text-light py-2" href="#" id="langSelectEn">
+                  <img src="images/flags/gb.svg" alt="EN" width="22" height="16" class="rounded-1 shadow-sm"> English
+                </a>
+              </li>
+            </ul>
+          </div>
+
           <input type="file" id="replaceFileInput" accept=".txt" style="display: none;">
           <input type="file" id="appendFileInput" accept=".txt" style="display: none;">
         </div>
@@ -421,7 +442,7 @@
               <div class="card-body">
                 <h5 class="card-title">
                   <img class="section-icon" src="images/categories-icon.svg" alt="Categorieën">
-                  Server Categorieën
+                  <span data-i18n="sidebar.title">Server Categorieën</span>
                 </h5>
                 <ul id="categorySidebar" class="list-unstyled category-list mt-3">
                   <li class="category-item active" data-category="">Alles <span class="badge bg-primary rounded-pill ms-auto">0</span></li>
@@ -441,33 +462,33 @@
                     <div class="col-lg-4 col-md-6">
                       <label class="form-label fw-bold" for="searchInput">
                         <img class="input-icon" src="images/fetch-icon.png" alt="Zoeken" loading="lazy">
-                        Zoeken
+                        <span data-i18n="filters.search_label">Zoeken</span>
                       </label>
-                      <input class="form-control search-input" id="searchInput" type="text" placeholder="Zoek plugins...">
+                      <input class="form-control search-input" id="searchInput" type="text" placeholder="Zoek plugins..." data-i18n-placeholder="filters.search_placeholder">
                     </div>
                     <div class="col-lg-3 col-md-6">
                       <label class="form-label fw-bold" for="versionFilter">
                         <img class="input-icon" src="images/version-icon.png" alt="Versie" loading="lazy">
-                        Versie
+                        <span data-i18n="filters.version_label">Versie</span>
                       </label>
                       <select class="form-select version-filter" id="versionFilter">
-                        <option value="">Alle versies</option>
+                        <option value="" data-i18n="filters.all_versions">Alle versies</option>
                       </select>
                     </div>
                     <div class="col-lg-5 col-md-12">
                       <label class="form-label fw-bold" for="sortSelect">
                         <i class="fas fa-sort me-1"></i>
-                        Sorteren
+                        <span data-i18n="filters.sort_label">Sorteren</span>
                       </label>
                       <select class="form-select version-filter" id="sortSelect">
-                        <option value="name_asc">Naam (A-Z)</option>
-                        <option value="name_desc">Naam (Z-A)</option>
-                        <option value="platform_asc">Platform (A-Z)</option>
-                        <option value="platform_desc">Platform (Z-A)</option>
-                        <option value="updated_desc">Laatste wijziging (Nieuwste)</option>
-                        <option value="updated_asc">Laatste wijziging (Oudste)</option>
-                        <option value="added_desc">Recent toegevoegd (Nieuwste)</option>
-                        <option value="added_asc">Recent toegevoegd (Oudste)</option>
+                        <option value="name_asc" data-i18n="filters.sort_name_asc">Naam (A-Z)</option>
+                        <option value="name_desc" data-i18n="filters.sort_name_desc">Naam (Z-A)</option>
+                        <option value="platform_asc" data-i18n="filters.sort_platform_asc">Platform (A-Z)</option>
+                        <option value="platform_desc" data-i18n="filters.sort_platform_desc">Platform (Z-A)</option>
+                        <option value="updated_desc" data-i18n="filters.sort_updated_desc">Laatste wijziging (Nieuwste)</option>
+                        <option value="updated_asc" data-i18n="filters.sort_updated_asc">Laatste wijziging (Oudste)</option>
+                        <option value="added_desc" data-i18n="filters.sort_added_desc">Recent toegevoegd (Nieuwste)</option>
+                        <option value="added_asc" data-i18n="filters.sort_added_asc">Recent toegevoegd (Oudste)</option>
                       </select>
                     </div>
                   </div>
