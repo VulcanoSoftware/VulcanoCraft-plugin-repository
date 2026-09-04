@@ -1,6 +1,73 @@
 import API from './api.js';
 import UI from './ui.js';
 
+export function showAlertModal(message, title = 'Melding', iconClass = 'fas fa-info-circle text-primary') {
+    return new Promise((resolve) => {
+        const modalEl = document.getElementById('genericAlertModal');
+        if (!modalEl) {
+            alert(message);
+            resolve();
+            return;
+        }
+        const titleTextEl = document.getElementById('genericAlertModalTitleText');
+        const bodyEl = document.getElementById('genericAlertModalBody');
+        const iconEl = document.getElementById('genericAlertModalIcon');
+
+        if (titleTextEl) titleTextEl.textContent = title;
+        if (bodyEl) bodyEl.innerHTML = message;
+        if (iconEl) iconEl.className = `${iconClass} me-2`;
+
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+        const onHide = () => {
+            modalEl.removeEventListener('hidden.bs.modal', onHide);
+            resolve();
+        };
+        modalEl.addEventListener('hidden.bs.modal', onHide);
+        modal.show();
+    });
+}
+
+export function showConfirmModal({ title = 'Bevestiging', message, confirmText = 'Bevestigen', confirmClass = 'btn-danger', iconClass = 'fas fa-question-circle text-warning' }) {
+    return new Promise((resolve) => {
+        const modalEl = document.getElementById('genericConfirmModal');
+        if (!modalEl) {
+            resolve(confirm(message));
+            return;
+        }
+        const titleTextEl = document.getElementById('genericConfirmModalTitleText');
+        const bodyEl = document.getElementById('genericConfirmModalBody');
+        const iconEl = document.getElementById('genericConfirmModalIcon');
+        const okBtn = document.getElementById('genericConfirmOkBtn');
+
+        if (titleTextEl) titleTextEl.textContent = title;
+        if (bodyEl) bodyEl.innerHTML = message;
+        if (iconEl) iconEl.className = `${iconClass} me-2`;
+        if (okBtn) {
+            okBtn.textContent = confirmText;
+            okBtn.className = `btn ${confirmClass}`;
+        }
+
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+        let confirmed = false;
+        const handleConfirm = () => {
+            confirmed = true;
+            modal.hide();
+        };
+
+        const onHide = () => {
+            if (okBtn) okBtn.removeEventListener('click', handleConfirm);
+            modalEl.removeEventListener('hidden.bs.modal', onHide);
+            resolve(confirmed);
+        };
+
+        if (okBtn) okBtn.addEventListener('click', handleConfirm);
+        modalEl.addEventListener('hidden.bs.modal', onHide);
+        modal.show();
+    });
+}
+
 class Modals {
     constructor() {
         this.addModalEl = document.getElementById('addPluginModal');
@@ -279,12 +346,15 @@ class Modals {
 
         const countBadge = document.getElementById('selectedCountBadge');
         if (countBadge) {
-            countBadge.textContent = `${selectedCount} geselecteerd`;
+            countBadge.innerHTML = `<i class="fas fa-check-square me-1"></i>Geselecteerd: ${selectedCount} / ${totalSuccess}`;
         }
 
         const summaryText = document.getElementById('bulkSummaryText');
         if (summaryText) {
-            summaryText.textContent = `${selectedCount} van de ${totalSuccess} succesvol opgevraagde plugins geselecteerd (${totalTotal} totaal)`;
+            summaryText.innerHTML = `
+                <span class="badge bg-primary me-1"><i class="fas fa-check-square me-1"></i>Geselecteerd voor import: ${selectedCount}</span>
+                <span class="badge bg-success me-1"><i class="fas fa-check-circle me-1"></i>Succesvol opgehaald: ${totalSuccess}</span>
+                <span class="badge bg-secondary"><i class="fas fa-list me-1"></i>Totaal URL's in bestand: ${totalTotal}</span>`;
         }
 
         if (this.confirmYes) {

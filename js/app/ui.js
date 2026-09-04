@@ -213,7 +213,7 @@ class UI {
             (a.name || '').localeCompare(b.name || '')
         );
 
-        list.innerHTML = `<li class="category-item ${activeCategory === '' ? 'active' : ''}" data-category="">Alles <span class="badge bg-primary rounded-pill ms-auto">0</span></li>`;
+        list.innerHTML = `<li class="category-item ${activeCategory === '' ? 'active' : ''}" data-category="">Alles <span class="badge bg-primary rounded-pill ms-auto" title="Totaal aantal plugins op het platform">0 plugins</span></li>`;
 
         sortedCategories.forEach(cat => {
             const categoryName = cat.name;
@@ -248,7 +248,7 @@ class UI {
 
             const badge = document.createElement('span');
             badge.className = 'badge bg-primary rounded-pill ms-auto';
-            badge.textContent = '0';
+            badge.textContent = '0 plugins';
             li.appendChild(badge);
 
             list.appendChild(li);
@@ -265,11 +265,13 @@ class UI {
             const categoryName = item.dataset.category;
             const badge = item.querySelector('.badge');
             if (badge) {
-                if (categoryName === '') {
-                    badge.textContent = totalAllCount !== undefined ? totalAllCount : totalAssignments;
-                } else {
-                    badge.textContent = categoryCountsMap[categoryName] || 0;
-                }
+                const num = (categoryName === '')
+                    ? (totalAllCount !== undefined ? totalAllCount : totalAssignments)
+                    : (categoryCountsMap[categoryName] || 0);
+                badge.textContent = `${num} ${num === 1 ? 'plugin' : 'plugins'}`;
+                badge.title = categoryName === ''
+                    ? `Totaal aantal beschikbare plugins (${num})`
+                    : `Aantal plugins in categorie ${categoryName} (${num})`;
             }
         });
     }
@@ -352,28 +354,60 @@ class UI {
         }
     }
 
-    updateResultsCount(pluginsOnCurrentPageCount, totalFilteredCount, totalAllPluginsCount) {
+    updateResultsCount(pluginsOnCurrentPageCount, totalFilteredCount, totalAllPluginsCount, activeCategory = '') {
         if (!this.resultsCounter) {
             this.resultsCounter = document.createElement('div');
             this.resultsCounter.id = 'resultsCounter';
-            this.resultsCounter.className = 'text-center mb-3';
+            this.resultsCounter.className = 'mb-4';
             this.pluginsContainer.parentNode.insertBefore(this.resultsCounter, this.pluginsContainer);
         }
 
-        let text = '';
-        if (totalAllPluginsCount !== undefined && totalFilteredCount !== undefined) {
-            if (totalFilteredCount === totalAllPluginsCount) {
-                text = `Alle ${totalAllPluginsCount} plugins worden weergegeven`;
-            } else {
-                text = `${totalFilteredCount} van de ${totalAllPluginsCount} plugins worden weergegeven`;
-            }
-        } else {
-            text = (totalFilteredCount === pluginsOnCurrentPageCount)
-                ? `Alle ${totalFilteredCount} plugins worden weergegeven`
-                : `${pluginsOnCurrentPageCount} van de ${totalFilteredCount} plugins worden weergegeven`;
+        const totalAll = totalAllPluginsCount !== undefined ? totalAllPluginsCount : 0;
+        const filtered = totalFilteredCount !== undefined ? totalFilteredCount : 0;
+        const onPage = pluginsOnCurrentPageCount !== undefined ? pluginsOnCurrentPageCount : 0;
+
+        let html = `
+            <div class="card shadow-sm border-0 p-3 text-light" style="background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1) !important;">
+                <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 text-center">
+                    <div class="counter-badge-item d-flex align-items-center gap-2 px-3 py-2 rounded" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
+                        <i class="fas fa-database text-primary fs-5"></i>
+                        <div class="text-start">
+                            <small class="d-block text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Totaal op platform</small>
+                            <span class="fw-bold fs-6 text-light">${totalAll} ${totalAll === 1 ? 'plugin' : 'plugins'}</span>
+                        </div>
+                    </div>`;
+
+        if (activeCategory) {
+            html += `
+                    <div class="counter-badge-item d-flex align-items-center gap-2 px-3 py-2 rounded" style="background: rgba(13, 202, 240, 0.15); border: 1px solid rgba(13, 202, 240, 0.3);">
+                        <i class="fas fa-folder text-info fs-5"></i>
+                        <div class="text-start">
+                            <small class="d-block text-info text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">In categorie "${activeCategory}"</small>
+                            <span class="fw-bold fs-6 text-light">${filtered} ${filtered === 1 ? 'plugin' : 'plugins'}</span>
+                        </div>
+                    </div>`;
         }
 
-        this.resultsCounter.innerHTML = `<span class="results-count-badge">${text}</span>`;
+        html += `
+                    <div class="counter-badge-item d-flex align-items-center gap-2 px-3 py-2 rounded" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3);">
+                        <i class="fas fa-filter fs-5" style="color: #c084fc;"></i>
+                        <div class="text-start">
+                            <small class="d-block text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px; color: #c084fc;">Gefilterd resultaat</small>
+                            <span class="fw-bold fs-6 text-light">${filtered} ${filtered === 1 ? 'plugin' : 'plugins'}</span>
+                        </div>
+                    </div>
+
+                    <div class="counter-badge-item d-flex align-items-center gap-2 px-3 py-2 rounded" style="background: rgba(40, 167, 69, 0.15); border: 1px solid rgba(40, 167, 69, 0.3);">
+                        <i class="fas fa-eye text-success fs-5"></i>
+                        <div class="text-start">
+                            <small class="d-block text-success text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Getoond op pagina</small>
+                            <span class="fw-bold fs-6 text-light">${onPage} ${onPage === 1 ? 'plugin' : 'plugins'}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+        this.resultsCounter.innerHTML = html;
     }
 
     showSuccessMessage(message) {
