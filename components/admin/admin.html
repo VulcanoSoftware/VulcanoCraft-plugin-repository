@@ -134,15 +134,21 @@
               </div>
 
               <div class="mb-5" id="userManagement">
-                <h4><i class="fas fa-users me-2"></i>Gebruikers</h4>
+                <div class="d-flex align-items-center mb-3">
+                  <h4 class="mb-0"><i class="fas fa-users me-2"></i>Gebruikers</h4>
+                  <span id="userCountBadge" class="badge bg-primary ms-3"><i class="fas fa-users me-1"></i>Totaal: 0 gebruikers</span>
+                </div>
                 <div class="row" id="usersGrid">
                   <div class="col-12 text-center"><p>Laden...</p></div>
                 </div>
               </div>
 
               <div class="mb-5" id="categoryManagement">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <h4><i class="fas fa-tags me-2"></i>Categorieën</h4>
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                  <div class="d-flex align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-tags me-2"></i>Categorieën</h4>
+                    <span id="categoryCountBadge" class="badge bg-primary ms-3"><i class="fas fa-tags me-1"></i>Totaal: 0 categorieën</span>
+                  </div>
                   <div class="d-flex">
                     <input type="text" class="form-control me-2" id="newCategoryName" placeholder="Nieuwe categorie">
                     <button class="btn btn-success">
@@ -156,12 +162,54 @@
               </div>
 
               <div id="pluginManagement">
-                <h4><i class="fas fa-puzzle-piece me-2"></i>Plugins</h4>
+                <div class="d-flex align-items-center mb-3">
+                  <h4 class="mb-0"><i class="fas fa-puzzle-piece me-2"></i>Plugins</h4>
+                  <span id="pluginCountBadge" class="badge bg-primary ms-3"><i class="fas fa-puzzle-piece me-1"></i>Totaal: 0 plugins</span>
+                </div>
                 <div class="row" id="pluginsGrid">
                   <div class="col-12 text-center"><p>Laden...</p></div>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Generieke Alert Modal -->
+    <div class="modal fade" id="genericAlertModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="genericAlertModalTitle">
+              <i class="fas fa-info-circle me-2 text-primary" id="genericAlertModalIcon"></i><span id="genericAlertModalTitleText">Melding</span>
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="genericAlertModalBody">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="genericAlertOkBtn">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Generieke Confirm Modal -->
+    <div class="modal fade" id="genericConfirmModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="genericConfirmModalTitle">
+              <i class="fas fa-question-circle me-2 text-warning" id="genericConfirmModalIcon"></i><span id="genericConfirmModalTitleText">Bevestiging</span>
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="genericConfirmModalBody">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="genericConfirmCancelBtn">Annuleren</button>
+            <button type="button" class="btn btn-danger" id="genericConfirmOkBtn">Bevestigen</button>
           </div>
         </div>
       </div>

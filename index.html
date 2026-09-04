@@ -262,6 +262,68 @@
       </div>
     </div>
 
+    <!-- Generieke Alert Modal -->
+    <div class="modal fade" id="genericAlertModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="genericAlertModalTitle">
+              <i class="fas fa-info-circle me-2 text-primary" id="genericAlertModalIcon"></i><span id="genericAlertModalTitleText">Melding</span>
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="genericAlertModalBody">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="genericAlertOkBtn">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Generieke Confirm Modal -->
+    <div class="modal fade" id="genericConfirmModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="genericConfirmModalTitle">
+              <i class="fas fa-question-circle me-2 text-warning" id="genericConfirmModalIcon"></i><span id="genericConfirmModalTitleText">Bevestiging</span>
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="genericConfirmModalBody">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="genericConfirmCancelBtn">Annuleren</button>
+            <button type="button" class="btn btn-danger" id="genericConfirmOkBtn">Bevestigen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Categorie Leegmaken Modal -->
+    <div class="modal fade" id="clearCategoryModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="clearCategoryModalTitle">
+              <i class="fas fa-trash-alt me-2 text-danger"></i>Categorie Leegmaken
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="clearCategoryModalBody">
+            Weet je zeker dat je alle plugins in de categorie <strong id="clearCategoryNameText"></strong> wilt verwijderen?
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuleren</button>
+            <button type="button" class="btn btn-danger" id="confirmClearCategoryBtn">
+              <i class="fas fa-trash-alt me-1"></i> Ja, alle plugins verwijderen
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Verwijder Bevestigingsmodal -->
     <div class="modal fade" id="deleteConfirmModal" aria-hidden="true" aria-labelledby="deleteConfirmModalLabel" tabindex="-1">
       <div class="modal-dialog">
@@ -480,6 +542,23 @@
                       </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row justify-content-center">
+          <div class="col-xxl-10 col-xl-11 col-lg-12">
+            <div id="categoryHeaderActionContainer" class="card shadow-sm border-0 mb-3 p-3 text-light" style="display: none; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1) !important;">
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="fas fa-folder-open text-primary fs-4"></i>
+                  <h5 class="mb-0 text-light" id="selectedCategoryTitle">Categorie</h5>
+                  <span class="badge bg-primary rounded-pill" id="selectedCategoryBadge">0 plugins</span>
+                </div>
+                <button class="btn btn-danger btn-sm" id="clearCategoryPluginsHomeBtn" style="display: none;">
+                  <i class="fas fa-trash-alt me-1"></i> Verwijder alle plugins uit deze categorie
+                </button>
               </div>
             </div>
           </div>

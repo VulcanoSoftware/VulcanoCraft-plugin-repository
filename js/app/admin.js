@@ -1,4 +1,5 @@
 import ApiAdmin from './api-admin.js';
+import { showAlertModal, showConfirmModal } from './modals.js';
 
 class AdminPage {
     constructor() {
@@ -33,6 +34,8 @@ class AdminPage {
 
         this.commitHistory = [];
         this.currentRole = null;
+        this.pluginsCache = [];
+        this.categoriesCache = [];
     }
 
     async init() {
@@ -141,7 +144,7 @@ class AdminPage {
         try {
             await ApiAdmin.updateSettings({ registration_enabled: enabled });
         } catch (error) {
-            alert('Fout bij opslaan instellingen');
+            await showAlertModal('Fout bij opslaan instellingen', 'Fout', 'fas fa-exclamation-triangle text-danger');
             e.target.checked = !enabled;
         }
     }
@@ -156,7 +159,7 @@ class AdminPage {
             this._loadCategories();
             this._loadPlugins(); // Refresh plugin category dropdowns
         } catch (error) {
-            alert(`Fout bij toevoegen categorie: ${error.message}`);
+            await showAlertModal(`Fout bij toevoegen categorie: ${error.message}`, 'Fout', 'fas fa-exclamation-triangle text-danger');
         }
     }
 
@@ -167,18 +170,26 @@ class AdminPage {
             await ApiAdmin.updateUserRole(username, newRole);
             this._loadUsers();
         } catch (error) {
-            alert('Fout bij wijzigen rol');
+            await showAlertModal('Fout bij wijzigen rol', 'Fout', 'fas fa-exclamation-triangle text-danger');
         }
     }
 
     async _handleDeleteUser(button) {
         const username = button.dataset.username;
-        if (confirm(`Weet je zeker dat je gebruiker "${username}" wilt verwijderen?`)) {
+        const confirmed = await showConfirmModal({
+            title: 'Gebruiker Verwijderen',
+            message: `Weet je zeker dat je gebruiker "<strong>${username}</strong>" wilt verwijderen?`,
+            confirmText: 'Verwijderen',
+            confirmClass: 'btn-danger',
+            iconClass: 'fas fa-user-times text-danger'
+        });
+
+        if (confirmed) {
             try {
                 await ApiAdmin.deleteUser(username);
                 this._loadUsers();
             } catch (error) {
-                alert('Fout bij verwijderen gebruiker');
+                await showAlertModal('Fout bij verwijderen gebruiker', 'Fout', 'fas fa-exclamation-triangle text-danger');
             }
         }
     }
@@ -188,7 +199,7 @@ class AdminPage {
         const card = inputElement.closest('.card-body');
         const newName = card.querySelector(`.cat-name`).value.trim();
         if (!newName) {
-            alert("Categorie naam mag niet leeg zijn.");
+            await showAlertModal("Categorie naam mag niet leeg zijn.", "Waarschuwing", "fas fa-exclamation-circle text-warning");
             this._loadCategories();
             return;
         }
@@ -208,20 +219,41 @@ class AdminPage {
                 this._loadPlugins();
             }
         } catch (error) {
-            alert(`Fout bij bijwerken categorie: ${error.message}`);
+            await showAlertModal(`Fout bij bijwerken categorie: ${error.message}`, "Fout", "fas fa-exclamation-triangle text-danger");
             this._loadCategories();
         }
     }
 
     async _handleDeleteCategory(button) {
         const name = button.dataset.name;
-        if (confirm(`Weet je zeker dat je categorie "${name}" wilt verwijderen?`)) {
+        const categoryPlugins = (this.pluginsCache || []).filter(p => p.category === name || (Array.isArray(p.categories) && p.categories.includes(name)));
+        const pluginCount = categoryPlugins.length;
+
+        let message = '';
+        if (pluginCount > 0) {
+            message = `<div class="alert alert-warning mb-3"><i class="fas fa-exclamation-triangle me-2"></i>Deze categorie bevat <strong>${pluginCount} plugin(s)</strong>!</div>Weet je zeker dat je de categorie "<strong>${name}</strong>" wilt verwijderen?<br><br><span class="text-danger"><strong>Belangrijk:</strong> De categorie inclusief alle ${pluginCount} bijbehorende plugins/inhoud worden definitief verwijderd.</span>`;
+        } else {
+            message = `Weet je zeker dat je de categorie "<strong>${name}</strong>" wilt verwijderen?`;
+        }
+
+        const confirmed = await showConfirmModal({
+            title: 'Categorie Verwijderen',
+            message: message,
+            confirmText: pluginCount > 0 ? 'Verwijderen inclusief plugins' : 'Verwijderen',
+            confirmClass: 'btn-danger',
+            iconClass: 'fas fa-trash-alt text-danger'
+        });
+
+        if (confirmed) {
             try {
-                await ApiAdmin.deleteCategory(name);
+                const res = await ApiAdmin.deleteCategory(name);
                 this._loadCategories();
                 this._loadPlugins();
+                if (res && res.deleted_plugins_count !== undefined) {
+                    await showAlertModal(`Categorie "${name}" ${res.deleted_plugins_count > 0 ? `en ${res.deleted_plugins_count} bijbehorende plugin(s)` : ''} succesvol verwijderd.`, 'Succes', 'fas fa-check-circle text-success');
+                }
             } catch (error) {
-                alert(`Fout bij verwijderen categorie: ${error.message}`);
+                await showAlertModal(`Fout bij verwijderen categorie: ${error.message}`, 'Fout', 'fas fa-exclamation-triangle text-danger');
             }
         }
     }
@@ -237,7 +269,7 @@ class AdminPage {
         try {
             await ApiAdmin.updatePlugin(url, pluginData);
         } catch (error) {
-            alert(`Fout bij bijwerken plugin: ${error.message}`);
+            await showAlertModal(`Fout bij bijwerken plugin: ${error.message}`, 'Fout', 'fas fa-exclamation-triangle text-danger');
             this._loadPlugins();
         }
     }
@@ -245,12 +277,20 @@ class AdminPage {
     async _handleDeletePlugin(button) {
         const url = button.dataset.url;
         const title = button.dataset.title;
-        if (confirm(`Weet je zeker dat je plugin "${title}" wilt verwijderen?`)) {
+        const confirmed = await showConfirmModal({
+            title: 'Plugin Verwijderen',
+            message: `Weet je zeker dat je plugin "<strong>${title}</strong>" wilt verwijderen?`,
+            confirmText: 'Verwijderen',
+            confirmClass: 'btn-danger',
+            iconClass: 'fas fa-trash-alt text-danger'
+        });
+
+        if (confirmed) {
             try {
                 await ApiAdmin.deletePlugin(url);
                 this._loadPlugins();
             } catch (error) {
-                alert('Fout bij verwijderen plugin');
+                await showAlertModal('Fout bij verwijderen plugin', 'Fout', 'fas fa-exclamation-triangle text-danger');
             }
         }
     }
@@ -369,7 +409,15 @@ class AdminPage {
     }
 
     async _handleApplyUpdate() {
-        if (!confirm('Weet je zeker dat je de update wilt downloaden en toepassen? De server herstart automatisch na het updaten.')) {
+        const confirmed = await showConfirmModal({
+            title: 'Software Update Toepassen',
+            message: 'Weet je zeker dat je de update wilt downloaden en toepassen? De server herstart automatisch na het updaten.',
+            confirmText: 'Update Toepassen',
+            confirmClass: 'btn-success',
+            iconClass: 'fas fa-download text-success'
+        });
+
+        if (!confirmed) {
             return;
         }
 
@@ -404,11 +452,19 @@ class AdminPage {
     async _handleRollbackUpdate() {
         const selectedCommit = this.rollbackCommitSelect ? this.rollbackCommitSelect.value : '';
         if (!selectedCommit) {
-            alert('Selecteer eerst een commit om naar terug te rollen.');
+            await showAlertModal('Selecteer eerst een commit om naar terug te rollen.', 'Waarschuwing', 'fas fa-exclamation-circle text-warning');
             return;
         }
 
-        if (!confirm(`Weet je zeker dat je wilt terugrollen naar commit ${selectedCommit.slice(0, 7)}? De server herstart automatisch na het terugrollen.`)) {
+        const confirmed = await showConfirmModal({
+            title: 'Versie Terugrollen',
+            message: `Weet je zeker dat je wilt terugrollen naar commit <code>${selectedCommit.slice(0, 7)}</code>? De server herstart automatisch na het terugrollen.`,
+            confirmText: 'Terugrollen',
+            confirmClass: 'btn-warning',
+            iconClass: 'fas fa-undo text-warning'
+        });
+
+        if (!confirmed) {
             return;
         }
 
@@ -472,16 +528,32 @@ class AdminPage {
 
     async _loadUsers() {
         const users = await ApiAdmin.getUsers();
+        const userBadge = document.getElementById('userCountBadge');
+        if (userBadge) {
+            userBadge.innerHTML = `<i class="fas fa-users me-1"></i>Totaal: ${users.length} ${users.length === 1 ? 'gebruiker' : 'gebruikers'}`;
+        }
         this.usersGrid.innerHTML = users.map(user => this._renderUser(user)).join('');
     }
 
     async _loadCategories() {
         const categories = await ApiAdmin.getCategories();
+        this.categoriesCache = categories || [];
+        const catBadge = document.getElementById('categoryCountBadge');
+        if (catBadge) {
+            catBadge.innerHTML = `<i class="fas fa-tags me-1"></i>Totaal: ${categories.length} ${categories.length === 1 ? 'categorie' : 'categorieën'}`;
+        }
         this.categoriesGrid.innerHTML = categories.map(cat => this._renderCategory(cat)).join('');
     }
 
     async _loadPlugins() {
         const [plugins, categories] = await Promise.all([ApiAdmin.getPlugins(), ApiAdmin.getCategories()]);
+        this.pluginsCache = plugins || [];
+        this.categoriesCache = categories || [];
+        const pluginBadge = document.getElementById('pluginCountBadge');
+        if (pluginBadge) {
+            pluginBadge.innerHTML = `<i class="fas fa-puzzle-piece me-1"></i>Totaal: ${plugins.length} ${plugins.length === 1 ? 'plugin' : 'plugins'}`;
+        }
+        this.categoriesGrid.innerHTML = categories.map(cat => this._renderCategory(cat)).join('');
         this.pluginsGrid.innerHTML = plugins.map(plugin => this._renderPlugin(plugin, categories)).join('');
     }
 
@@ -510,12 +582,16 @@ class AdminPage {
 
     _renderCategory(category) {
         const safeCatName = category.name.replace(/'/g, "\\'");
+        const catPluginsCount = (this.pluginsCache || []).filter(p => p.category === category.name || (Array.isArray(p.categories) && p.categories.includes(category.name))).length;
         return `
             <div class="col-lg-6 mb-4">
                 <div class="card h-100">
                     <div class="card-body" data-name="${safeCatName}">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="card-title mb-0">${category.name}</h5>
+                            <div class="d-flex align-items-center gap-2">
+                                <h5 class="card-title mb-0">${category.name}</h5>
+                                <span class="badge bg-info text-dark" title="Aantal plugins in deze categorie"><i class="fas fa-puzzle-piece me-1"></i>${catPluginsCount} ${catPluginsCount === 1 ? 'plugin' : 'plugins'}</span>
+                            </div>
                             <button class="btn btn-danger btn-sm delete-category-btn" data-name="${safeCatName}"><i class="fas fa-trash"></i></button>
                         </div>
                         <input type="text" class="form-control form-control-sm mb-2 category-field cat-name" value="${category.name}" data-name="${safeCatName}">

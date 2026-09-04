@@ -1,6 +1,6 @@
 import API from './api.js';
 import UI from './ui.js';
-import Modals from './modals.js';
+import Modals, { showAlertModal, showConfirmModal } from './modals.js';
 import Filters from './filters.js';
 import Auth from './auth.js';
 
@@ -56,8 +56,9 @@ class App {
             }
 
             UI.renderPlugins(data.plugins || [], this.authStatus, Auth.currentUser);
-            UI.updateResultsCount(data.plugins ? data.plugins.length : 0, data.total || 0, data.total_all);
+            UI.updateResultsCount(data.plugins ? data.plugins.length : 0, data.total || 0, data.total_all, filterParams.category);
             UI.updateCategoryCounts(data.category_counts || {}, data.total_all);
+            this.updateCategoryActionHeader(filterParams.category, data.category_counts);
 
             UI.renderPagination(data.page || 1, data.total_pages || 1, (newPage) => {
                 this.currentPage = newPage;
@@ -199,6 +200,58 @@ class App {
         modal.show();
     }
 
+    updateCategoryActionHeader(selectedCategory, categoryCounts) {
+        const container = document.getElementById('categoryHeaderActionContainer');
+        const titleEl = document.getElementById('selectedCategoryTitle');
+        const badgeEl = document.getElementById('selectedCategoryBadge');
+        const clearBtn = document.getElementById('clearCategoryPluginsHomeBtn');
+
+        if (!container) return;
+
+        if (selectedCategory && selectedCategory !== '') {
+            container.style.display = 'block';
+            if (titleEl) titleEl.textContent = `Categorie: ${selectedCategory}`;
+            const count = (categoryCounts && categoryCounts[selectedCategory]) || 0;
+            if (badgeEl) badgeEl.textContent = `${count} ${count === 1 ? 'plugin' : 'plugins'}`;
+
+            if (clearBtn) {
+                clearBtn.style.display = this.authStatus.logged_in ? 'inline-block' : 'none';
+                clearBtn.dataset.category = selectedCategory;
+                clearBtn.dataset.count = count;
+            }
+        } else {
+            container.style.display = 'none';
+        }
+    }
+
+    async handleClearCategoryPlugins(category, count) {
+        if (!category) return;
+
+        const isUserAdmin = this.authStatus.role === 'admin' || this.authStatus.role === 'co-admin';
+
+        const confirmed = await showConfirmModal({
+            title: 'Categorie Plugins Verwijderen',
+            message: `<div class="alert alert-warning mb-3"><i class="fas fa-exclamation-triangle me-2"></i>Weet je zeker dat je alle plugins in de categorie "<strong>${category}</strong>" wilt verwijderen?</div><p class="mb-0 text-muted">Aantal plugins in deze categorie: <strong>${count}</strong>. Deze actie kan niet ongedaan worden gemaakt.</p>`,
+            confirmText: 'Ja, alle plugins verwijderen',
+            confirmClass: 'btn-danger',
+            iconClass: 'fas fa-trash-alt text-danger'
+        });
+
+        if (!confirmed) return;
+
+        try {
+            const data = await API.clearPlugins(isUserAdmin, category);
+            if (data.success) {
+                UI.showSuccessMessage(`Alle plugins in de categorie "${category}" zijn succesvol verwijderd!`);
+                await this.loadAndRenderPlugins(this.filters.getFilterParams());
+            } else {
+                await showAlertModal(`Fout bij verwijderen: ${data.error}`, 'Fout', 'fas fa-exclamation-triangle text-danger');
+            }
+        } catch (err) {
+            await showAlertModal(`Fout bij verwijderen: ${err.message}`, 'Fout', 'fas fa-exclamation-triangle text-danger');
+        }
+    }
+
     async handleImportSubmit() {
         const select = document.getElementById('importCategorySelect');
         const selectedCategory = select ? select.value : 'ALL';
@@ -206,7 +259,7 @@ class App {
         const file = fileInput ? fileInput.files[0] : null;
 
         if (!file) {
-            alert('Selecteer a.u.b. een TXT bestand.');
+            await showAlertModal('Selecteer a.u.b. een TXT bestand.', 'Waarschuwing', 'fas fa-exclamation-circle text-warning');
             return;
         }
 
@@ -219,7 +272,7 @@ class App {
             const items = this.parseTxtContent(text, selectedCategory);
 
             if (items.length === 0) {
-                alert('Geen geldige plugin URL\'s gevonden in het TXT bestand.');
+                await showAlertModal('Geen geldige plugin URL\'s gevonden in het TXT bestand.', 'Waarschuwing', 'fas fa-exclamation-circle text-warning');
                 return;
             }
 
@@ -316,17 +369,25 @@ class App {
         missingModal.show();
     }
 
-    proceedToBulkImport(items, isReplaceMode, selectedCategory, fileName) {
+    async proceedToBulkImport(items, isReplaceMode, selectedCategory, fileName) {
         let confirmMsg = '';
         const catText = selectedCategory === 'ALL' ? 'ALLE categorieën' : `categorie "${selectedCategory}"`;
 
         if (isReplaceMode) {
-            confirmMsg = `Weet je zeker dat je de huidige plugin lijst van ${catText} wilt VERVANGEN door de ${items.length} URL's uit "${fileName}"?`;
+            confirmMsg = `Weet je zeker dat je de huidige plugin lijst van ${catText} wilt <strong>VERVANGEN</strong> door de ${items.length} URL's uit "<strong>${fileName}</strong>"?`;
         } else {
-            confirmMsg = `Weet je zeker dat je de ${items.length} URL's uit "${fileName}" wilt bijvoegen bij ${catText}?`;
+            confirmMsg = `Weet je zeker dat je de ${items.length} URL's uit "<strong>${fileName}</strong>" wilt bijvoegen bij ${catText}?`;
         }
 
-        if (confirm(confirmMsg)) {
+        const confirmed = await showConfirmModal({
+            title: isReplaceMode ? 'Lijst Vervangen' : 'TXT Bijvoegen',
+            message: confirmMsg,
+            confirmText: isReplaceMode ? 'Ja, Vervangen' : 'Ja, Bijvoegen',
+            confirmClass: isReplaceMode ? 'btn-warning' : 'btn-primary',
+            iconClass: 'fas fa-file-import text-info'
+        });
+
+        if (confirmed) {
             Modals.openWithBulkItems(items, isReplaceMode, selectedCategory);
         }
     }
@@ -356,6 +417,15 @@ class App {
 
         const confirmImportBtn = document.getElementById('confirmImportBtn');
         if (confirmImportBtn) confirmImportBtn.addEventListener('click', () => this.handleImportSubmit());
+
+        const clearCategoryHomeBtn = document.getElementById('clearCategoryPluginsHomeBtn');
+        if (clearCategoryHomeBtn) {
+            clearCategoryHomeBtn.addEventListener('click', () => {
+                const cat = clearCategoryHomeBtn.dataset.category;
+                const count = clearCategoryHomeBtn.dataset.count || 0;
+                this.handleClearCategoryPlugins(cat, count);
+            });
+        }
 
         // Reload plugins when a plugin is successfully added or deleted
         Modals.addModalEl.addEventListener('hidden.bs.modal', async () => {

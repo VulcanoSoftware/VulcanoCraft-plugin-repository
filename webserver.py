@@ -1284,7 +1284,7 @@ def admin_update_category(name):
 @app.route('/admin/categories/<name>', methods=['DELETE'])
 @require_co_admin
 def admin_delete_category(name):
-    """Verwijder categorie"""
+    """Verwijder categorie inclusief alle bijbehorende plugins/inhoud"""
     categories = load_server_categories()
 
     original_count = len(categories)
@@ -1294,24 +1294,15 @@ def admin_delete_category(name):
         return jsonify({'error': 'Categorie niet gevonden'}), 404
 
     if save_server_categories(categories):
-        plugins = list(db.plugins.find({}))
-        for plugin in plugins:
-            p_updated = False
-            raw_cats = plugin.get("categories")
-            new_cats = [c for c in raw_cats if c != name] if isinstance(raw_cats, list) else []
-            if raw_cats != new_cats:
-                p_updated = True
-
-            primary = plugin.get("category")
-            new_primary = primary
-            if primary == name:
-                new_primary = new_cats[0] if new_cats else None
-                p_updated = True
-
-            if p_updated:
-                db.plugins.update_one({"_id": plugin["_id"]}, {"$set": {"categories": new_cats, "category": new_primary}})
-
-        return jsonify({'success': True})
+        # Verwijder alle plugins die tot deze categorie behoren
+        result = db.plugins.delete_many({
+            "$or": [
+                {"category": name},
+                {"categories": name},
+                {"tags": name}
+            ]
+        })
+        return jsonify({'success': True, 'deleted_plugins_count': result.deleted_count})
     return jsonify({'error': 'Fout bij opslaan'}), 500
 
 @app.route('/admin/users/<username>', methods=['DELETE'])
