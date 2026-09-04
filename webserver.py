@@ -42,10 +42,14 @@ db.users.create_index("username", unique=True)
 def run_migrations():
     """Voer eventuele databasemigraties uit bij de opstart."""
     try:
+        server_cats = load_server_categories()
+        valid_cat_names = {sc.get('name') for sc in server_cats if isinstance(sc, dict) and sc.get('name')}
+
         plugins = list(db.plugins.find({}))
         for plugin in plugins:
             updated = False
             set_fields = {}
+
             if "category" in plugin and "categories" not in plugin:
                 cat = plugin["category"]
                 set_fields["categories"] = [cat] if cat else []
@@ -54,6 +58,22 @@ def run_migrations():
                 cats = plugin["categories"]
                 set_fields["category"] = cats[0] if cats and isinstance(cats, list) else None
                 updated = True
+
+            current_cats = set_fields.get("categories", plugin.get("categories"))
+            current_primary = set_fields.get("category", plugin.get("category"))
+
+            if valid_cat_names:
+                if isinstance(current_cats, list):
+                    filtered_cats = [c for c in current_cats if c in valid_cat_names]
+                    if filtered_cats != current_cats:
+                        set_fields["categories"] = filtered_cats
+                        updated = True
+                else:
+                    filtered_cats = []
+
+                if current_primary and current_primary not in valid_cat_names:
+                    set_fields["category"] = filtered_cats[0] if filtered_cats else None
+                    updated = True
 
             if updated and set_fields:
                 db.plugins.update_one({"_id": plugin["_id"]}, {"$set": set_fields})
@@ -1208,19 +1228,42 @@ def admin_add_category():
         return jsonify({'success': True})
     return jsonify({'error': 'Fout bij opslaan'}), 500
 
+def _rename_category_in_plugins(old_name, new_name):
+    """Helper om de naam van een categorie in alle plugin documenten te updaten."""
+    plugins = list(db.plugins.find({}))
+    for plugin in plugins:
+        p_updated = False
+        raw_cats = plugin.get("categories")
+        if isinstance(raw_cats, list) and old_name in raw_cats:
+            new_cats = [new_name if c == old_name else c for c in raw_cats]
+            p_updated = True
+        else:
+            new_cats = raw_cats
+
+        primary = plugin.get("category")
+        new_primary = new_name if primary == old_name else primary
+        if primary == old_name:
+            p_updated = True
+
+        if p_updated:
+            db.plugins.update_one({"_id": plugin["_id"]}, {"$set": {"categories": new_cats, "category": new_primary}})
+
+
+def _update_category_fields(category_obj, data):
+    """Helper om categorie instellingen bij te werken."""
+    for key in ['image_url', 'show_image', 'software', 'version']:
+        if key in data and data[key] is not None:
+            category_obj[key] = data[key]
+
+
 @app.route('/admin/categories/<name>', methods=['PUT'])
 @require_co_admin
 def admin_update_category(name):
-    """Hernoem categorie"""
-    data = request.get_json()
+    """Hernoem/bewerk categorie"""
+    data = request.get_json() or {}
     new_name = data.get('new_name')
-    image_url = data.get('image_url')
-    show_image = data.get('show_image')
-    software = data.get('software')
-    version = data.get('version')
 
     categories = load_server_categories()
-
     category_to_update = next((c for c in categories if c.get('name') == name), None)
     if not category_to_update:
         return jsonify({'error': 'Categorie niet gevonden'}), 404
@@ -1230,28 +1273,11 @@ def admin_update_category(name):
             return jsonify({'error': 'Categorie naam bestaat al'}), 400
         category_to_update['name'] = new_name
 
-    if image_url is not None:
-        category_to_update['image_url'] = image_url
-
-    if show_image is not None:
-        category_to_update['show_image'] = show_image
-
-    if software is not None:
-        category_to_update['software'] = software
-
-    if version is not None:
-        category_to_update['version'] = version
+    _update_category_fields(category_to_update, data)
 
     if save_server_categories(categories):
         if new_name and new_name != name:
-            plugins = load_plugins()
-            updated = False
-            for plugin in plugins:
-                if plugin.get('category') == name:
-                    plugin['category'] = new_name
-                    updated = True
-            if updated:
-                save_plugins(plugins)
+            _rename_category_in_plugins(name, new_name)
         return jsonify({'success': True})
     return jsonify({'error': 'Fout bij opslaan'}), 500
 
@@ -1268,6 +1294,23 @@ def admin_delete_category(name):
         return jsonify({'error': 'Categorie niet gevonden'}), 404
 
     if save_server_categories(categories):
+        plugins = list(db.plugins.find({}))
+        for plugin in plugins:
+            p_updated = False
+            raw_cats = plugin.get("categories")
+            new_cats = [c for c in raw_cats if c != name] if isinstance(raw_cats, list) else []
+            if raw_cats != new_cats:
+                p_updated = True
+
+            primary = plugin.get("category")
+            new_primary = primary
+            if primary == name:
+                new_primary = new_cats[0] if new_cats else None
+                p_updated = True
+
+            if p_updated:
+                db.plugins.update_one({"_id": plugin["_id"]}, {"$set": {"categories": new_cats, "category": new_primary}})
+
         return jsonify({'success': True})
     return jsonify({'error': 'Fout bij opslaan'}), 500
 
