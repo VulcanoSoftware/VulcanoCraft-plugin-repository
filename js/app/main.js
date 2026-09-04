@@ -3,6 +3,7 @@ import UI from './ui.js';
 import Modals, { showAlertModal, showConfirmModal } from './modals.js';
 import Filters from './filters.js';
 import Auth from './auth.js';
+import i18n from './i18n.js';
 
 class App {
     constructor() {
@@ -15,6 +16,12 @@ class App {
         document.getElementById('currentYear').textContent = new Date().getFullYear();
 
         this.authStatus = await Auth.checkStatus();
+
+        if (this.authStatus.logged_in && this.authStatus.language) {
+            i18n.setLanguage(this.authStatus.language, false);
+        } else {
+            i18n.applyTranslations();
+        }
 
         this.filters = new Filters((filterParams, resetPage) => {
             if (resetPage) this.currentPage = 1;
@@ -417,6 +424,25 @@ class App {
 
         const confirmImportBtn = document.getElementById('confirmImportBtn');
         if (confirmImportBtn) confirmImportBtn.addEventListener('click', () => this.handleImportSubmit());
+
+        const langNlBtn = document.getElementById('langSelectNl');
+        const langEnBtn = document.getElementById('langSelectEn');
+
+        if (langNlBtn) {
+            langNlBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                i18n.setLanguage('nl', this.authStatus.logged_in);
+                this.loadAndRenderPlugins(this.filters.getFilterParams());
+            });
+        }
+
+        if (langEnBtn) {
+            langEnBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                i18n.setLanguage('en', this.authStatus.logged_in);
+                this.loadAndRenderPlugins(this.filters.getFilterParams());
+            });
+        }
 
         const clearCategoryHomeBtn = document.getElementById('clearCategoryPluginsHomeBtn');
         if (clearCategoryHomeBtn) {

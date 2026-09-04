@@ -38,6 +38,7 @@ class UI {
         const { logged_in, role } = authStatus;
         const formattedVersions = this._formatVersions(plugin.versions || '');
         const formattedLoaders = this._formatLoaders(plugin.loaders);
+        const formattedAuthors = this._formatAuthors(plugin.author);
         const domain = this._getDomainFromUrl(plugin.url || '');
         const ownerInfo = plugin.owner ? `<small class="text-muted ms-2">door ${plugin.owner}</small>` : '';
         const canDelete = logged_in && (role === 'admin' || role === 'co-admin' || plugin.owner === currentUser);
@@ -68,19 +69,21 @@ class UI {
                     <div class="card-body">
                         <p class="card-text description">${plugin.description || 'Geen beschrijving beschikbaar'}</p>
                         <div class="row mb-3">
-                            <div class="col-md-6">
-                                <div class="plugin-info">
-                                    <strong><img src="images/author-icon.png" class="info-icon" alt="Auteur"> Auteur:</strong>
-                                    <span class="author-badge">${plugin.author || 'Onbekend'}</span>
+                            <div class="col-12">
+                                <div class="plugin-info d-flex align-items-center flex-wrap gap-2">
+                                    <strong><img src="images/author-icon.png" class="info-icon" alt="Auteur"> <span data-i18n="common.author">Auteur</span>:</strong>
+                                    <div class="authors-container d-inline-flex flex-wrap gap-1 align-items-center">
+                                        ${formattedAuthors}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         <div class="versions-section">
-                            <strong><img src="images/version-icon.png" class="info-icon" alt="Versies"> Ondersteunde Versies:</strong>
+                            <strong><img src="images/version-icon.png" class="info-icon" alt="Versies"> <span data-i18n="common.supported_versions">Ondersteunde Versies</span>:</strong>
                             <div class="versions-container">${formattedVersions}</div>
                         </div>
                         <div class="loaders-section mt-3">
-                            <strong><img src="images/plugin-repo-icon.png" class="info-icon" alt="Loaders"> Ondersteunde Loaders:</strong>
+                            <strong><img src="images/plugin-repo-icon.png" class="info-icon" alt="Loaders"> <span data-i18n="common.supported_loaders">Ondersteunde Loaders</span>:</strong>
                             <div class="loaders-container">${formattedLoaders}</div>
                         </div>
                     </div>
@@ -100,6 +103,32 @@ class UI {
                     </div>
                 </div>
             </div>`;
+    }
+
+    _formatAuthors(authorInput) {
+        if (!authorInput) {
+            return `<span class="author-badge" data-i18n="common.unknown">Onbekend</span>`;
+        }
+
+        let authors = [];
+        if (Array.isArray(authorInput)) {
+            authors = authorInput.map(a => String(a).trim()).filter(Boolean);
+        } else if (typeof authorInput === 'string') {
+            const str = authorInput.trim();
+            if (str.includes(',')) {
+                authors = str.split(',').map(a => a.trim()).filter(Boolean);
+            } else {
+                authors = str.split(/\s+/).map(a => a.trim()).filter(Boolean);
+            }
+        }
+
+        authors = Array.from(new Set(authors));
+
+        if (authors.length === 0) {
+            return `<span class="author-badge" data-i18n="common.unknown">Onbekend</span>`;
+        }
+
+        return authors.map(a => `<span class="author-badge">${a}</span>`).join('');
     }
 
     _formatVersions(versionsString) {
@@ -366,42 +395,60 @@ class UI {
         const filtered = totalFilteredCount !== undefined ? totalFilteredCount : 0;
         const onPage = pluginsOnCurrentPageCount !== undefined ? pluginsOnCurrentPageCount : 0;
 
+        const colsClass = activeCategory ? 'row-cols-1 row-cols-sm-2 row-cols-lg-4' : 'row-cols-1 row-cols-sm-3';
+
         let html = `
-            <div class="card shadow-sm border-0 p-3 text-light" style="background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1) !important;">
-                <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 text-center">
-                    <div class="counter-badge-item d-flex align-items-center gap-2 px-3 py-2 rounded" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
-                        <i class="fas fa-database text-primary fs-5"></i>
-                        <div class="text-start">
-                            <small class="d-block text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Totaal op platform</small>
-                            <span class="fw-bold fs-6 text-light">${totalAll} ${totalAll === 1 ? 'plugin' : 'plugins'}</span>
+            <div class="card counter-bar-card p-3 text-light shadow-sm">
+                <div class="row g-3 ${colsClass}">
+                    <div class="col">
+                        <div class="counter-badge-item counter-total d-flex align-items-center gap-3">
+                            <div class="counter-icon-box">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <div class="text-start min-w-0">
+                                <div class="counter-label text-truncate" data-i18n="counter.total">Totaal op platform</div>
+                                <div class="counter-value">${totalAll} <span data-i18n="${totalAll === 1 ? 'common.plugin' : 'common.plugins'}">${totalAll === 1 ? 'plugin' : 'plugins'}</span></div>
+                            </div>
                         </div>
                     </div>`;
 
         if (activeCategory) {
             html += `
-                    <div class="counter-badge-item d-flex align-items-center gap-2 px-3 py-2 rounded" style="background: rgba(13, 202, 240, 0.15); border: 1px solid rgba(13, 202, 240, 0.3);">
-                        <i class="fas fa-folder text-info fs-5"></i>
-                        <div class="text-start">
-                            <small class="d-block text-info text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">In categorie "${activeCategory}"</small>
-                            <span class="fw-bold fs-6 text-light">${filtered} ${filtered === 1 ? 'plugin' : 'plugins'}</span>
+                    <div class="col">
+                        <div class="counter-badge-item counter-category d-flex align-items-center gap-3">
+                            <div class="counter-icon-box">
+                                <i class="fas fa-folder"></i>
+                            </div>
+                            <div class="text-start min-w-0">
+                                <div class="counter-label text-truncate" title="${activeCategory}">${activeCategory}</div>
+                                <div class="counter-value">${filtered} <span data-i18n="${filtered === 1 ? 'common.plugin' : 'common.plugins'}">${filtered === 1 ? 'plugin' : 'plugins'}</span></div>
+                            </div>
                         </div>
                     </div>`;
         }
 
         html += `
-                    <div class="counter-badge-item d-flex align-items-center gap-2 px-3 py-2 rounded" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3);">
-                        <i class="fas fa-filter fs-5" style="color: #c084fc;"></i>
-                        <div class="text-start">
-                            <small class="d-block text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px; color: #c084fc;">Gefilterd resultaat</small>
-                            <span class="fw-bold fs-6 text-light">${filtered} ${filtered === 1 ? 'plugin' : 'plugins'}</span>
+                    <div class="col">
+                        <div class="counter-badge-item counter-filtered d-flex align-items-center gap-3">
+                            <div class="counter-icon-box">
+                                <i class="fas fa-filter"></i>
+                            </div>
+                            <div class="text-start min-w-0">
+                                <div class="counter-label text-truncate" data-i18n="counter.filtered">Gefilterd resultaat</div>
+                                <div class="counter-value">${filtered} <span data-i18n="${filtered === 1 ? 'common.plugin' : 'common.plugins'}">${filtered === 1 ? 'plugin' : 'plugins'}</span></div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="counter-badge-item d-flex align-items-center gap-2 px-3 py-2 rounded" style="background: rgba(40, 167, 69, 0.15); border: 1px solid rgba(40, 167, 69, 0.3);">
-                        <i class="fas fa-eye text-success fs-5"></i>
-                        <div class="text-start">
-                            <small class="d-block text-success text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Getoond op pagina</small>
-                            <span class="fw-bold fs-6 text-light">${onPage} ${onPage === 1 ? 'plugin' : 'plugins'}</span>
+                    <div class="col">
+                        <div class="counter-badge-item counter-shown d-flex align-items-center gap-3">
+                            <div class="counter-icon-box">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                            <div class="text-start min-w-0">
+                                <div class="counter-label text-truncate" data-i18n="counter.shown">Getoond op pagina</div>
+                                <div class="counter-value">${onPage} <span data-i18n="${onPage === 1 ? 'common.plugin' : 'common.plugins'}">${onPage === 1 ? 'plugin' : 'plugins'}</span></div>
+                            </div>
                         </div>
                     </div>
                 </div>

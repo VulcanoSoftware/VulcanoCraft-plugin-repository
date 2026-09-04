@@ -526,11 +526,13 @@ class AdminPage {
         this.registrationToggle.checked = data.registration_enabled;
     }
 
-    async _loadUsers() {
-        const users = await ApiAdmin.getUsers();
+    async _loadUsers(page = 1) {
+        const res = await ApiAdmin.getUsers({ page, per_page: 12 });
+        const users = Array.isArray(res) ? res : (res.users || []);
+        const total = Array.isArray(res) ? users.length : (res.total || 0);
         const userBadge = document.getElementById('userCountBadge');
         if (userBadge) {
-            userBadge.innerHTML = `<i class="fas fa-users me-1"></i>Totaal: ${users.length} ${users.length === 1 ? 'gebruiker' : 'gebruikers'}`;
+            userBadge.innerHTML = `<i class="fas fa-users me-1"></i>Totaal: ${total} ${total === 1 ? 'gebruiker' : 'gebruikers'}`;
         }
         this.usersGrid.innerHTML = users.map(user => this._renderUser(user)).join('');
     }
@@ -545,13 +547,18 @@ class AdminPage {
         this.categoriesGrid.innerHTML = categories.map(cat => this._renderCategory(cat)).join('');
     }
 
-    async _loadPlugins() {
-        const [plugins, categories] = await Promise.all([ApiAdmin.getPlugins(), ApiAdmin.getCategories()]);
+    async _loadPlugins(page = 1) {
+        const [resPlugins, categories] = await Promise.all([
+            ApiAdmin.getPlugins({ page, per_page: 20 }),
+            ApiAdmin.getCategories()
+        ]);
+        const plugins = Array.isArray(resPlugins) ? resPlugins : (resPlugins.plugins || []);
+        const total = Array.isArray(resPlugins) ? plugins.length : (resPlugins.total || 0);
         this.pluginsCache = plugins || [];
         this.categoriesCache = categories || [];
         const pluginBadge = document.getElementById('pluginCountBadge');
         if (pluginBadge) {
-            pluginBadge.innerHTML = `<i class="fas fa-puzzle-piece me-1"></i>Totaal: ${plugins.length} ${plugins.length === 1 ? 'plugin' : 'plugins'}`;
+            pluginBadge.innerHTML = `<i class="fas fa-puzzle-piece me-1"></i>Totaal: ${total} ${total === 1 ? 'plugin' : 'plugins'}`;
         }
         this.categoriesGrid.innerHTML = categories.map(cat => this._renderCategory(cat)).join('');
         this.pluginsGrid.innerHTML = plugins.map(plugin => this._renderPlugin(plugin, categories)).join('');
