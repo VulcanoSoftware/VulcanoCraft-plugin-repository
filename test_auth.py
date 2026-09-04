@@ -350,7 +350,7 @@ class TestAuthArgon2(unittest.TestCase):
 
         db.plugins.delete_many({})
 
-    def test_admin_delete_category_updates_plugins(self):
+    def test_admin_delete_category_deletes_plugins(self):
         db.users.delete_many({"username": "coadmin_user"})
         db.server_categories.delete_many({})
         db.plugins.delete_many({})
@@ -384,12 +384,10 @@ class TestAuthArgon2(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
 
         p1 = db.plugins.find_one({'url': 'https://spigotmc.org/resources/1111'})
-        self.assertEqual(p1['categories'], ['Lobby'])
-        self.assertEqual(p1['category'], 'Lobby')
+        self.assertIsNone(p1)
 
         p2 = db.plugins.find_one({'url': 'https://spigotmc.org/resources/2222'})
-        self.assertEqual(p2['categories'], [])
-        self.assertIsNone(p2['category'])
+        self.assertIsNone(p2)
 
         db.users.delete_many({"username": "coadmin_user"})
         db.server_categories.delete_many({})

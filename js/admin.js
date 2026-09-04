@@ -268,8 +268,6 @@ function updateCategory(oldName) {
 }
 
 function deleteCategory(name) {
-    if (!confirm(`Weet je zeker dat je categorie "${name}" wilt verwijderen?`)) return;
-
     fetch(`/admin/categories/${name}`, {
         method: "DELETE",
     })
@@ -278,8 +276,6 @@ function deleteCategory(name) {
             if (data.success) {
                 loadCategories();
                 loadPlugins(); // Refresh dropdowns
-            } else {
-                alert("Fout bij verwijderen categorie: " + data.error);
             }
         });
 }
@@ -350,39 +346,25 @@ function changeRole(username, newRole) {
 }
 
 function deleteUser(username) {
-    if (
-        confirm(
-            `Weet je zeker dat je gebruiker "${username}" wilt verwijderen?`
-        )
-    ) {
-        fetch(`/admin/users/${username}`, { method: "DELETE" })
-            .then((response) => response.json())
-            .then((data) => {
-                if (data.success) {
-                    loadUsers();
-                } else {
-                    alert("Fout bij verwijderen gebruiker");
-                }
-            });
-    }
+    fetch(`/admin/users/${username}`, { method: "DELETE" })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.success) {
+                loadUsers();
+            }
+        });
 }
 
 function deletePlugin(url, title) {
-    if (
-        confirm(`Weet je zeker dat je plugin "${title}" wilt verwijderen?`)
-    ) {
-        fetch(`/admin/plugins/${encodeURIComponent(url)}`, {
-            method: "DELETE",
-        })
-            .then((response) => response.json())
-            .then((data) => {
-                if (data.success) {
-                    loadPlugins();
-                } else {
-                    alert("Fout bij verwijderen plugin");
-                }
-            });
-    }
+    fetch(`/admin/plugins/${encodeURIComponent(url)}`, {
+        method: "DELETE",
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.success) {
+                loadPlugins();
+            }
+        });
 }
 
 function updatePluginDetails(originalUrl, encodedUrl) {
