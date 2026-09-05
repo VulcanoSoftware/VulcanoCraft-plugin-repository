@@ -511,10 +511,32 @@ class Modals {
         this.deleteModal.show();
     }
 
+    _formatAuthors(authorInput) {
+        if (!authorInput) return '<span class="author-badge">Onbekend</span>';
+        let authors = [];
+        if (Array.isArray(authorInput)) {
+            authors = authorInput.flatMap(a => (typeof a === 'string' ? a.split(/[,;&|]|\s+(?:and|&)\s+/i) : []));
+        } else if (typeof authorInput === 'string') {
+            authors = authorInput.split(/[,;&|]|\s+(?:and|&)\s+/i);
+        } else {
+            return '<span class="author-badge">Onbekend</span>';
+        }
+
+        const cleanedAuthors = authors.map(a => a.trim()).filter(a => a.length > 0);
+        if (cleanedAuthors.length === 0) return '<span class="author-badge">Onbekend</span>';
+
+        return cleanedAuthors.map(author => `<span class="author-badge">${author}</span>`).join('');
+    }
+
     updateAddModalPreview(plugin) {
         document.getElementById('previewTitle').textContent = plugin.title || 'Geen titel';
         document.getElementById('previewDescription').textContent = plugin.description || 'Geen beschrijving beschikbaar';
-        document.getElementById('previewAuthor').textContent = plugin.author || 'Onbekend';
+
+        const previewAuthorEl = document.getElementById('previewAuthor');
+        if (previewAuthorEl) {
+            previewAuthorEl.innerHTML = this._formatAuthors(plugin.author);
+        }
+
         document.getElementById('previewIcon').src = plugin.icon || 'images/plugin-placeholder.png';
 
         const versionsContainer = document.getElementById('previewVersions');

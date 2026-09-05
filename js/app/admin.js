@@ -32,6 +32,16 @@ class AdminPage {
         this.rollbackSyncToHostToggle = document.getElementById('rollbackSyncToHostToggle');
         this.rollbackAlert = document.getElementById('rollbackAlert');
 
+        this.userSearchInput = document.getElementById('adminUserSearchInput');
+        this.pluginSearchInput = document.getElementById('adminPluginSearchInput');
+        this.usersPaginationControls = document.getElementById('usersPaginationControls');
+        this.pluginsPaginationControls = document.getElementById('pluginsPaginationControls');
+
+        this.userPage = 1;
+        this.userPerPage = 12;
+        this.pluginPage = 1;
+        this.pluginPerPage = 12;
+
         this.commitHistory = [];
         this.currentRole = null;
         this.pluginsCache = [];
@@ -75,6 +85,20 @@ class AdminPage {
         }
         if (this.rollbackCommitSelect) {
             this.rollbackCommitSelect.addEventListener('change', () => this._handleRollbackSelectChange());
+        }
+
+        if (this.userSearchInput) {
+            this.userSearchInput.addEventListener('input', () => {
+                this.userPage = 1;
+                this._loadUsers();
+            });
+        }
+
+        if (this.pluginSearchInput) {
+            this.pluginSearchInput.addEventListener('input', () => {
+                this.pluginPage = 1;
+                this._loadPlugins();
+            });
         }
 
         this._setupDynamicEventListeners();
@@ -527,12 +551,36 @@ class AdminPage {
     }
 
     async _loadUsers() {
-        const users = await ApiAdmin.getUsers();
+        const search = this.userSearchInput ? this.userSearchInput.value.trim() : '';
+        const data = await ApiAdmin.getUsers({
+            page: this.userPage,
+            perPage: this.userPerPage,
+            search: search
+        });
+        const users = data.users || [];
+        const total = data.total !== undefined ? data.total : users.length;
+        const totalPages = data.total_pages || 1;
+
         const userBadge = document.getElementById('userCountBadge');
         if (userBadge) {
-            userBadge.innerHTML = `<i class="fas fa-users me-1"></i>Totaal: ${users.length} ${users.length === 1 ? 'gebruiker' : 'gebruikers'}`;
+            userBadge.innerHTML = `<i class="fas fa-users me-1"></i>Totaal: ${total} ${total === 1 ? 'gebruiker' : 'gebruikers'}`;
         }
-        this.usersGrid.innerHTML = users.map(user => this._renderUser(user)).join('');
+
+        if (users.length === 0) {
+            this.usersGrid.innerHTML = '<div class="col-12 text-center text-muted"><p>Geen gebruikers gevonden.</p></div>';
+        } else {
+            this.usersGrid.innerHTML = users.map(user => this._renderUser(user)).join('');
+        }
+
+        this._renderPaginationControls(
+            this.usersPaginationControls,
+            this.userPage,
+            totalPages,
+            (newPage) => {
+                this.userPage = newPage;
+                this._loadUsers();
+            }
+        );
     }
 
     async _loadCategories() {
@@ -546,15 +594,80 @@ class AdminPage {
     }
 
     async _loadPlugins() {
-        const [plugins, categories] = await Promise.all([ApiAdmin.getPlugins(), ApiAdmin.getCategories()]);
-        this.pluginsCache = plugins || [];
+        const search = this.pluginSearchInput ? this.pluginSearchInput.value.trim() : '';
+        const [data, categories] = await Promise.all([
+            ApiAdmin.getPlugins({
+                page: this.pluginPage,
+                perPage: this.pluginPerPage,
+                search: search
+            }),
+            ApiAdmin.getCategories()
+        ]);
+
+        const plugins = data.plugins || [];
+        const total = data.total !== undefined ? data.total : plugins.length;
+        const totalPages = data.total_pages || 1;
+
+        this.pluginsCache = plugins;
         this.categoriesCache = categories || [];
+
         const pluginBadge = document.getElementById('pluginCountBadge');
         if (pluginBadge) {
-            pluginBadge.innerHTML = `<i class="fas fa-puzzle-piece me-1"></i>Totaal: ${plugins.length} ${plugins.length === 1 ? 'plugin' : 'plugins'}`;
+            pluginBadge.innerHTML = `<i class="fas fa-puzzle-piece me-1"></i>Totaal: ${total} ${total === 1 ? 'plugin' : 'plugins'}`;
         }
-        this.categoriesGrid.innerHTML = categories.map(cat => this._renderCategory(cat)).join('');
-        this.pluginsGrid.innerHTML = plugins.map(plugin => this._renderPlugin(plugin, categories)).join('');
+
+        this.categoriesGrid.innerHTML = this.categoriesCache.map(cat => this._renderCategory(cat)).join('');
+
+        if (plugins.length === 0) {
+            this.pluginsGrid.innerHTML = '<div class="col-12 text-center text-muted"><p>Geen plugins gevonden.</p></div>';
+        } else {
+            this.pluginsGrid.innerHTML = plugins.map(plugin => this._renderPlugin(plugin, this.categoriesCache)).join('');
+        }
+
+        this._renderPaginationControls(
+            this.pluginsPaginationControls,
+            this.pluginPage,
+            totalPages,
+            (newPage) => {
+                this.pluginPage = newPage;
+                this._loadPlugins();
+            }
+        );
+    }
+
+    _renderPaginationControls(container, currentPage, totalPages, onPageClick) {
+        if (!container) return;
+        if (totalPages <= 1) {
+            container.innerHTML = '';
+            container.style.display = 'none';
+            return;
+        }
+
+        container.style.display = 'flex';
+        let html = '';
+
+        const prevDisabled = currentPage <= 1 ? 'disabled' : '';
+        html += `<li class="page-item ${prevDisabled}"><button class="page-link" data-page="${currentPage - 1}">&laquo;</button></li>`;
+
+        for (let p = 1; p <= totalPages; p++) {
+            const active = p === currentPage ? 'active' : '';
+            html += `<li class="page-item ${active}"><button class="page-link" data-page="${p}">${p}</button></li>`;
+        }
+
+        const nextDisabled = currentPage >= totalPages ? 'disabled' : '';
+        html += `<li class="page-item ${nextDisabled}"><button class="page-link" data-page="${currentPage + 1}">&raquo;</button></li>`;
+
+        container.innerHTML = html;
+
+        container.querySelectorAll('button.page-link').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const page = parseInt(btn.dataset.page, 10);
+                if (page && page !== currentPage && page >= 1 && page <= totalPages) {
+                    onPageClick(page);
+                }
+            });
+        });
     }
 
     _renderUser(user) {

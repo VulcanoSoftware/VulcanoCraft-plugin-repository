@@ -41,8 +41,13 @@ class ApiAdmin {
         });
     }
 
-    getUsers() {
-        return this._fetch('/admin/users');
+    getUsers(params = {}) {
+        const query = new URLSearchParams();
+        if (params.page !== undefined) query.set('page', params.page);
+        if (params.perPage !== undefined) query.set('per_page', params.perPage);
+        if (params.search) query.set('search', params.search);
+        const url = `/admin/users${query.toString() ? '?' + query.toString() : ''}`;
+        return this._fetch(url);
     }
 
     updateUserRole(username, role) {
@@ -81,8 +86,14 @@ class ApiAdmin {
         return this._fetch(`/admin/categories/${name}`, { method: 'DELETE' });
     }
 
-    getPlugins() {
-        return this._fetch('/admin/plugins');
+    getPlugins(params = {}) {
+        const query = new URLSearchParams();
+        if (params.page !== undefined) query.set('page', params.page);
+        if (params.perPage !== undefined) query.set('per_page', params.perPage);
+        if (params.search) query.set('search', params.search);
+        if (params.category) query.set('category', params.category);
+        const url = `/admin/plugins${query.toString() ? '?' + query.toString() : ''}`;
+        return this._fetch(url);
     }
 
     updatePlugin(url, pluginData) {
