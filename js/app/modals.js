@@ -120,8 +120,8 @@ class Modals {
     constructor() {
         this.addModalEl = document.getElementById('addPluginModal');
         this.deleteModalEl = document.getElementById('deleteConfirmModal');
-        this.addModal = new bootstrap.Modal(this.addModalEl);
-        this.deleteModal = new bootstrap.Modal(this.deleteModalEl);
+        this._addModal = null;
+        this._deleteModal = null;
 
         this.pluginUrlInput = document.getElementById('pluginUrl');
         this.bulkPluginUrlsInput = document.getElementById('bulkPluginUrls');
@@ -150,11 +150,25 @@ class Modals {
         this._addEventListeners();
     }
 
+    get addModal() {
+        if (!this._addModal && this.addModalEl && window.bootstrap) {
+            this._addModal = bootstrap.Modal.getOrCreateInstance(this.addModalEl);
+        }
+        return this._addModal;
+    }
+
+    get deleteModal() {
+        if (!this._deleteModal && this.deleteModalEl && window.bootstrap) {
+            this._deleteModal = bootstrap.Modal.getOrCreateInstance(this.deleteModalEl);
+        }
+        return this._deleteModal;
+    }
+
     _addEventListeners() {
-        this.fetchButton.addEventListener('click', () => this.handleFetch());
-        this.confirmYes.addEventListener('click', () => this.handleAddConfirm());
-        this.confirmNo.addEventListener('click', () => this.handleAddCancel());
-        this.confirmDeleteButton.addEventListener('click', () => this.handleDeleteConfirm());
+        if (this.fetchButton) this.fetchButton.addEventListener('click', () => this.handleFetch());
+        if (this.confirmYes) this.confirmYes.addEventListener('click', () => this.handleAddConfirm());
+        if (this.confirmNo) this.confirmNo.addEventListener('click', () => this.handleAddCancel());
+        if (this.confirmDeleteButton) this.confirmDeleteButton.addEventListener('click', () => this.handleDeleteConfirm());
 
         if (this.selectAllBtn) {
             this.selectAllBtn.addEventListener('click', () => this._toggleAllBulkCheckboxes(true));
@@ -195,7 +209,9 @@ class Modals {
             });
         }
 
-        this.deleteModalEl.addEventListener('shown.bs.modal', () => this.startDeleteAnimation());
+        if (this.deleteModalEl) {
+            this.deleteModalEl.addEventListener('shown.bs.modal', () => this.startDeleteAnimation());
+        }
     }
 
     async handleFetch() {
