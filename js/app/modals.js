@@ -1,5 +1,6 @@
 import API from './api.js';
 import UI from './ui.js';
+import i18n from './i18n.js';
 
 function ensureAlertModalExists() {
     let modalEl = document.getElementById('genericAlertModal');
@@ -14,13 +15,13 @@ function ensureAlertModalExists() {
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="genericAlertModalTitle">
-                            <i class="fas fa-info-circle me-2 text-primary" id="genericAlertModalIcon"></i><span id="genericAlertModalTitleText">Melding</span>
+                            <i class="fas fa-info-circle me-2 text-primary" id="genericAlertModalIcon"></i><span id="genericAlertModalTitleText">${i18n.t('common.confirm')}</span>
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body" id="genericAlertModalBody"></div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="genericAlertOkBtn">OK</button>
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="genericAlertOkBtn">${i18n.t('common.ok')}</button>
                     </div>
                 </div>
             </div>`;
@@ -42,14 +43,14 @@ function ensureConfirmModalExists() {
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="genericConfirmModalTitle">
-                            <i class="fas fa-question-circle me-2 text-warning" id="genericConfirmModalIcon"></i><span id="genericConfirmModalTitleText">Bevestiging</span>
+                            <i class="fas fa-question-circle me-2 text-warning" id="genericConfirmModalIcon"></i><span id="genericConfirmModalTitleText">${i18n.t('common.confirm')}</span>
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body" id="genericConfirmModalBody"></div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="genericConfirmCancelBtn">Annuleren</button>
-                        <button type="button" class="btn btn-danger" id="genericConfirmOkBtn">Bevestigen</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="genericConfirmCancelBtn">${i18n.t('common.cancel')}</button>
+                        <button type="button" class="btn btn-danger" id="genericConfirmOkBtn">${i18n.t('common.confirm')}</button>
                     </div>
                 </div>
             </div>`;
