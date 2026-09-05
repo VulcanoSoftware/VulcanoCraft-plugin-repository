@@ -27,7 +27,7 @@
           <div class="modal-header">
             <h5 class="modal-title" id="addPluginModalLabel">
               <img class="modal-icon" src="images/add-icon.png" alt="Toevoegen" loading="lazy">
-              Plugin toevoegen
+              <span data-i18n="modal.add_title">Plugin toevoegen</span>
             </h5>
             <button class="btn-close" data-bs-dismiss="modal" type="button" aria-label="Close"></button>
           </div>
@@ -36,12 +36,12 @@
               <ul class="nav nav-tabs mb-3" id="addPluginTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                   <button class="nav-link active" id="singleUrlTab" data-bs-toggle="tab" data-bs-target="#singleUrlPane" type="button" role="tab" aria-controls="singleUrlPane" aria-selected="true">
-                    <i class="fas fa-link me-1"></i> Enkele URL
+                    <i class="fas fa-link me-1"></i> <span data-i18n="modal.single_url">Enkele URL</span>
                   </button>
                 </li>
                 <li class="nav-item" role="presentation">
                   <button class="nav-link" id="bulkUrlTab" data-bs-toggle="tab" data-bs-target="#bulkUrlPane" type="button" role="tab" aria-controls="bulkUrlPane" aria-selected="false">
-                    <i class="fas fa-layer-group me-1"></i> Meerdere URL's (Bulk)
+                    <i class="fas fa-layer-group me-1"></i> <span data-i18n="modal.bulk_urls">Meerdere URL's (Bulk)</span>
                   </button>
                 </li>
               </ul>
@@ -131,17 +131,17 @@
 
               <div class="confirmation-question">
                 <img class="info-icon" src="images/details-icon.png" alt="Vraag" loading="lazy">
-                <span id="confirmationQuestionText">Is dit de correcte plugin?</span>
+                <span id="confirmationQuestionText" data-i18n="modal.confirm_question">Is dit de correcte plugin?</span>
               </div>
 
               <div class="confirmation-buttons">
                 <button class="btn btn-yes" id="confirmYes" type="button">
                   <img class="btn-icon" src="images/confirm-icon.png" alt="Ja">
-                  Ja, toevoegen
+                  <span data-i18n="modal.yes_add">Ja, toevoegen</span>
                 </button>
                 <button class="btn btn-no" id="confirmNo" type="button">
                   <img class="btn-icon" src="images/cancel-icon.png" alt="Nee">
-                  Annuleren
+                  <span data-i18n="common.cancel">Annuleren</span>
                 </button>
               </div>
             </div>
@@ -364,6 +364,26 @@
 
     <div class="container-fluid my-5">
       <header class="text-center mb-5 position-relative">
+        <!-- Language Selector Dropdown (Top Right) -->
+        <div class="dropdown position-absolute top-0 end-0 me-3 mt-2 z-3" id="languageDropdownContainer">
+          <button class="btn btn-outline-light dropdown-toggle d-inline-flex align-items-center gap-2" type="button" id="languageDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+            <img src="images/flags/nl.svg" id="currentLanguageFlag" alt="NL" width="22" height="16" class="rounded-1 shadow-sm">
+            <span id="currentLanguageText">Nederlands</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="languageDropdownBtn" style="background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.15) !important;">
+            <li>
+              <a class="dropdown-item d-flex align-items-center gap-2 text-light py-2" href="#" id="langSelectNl">
+                <img src="images/flags/nl.svg" alt="NL" width="22" height="16" class="rounded-1 shadow-sm"> Nederlands
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item d-flex align-items-center gap-2 text-light py-2" href="#" id="langSelectEn">
+                <img src="images/flags/gb.svg" alt="EN" width="22" height="16" class="rounded-1 shadow-sm"> English
+              </a>
+            </li>
+          </ul>
+        </div>
+
         <h1 class="ml9 text-center position-relative">
           <div>
             <img class="header-icon mb-4" src="images/plugin-repo-icon.png" alt="Plugin Repository" loading="lazy">
@@ -372,41 +392,42 @@
             </span>
           </div>
         </h1>
-        <p class="lead text-light">Overzicht van alle beschikbare plugins</p>
+        <p class="lead text-light" data-i18n="app.subtitle">Overzicht van alle beschikbare plugins</p>
 
         <!-- Auth buttons -->
-        <div class="btn-container text-center">
-          <div id="authButtons">
-            <a class="btn btn-outline-light me-2" href="/login-page">
-              <i class="fas fa-sign-in-alt me-2"></i>Inloggen
+        <div class="btn-container text-center d-flex flex-wrap align-items-center justify-content-center gap-2">
+          <div id="authButtons" class="align-items-center flex-wrap gap-2">
+            <a class="btn btn-outline-light" href="/login-page">
+              <i class="fas fa-sign-in-alt me-2"></i><span data-i18n="nav.login">Inloggen</span>
             </a>
             <button class="btn btn-outline-info" id="exportTxtBtn" type="button" title="Exporteer huidige plugin lijst als TXT">
-              <i class="fas fa-file-download me-1"></i> Exporteer TXT
+              <i class="fas fa-file-download me-1"></i> <span data-i18n="nav.export_txt">Exporteer TXT</span>
             </button>
           </div>
-          <div id="userButtons" style="display: none">
-            <span class="text-light me-3">Welkom, <span id="username"></span></span>
-            <a class="btn btn-outline-light me-2" href="/change_password">Wachtwoord Wijzigen</a>
-            <button class="btn button-creative btn-lg floating-add-btn me-2" data-bs-target="#addPluginModal" data-bs-toggle="modal" type="button">
+          <div id="userButtons" style="display: none !important" class="align-items-center flex-wrap gap-2">
+            <span class="text-light me-2"><span data-i18n="nav.welcome">Welkom</span>, <span id="username"></span></span>
+            <a class="btn btn-outline-light me-1" href="/change_password" data-i18n="nav.change_password">Wachtwoord Wijzigen</a>
+            <button class="btn button-creative btn-lg floating-add-btn me-1" data-bs-target="#addPluginModal" data-bs-toggle="modal" type="button">
               <img class="btn-icon-lg" src="images/add-icon.png" alt="Toevoegen">
-              Toevoegen
+              <span data-i18n="nav.add">Toevoegen</span>
             </button>
-            <button class="btn btn-outline-info me-2" id="exportTxtUserBtn" type="button" title="Exporteer huidige plugin lijst als TXT">
-              <i class="fas fa-file-download me-1"></i> Exporteer TXT
+            <button class="btn btn-outline-info me-1" id="exportTxtUserBtn" type="button" title="Exporteer huidige plugin lijst als TXT">
+              <i class="fas fa-file-download me-1"></i> <span data-i18n="nav.export_txt">Exporteer TXT</span>
             </button>
-            <button class="btn btn-outline-warning me-2" id="replaceTxtBtn" type="button" title="Vervang huidige lijst door TXT bestand">
-              <i class="fas fa-file-import me-1"></i> Lijst Vervangen (TXT)
+            <button class="btn btn-outline-warning me-1" id="replaceTxtBtn" type="button" title="Vervang huidige lijst door TXT bestand">
+              <i class="fas fa-file-import me-1"></i> <span data-i18n="nav.replace_txt">Lijst Vervangen (TXT)</span>
             </button>
-            <button class="btn btn-outline-success me-2" id="appendTxtBtn" type="button" title="Voeg plugins uit TXT bestand toe">
-              <i class="fas fa-file-upload me-1"></i> TXT Bijvoegen
+            <button class="btn btn-outline-success me-1" id="appendTxtBtn" type="button" title="Voeg plugins uit TXT bestand toe">
+              <i class="fas fa-file-upload me-1"></i> <span data-i18n="nav.append_txt">TXT Bijvoegen</span>
             </button>
-            <a class="btn btn-outline-warning me-2" id="adminBtn" href="/admin" style="display: none">
-              <i class="fas fa-cog me-2"></i>Admin
+            <a class="btn btn-outline-warning me-1" id="adminBtn" href="/admin" style="display: none">
+              <i class="fas fa-cog me-2"></i><span data-i18n="nav.admin">Admin</span>
             </a>
-            <button class="btn btn-outline-light" id="logoutBtn" type="button">
-              <i class="fas fa-sign-out-alt me-2"></i>Uitloggen
+            <button class="btn btn-outline-light me-1" id="logoutBtn" type="button">
+              <i class="fas fa-sign-out-alt me-2"></i><span data-i18n="nav.logout">Uitloggen</span>
             </button>
           </div>
+
           <input type="file" id="replaceFileInput" accept=".txt" style="display: none;">
           <input type="file" id="appendFileInput" accept=".txt" style="display: none;">
         </div>
@@ -421,7 +442,7 @@
               <div class="card-body">
                 <h5 class="card-title">
                   <img class="section-icon" src="images/categories-icon.svg" alt="Categorieën">
-                  Server Categorieën
+                  <span data-i18n="sidebar.title">Server Categorieën</span>
                 </h5>
                 <ul id="categorySidebar" class="list-unstyled category-list mt-3">
                   <li class="category-item active" data-category="">Alles <span class="badge bg-primary rounded-pill ms-auto">0</span></li>
@@ -441,33 +462,33 @@
                     <div class="col-lg-4 col-md-6">
                       <label class="form-label fw-bold" for="searchInput">
                         <img class="input-icon" src="images/fetch-icon.png" alt="Zoeken" loading="lazy">
-                        Zoeken
+                        <span data-i18n="filters.search_label">Zoeken</span>
                       </label>
-                      <input class="form-control search-input" id="searchInput" type="text" placeholder="Zoek plugins...">
+                      <input class="form-control search-input" id="searchInput" type="text" placeholder="Zoek plugins..." data-i18n-placeholder="filters.search_placeholder">
                     </div>
                     <div class="col-lg-3 col-md-6">
                       <label class="form-label fw-bold" for="versionFilter">
                         <img class="input-icon" src="images/version-icon.png" alt="Versie" loading="lazy">
-                        Versie
+                        <span data-i18n="filters.version_label">Versie</span>
                       </label>
                       <select class="form-select version-filter" id="versionFilter">
-                        <option value="">Alle versies</option>
+                        <option value="" data-i18n="filters.all_versions">Alle versies</option>
                       </select>
                     </div>
                     <div class="col-lg-5 col-md-12">
                       <label class="form-label fw-bold" for="sortSelect">
                         <i class="fas fa-sort me-1"></i>
-                        Sorteren
+                        <span data-i18n="filters.sort_label">Sorteren</span>
                       </label>
                       <select class="form-select version-filter" id="sortSelect">
-                        <option value="name_asc">Naam (A-Z)</option>
-                        <option value="name_desc">Naam (Z-A)</option>
-                        <option value="platform_asc">Platform (A-Z)</option>
-                        <option value="platform_desc">Platform (Z-A)</option>
-                        <option value="updated_desc">Laatste wijziging (Nieuwste)</option>
-                        <option value="updated_asc">Laatste wijziging (Oudste)</option>
-                        <option value="added_desc">Recent toegevoegd (Nieuwste)</option>
-                        <option value="added_asc">Recent toegevoegd (Oudste)</option>
+                        <option value="name_asc" data-i18n="filters.sort_name_asc">Naam (A-Z)</option>
+                        <option value="name_desc" data-i18n="filters.sort_name_desc">Naam (Z-A)</option>
+                        <option value="platform_asc" data-i18n="filters.sort_platform_asc">Platform (A-Z)</option>
+                        <option value="platform_desc" data-i18n="filters.sort_platform_desc">Platform (Z-A)</option>
+                        <option value="updated_desc" data-i18n="filters.sort_updated_desc">Laatste wijziging (Nieuwste)</option>
+                        <option value="updated_asc" data-i18n="filters.sort_updated_asc">Laatste wijziging (Oudste)</option>
+                        <option value="added_desc" data-i18n="filters.sort_added_desc">Recent toegevoegd (Nieuwste)</option>
+                        <option value="added_asc" data-i18n="filters.sort_added_asc">Recent toegevoegd (Oudste)</option>
                       </select>
                     </div>
                   </div>
@@ -548,7 +569,7 @@
         </div>
 
         <div class="row justify-content-center">
-          <div class="col-xxl-10 col-xl-11 col-lg-12">
+          <div class="col-lg-10">
             <div id="categoryHeaderActionContainer" class="card shadow-sm border-0 mb-3 p-3 text-light" style="display: none; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1) !important;">
               <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div class="d-flex align-items-center gap-2">
@@ -574,24 +595,27 @@
           </div>
         </div>
 
-        <!-- Pagination Controls Section -->
-        <div class="row justify-content-center mt-4 mb-3" id="paginationContainer" style="display: none;">
-          <div class="col-xxl-10 col-xl-11 col-lg-12 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-            <div class="d-flex align-items-center gap-2">
-              <label for="perPageSelect" class="form-label mb-0 fw-bold text-light">Aantal per pagina:</label>
-              <select id="perPageSelect" class="form-select form-select-sm w-auto">
-                <option value="10">10</option>
-                <option value="20" selected>20</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-                <option value="0">oneindig</option>
-              </select>
+        <!-- Pagination Controls Section (Always Visible) -->
+        <div class="row justify-content-center mt-4 mb-3" id="paginationContainer">
+          <div class="col-xxl-10 col-xl-11 col-lg-12">
+            <div class="pagination-bar-card d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+              <div class="d-flex align-items-center gap-2">
+                <i class="fas fa-list-numeric text-info fs-5 me-1"></i>
+                <label for="perPageSelect" class="form-label mb-0 fw-bold text-light" data-i18n="pagination.per_page_label">Aantal per pagina:</label>
+                <select id="perPageSelect" class="form-select form-select-sm w-auto per-page-dropdown">
+                  <option value="10">10</option>
+                  <option value="20" selected>20</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                  <option value="0" data-i18n="pagination.all">oneindig</option>
+                </select>
+              </div>
+              <nav aria-label="Plugin paginering">
+                <ul class="pagination pagination-md mb-0" id="paginationControls">
+                  <!-- Dynamic pagination buttons -->
+                </ul>
+              </nav>
             </div>
-            <nav aria-label="Plugin paginering">
-              <ul class="pagination pagination-md mb-0" id="paginationControls">
-                <!-- Dynamic pagination buttons -->
-              </ul>
-            </nav>
           </div>
         </div>
         </div>

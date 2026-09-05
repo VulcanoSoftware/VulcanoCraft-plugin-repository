@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request, send_file, session
 import os
+import math
 import json as json_module
 import subprocess
 import sys
@@ -764,7 +765,7 @@ def login():
                     new_hash = hash_password(password)
                     db.users.update_one({"username": username}, {"$set": {"password": new_hash}})
                 session['user'] = user['username']
-                return jsonify({'success': True})
+                return jsonify({'success': True, 'language': user.get('language', 'nl')})
 
         return jsonify({'error': 'Ongeldige inloggegevens'}), 401
             
@@ -1125,8 +1126,25 @@ def auth_status():
     return jsonify({
         'logged_in': 'user' in session, 
         'username': session.get('user'),
-        'role': user.get('role', 'user') if user else 'user'
+        'role': user.get('role', 'user') if user else 'user',
+        'language': user.get('language', 'nl') if user else 'nl'
     })
+
+@app.route('/api/user/language', methods=['POST'])
+@require_login
+def update_user_language():
+    """Update user language preference"""
+    username = session.get('user')
+    data = request.get_json() or {}
+    lang = data.get('language', 'nl')
+    if lang not in ['nl', 'en']:
+        return jsonify({'error': 'Ongeldige taal'}), 400
+
+    try:
+        db.users.update_one({'username': username}, {'$set': {'language': lang}})
+        return jsonify({'success': True, 'language': lang})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/registration-status')
 def registration_status():
@@ -1151,20 +1169,23 @@ def admin_login():
     password = raw_password if isinstance(raw_password, str) else ''
 
     if not username or not password:
-        return jsonify({'error': 'Invalid credentials'}), 401
+        return jsonify({'error': 'Gebruikersnaam en wachtwoord vereist'}), 400
 
     users = load_users()
     user = next((u for u in users if u['username'] == username), None)
 
-    if user and user.get('role') in ['admin', 'co-admin']:
+    if user:
         is_valid, needs_rehash = verify_password(user.get('password', ''), password)
         if is_valid:
+            if user.get('role') not in ['admin', 'co-admin']:
+                return jsonify({'error': 'Dit account heeft geen beheerdersrechten (admin/co-admin)'}), 403
             if needs_rehash:
                 new_hash = hash_password(password)
                 db.users.update_one({"username": username}, {"$set": {"password": new_hash}})
             session['user'] = username
             return jsonify({'success': True, 'role': user.get('role')})
-    return jsonify({'error': 'Invalid credentials'}), 401
+
+    return jsonify({'error': 'Ongeldige inloggegevens'}), 401
 
 @app.route('/admin/logout', methods=['POST'])
 def admin_logout():
@@ -1176,26 +1197,62 @@ def admin_logout():
 def admin_check_session():
     """Check admin session status"""
     user = get_current_user()
-    if user and user.get('role') in ['admin', 'co-admin']:
-        return jsonify({'logged_in': True, 'role': user.get('role'), 'username': user.get('username')})
-    return jsonify({'logged_in': False})
+    if user:
+        if user.get('role') in ['admin', 'co-admin']:
+            return jsonify({'logged_in': True, 'authorized': True, 'role': user.get('role'), 'username': user.get('username')})
+        return jsonify({'logged_in': True, 'authorized': False, 'role': user.get('role', 'user'), 'username': user.get('username')})
+    return jsonify({'logged_in': False, 'authorized': False})
 
 @app.route('/admin/users', methods=['GET'])
 @require_co_admin
 def admin_get_users():
-    """Haal alle gebruikers op met plugin counts"""
+    """Haal alle gebruikers op met optionele paginering en zoekfunctie"""
     users = load_users()
     plugins = load_plugins()
     
+    search = request.args.get('search', '').strip().lower()
+
     user_data = []
     for u in users:
-        plugin_count = len([p for p in plugins if p.get('owner') == u['username']])
+        uname = u['username']
+        if search and search not in uname.lower():
+            continue
+        plugin_count = len([p for p in plugins if p.get('owner') == uname])
         user_data.append({
-            'username': u['username'], 
+            'username': uname,
             'role': u.get('role', 'user'),
             'plugin_count': plugin_count
         })
     
+    if 'page' in request.args or 'per_page' in request.args or 'search' in request.args:
+        try:
+            page = int(request.args.get('page', 1))
+        except ValueError:
+            page = 1
+        try:
+            per_page = int(request.args.get('per_page', 20))
+        except ValueError:
+            per_page = 20
+
+        total = len(user_data)
+        if per_page > 0:
+            total_pages = math.ceil(total / per_page) if total > 0 else 1
+            page = max(1, min(page, total_pages))
+            start = (page - 1) * per_page
+            paginated_users = user_data[start:start + per_page]
+        else:
+            total_pages = 1
+            page = 1
+            paginated_users = user_data
+
+        return jsonify({
+            'users': paginated_users,
+            'total': total,
+            'page': page,
+            'per_page': per_page,
+            'total_pages': total_pages
+        })
+
     return jsonify(user_data)
 
 @app.route('/admin/categories', methods=['GET'])
@@ -1359,8 +1416,56 @@ def admin_change_role(username):
 @app.route('/admin/plugins', methods=['GET'])
 @require_co_admin
 def admin_get_plugins():
-    """Haal alle plugins op"""
-    return jsonify(load_plugins())
+    """Haal alle plugins op met optionele paginering en zoek/categorie filters"""
+    all_plugins = load_plugins()
+
+    search = request.args.get('search', '').strip().lower()
+    category = request.args.get('category', '').strip()
+
+    filtered_plugins = []
+    for p in all_plugins:
+        if category:
+            cats = p.get('categories') or ([p.get('category')] if p.get('category') else [])
+            if category not in cats and p.get('category') != category:
+                continue
+        if search:
+            title = (p.get('title') or '').lower()
+            author = (p.get('author') or '').lower()
+            url = (p.get('url') or '').lower()
+            if search not in title and search not in author and search not in url:
+                continue
+        filtered_plugins.append(p)
+
+    if 'page' in request.args or 'per_page' in request.args or 'search' in request.args or 'category' in request.args:
+        try:
+            page = int(request.args.get('page', 1))
+        except ValueError:
+            page = 1
+        try:
+            per_page = int(request.args.get('per_page', 20))
+        except ValueError:
+            per_page = 20
+
+        total = len(filtered_plugins)
+        if per_page > 0:
+            total_pages = math.ceil(total / per_page) if total > 0 else 1
+            page = max(1, min(page, total_pages))
+            start = (page - 1) * per_page
+            paginated_plugins = filtered_plugins[start:start + per_page]
+        else:
+            total_pages = 1
+            page = 1
+            paginated_plugins = filtered_plugins
+
+        return jsonify({
+            'plugins': paginated_plugins,
+            'total': total,
+            'page': page,
+            'per_page': per_page,
+            'total_pages': total_pages
+        })
+
+    return jsonify(filtered_plugins)
 
 @app.route('/admin/plugins/<path:url>', methods=['DELETE'])
 @require_co_admin

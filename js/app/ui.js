@@ -1,3 +1,5 @@
+import i18n from './i18n.js';
+
 class UI {
     constructor() {
         this.pluginsContainer = document.getElementById('pluginsContainer');
@@ -16,7 +18,7 @@ class UI {
 
     renderPlugins(plugins, authStatus, currentUser) {
         if (plugins.length === 0) {
-            this.showEmptyMessage('Nog geen plugins beschikbaar.');
+            this.showEmptyMessage(i18n.t('common.no_plugins'));
             return;
         }
 
@@ -38,12 +40,14 @@ class UI {
         const { logged_in, role } = authStatus;
         const formattedVersions = this._formatVersions(plugin.versions || '');
         const formattedLoaders = this._formatLoaders(plugin.loaders);
+        const formattedAuthors = this._formatAuthors(plugin.author);
         const domain = this._getDomainFromUrl(plugin.url || '');
-        const ownerInfo = plugin.owner ? `<small class="text-muted ms-2">door ${plugin.owner}</small>` : '';
+        const ownerInfo = plugin.owner ? `<small class="text-muted ms-2">${i18n.t('common.by')} ${plugin.owner}</small>` : '';
         const canDelete = logged_in && (role === 'admin' || role === 'co-admin' || plugin.owner === currentUser);
-        const firstLetter = (plugin.title || 'P')[0].toUpperCase();
+        const titleText = plugin.title || i18n.t('common.no_title');
+        const firstLetter = (titleText)[0].toUpperCase();
         const iconHtml = plugin.icon
-            ? `<img src="${plugin.icon}" alt="${plugin.title} icon" class="plugin-icon me-3" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="plugin-icon-letter me-3" style="display:none;">${firstLetter}</div>`
+            ? `<img src="${plugin.icon}" alt="${titleText} icon" class="plugin-icon me-3" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="plugin-icon-letter me-3" style="display:none;">${firstLetter}</div>`
             : `<div class="plugin-icon-letter me-3">${firstLetter}</div>`;
 
         return `
@@ -53,34 +57,36 @@ class UI {
                         <div class="d-flex align-items-center">
                             ${iconHtml}
                             <div>
-                                <h5 class="card-title mb-0">${plugin.title || 'Geen titel'}${ownerInfo}</h5>
+                                <h5 class="card-title mb-0">${titleText}${ownerInfo}</h5>
                             </div>
                         </div>
                         <div>
                             <span class="domain-badge">${domain}</span>
                             ${canDelete ? `
                                 <button class="btn btn-delete ms-2 delete-btn" data-url="${plugin.url}" data-title="${plugin.title}" data-category-context="${plugin._categoryContext || ''}">
-                                    <img src="images/delete-icon.png" class="btn-icon" alt="Verwijderen">
+                                    <img src="images/delete-icon.png" class="btn-icon" alt="${i18n.t('common.delete')}">
                                 </button>` : ''
                             }
                         </div>
                     </div>
                     <div class="card-body">
-                        <p class="card-text description">${plugin.description || 'Geen beschrijving beschikbaar'}</p>
+                        <p class="card-text description">${plugin.description || i18n.t('common.no_description')}</p>
                         <div class="row mb-3">
-                            <div class="col-md-6">
-                                <div class="plugin-info">
-                                    <strong><img src="images/author-icon.png" class="info-icon" alt="Auteur"> Auteur:</strong>
-                                    <span class="author-badge">${plugin.author || 'Onbekend'}</span>
+                            <div class="col-12">
+                                <div class="plugin-info d-flex align-items-center flex-wrap gap-2">
+                                    <strong><img src="images/author-icon.png" class="info-icon" alt="Auteur"> <span data-i18n="common.author">Auteur</span>:</strong>
+                                    <div class="authors-container d-inline-flex flex-wrap gap-1 align-items-center">
+                                        ${formattedAuthors}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         <div class="versions-section">
-                            <strong><img src="images/version-icon.png" class="info-icon" alt="Versies"> Ondersteunde Versies:</strong>
+                            <strong><img src="images/version-icon.png" class="info-icon" alt="Versies"> <span data-i18n="common.supported_versions">Ondersteunde Versies</span>:</strong>
                             <div class="versions-container">${formattedVersions}</div>
                         </div>
                         <div class="loaders-section mt-3">
-                            <strong><img src="images/plugin-repo-icon.png" class="info-icon" alt="Loaders"> Ondersteunde Loaders:</strong>
+                            <strong><img src="images/plugin-repo-icon.png" class="info-icon" alt="Loaders"> <span data-i18n="common.supported_loaders">Ondersteunde Loaders</span>:</strong>
                             <div class="loaders-container">${formattedLoaders}</div>
                         </div>
                     </div>
@@ -88,7 +94,7 @@ class UI {
                         <div class="d-flex justify-content-between align-items-center">
                             <a href="${plugin.url || '#'}" class="btn btn-primary" target="_blank">
                                 <img src="images/external-link-icon.png" class="btn-icon" alt="Externe link">
-                                Bekijk Plugin
+                                ${i18n.t('common.view_plugin')}
                             </a>
                             <div class="url-container">
                                 <small class="text-muted plugin-url" title="${plugin.url || ''}">
@@ -102,15 +108,41 @@ class UI {
             </div>`;
     }
 
+    _formatAuthors(authorInput) {
+        if (!authorInput) {
+            return `<span class="author-badge" data-i18n="common.unknown">Onbekend</span>`;
+        }
+
+        let authors = [];
+        if (Array.isArray(authorInput)) {
+            authors = authorInput.map(a => String(a).trim()).filter(Boolean);
+        } else if (typeof authorInput === 'string') {
+            const str = authorInput.trim();
+            if (str.includes(',')) {
+                authors = str.split(',').map(a => a.trim()).filter(Boolean);
+            } else {
+                authors = str.split(/\s+/).map(a => a.trim()).filter(Boolean);
+            }
+        }
+
+        authors = Array.from(new Set(authors));
+
+        if (authors.length === 0) {
+            return `<span class="author-badge" data-i18n="common.unknown">Onbekend</span>`;
+        }
+
+        return authors.map(a => `<span class="author-badge">${a}</span>`).join('');
+    }
+
     _formatVersions(versionsString) {
-        if (!versionsString) return '<span class="badge bg-secondary">Geen versies</span>';
+        if (!versionsString) return `<span class="badge bg-secondary">${i18n.t('common.no_versions')}</span>`;
         const versions = versionsString.split(' ').filter(v => v);
-        if (versions.length === 0) return '<span class="badge bg-secondary">Geen versies</span>';
+        if (versions.length === 0) return `<span class="badge bg-secondary">${i18n.t('common.no_versions')}</span>`;
         return versions.map((version, i) => `<span class="version-badge" style="animation-delay: ${i * 100}ms">${version}</span>`).join('');
     }
 
     _formatLoaders(loaders) {
-        if (!loaders || loaders.length === 0) return '<span class="badge bg-secondary">Geen loaders</span>';
+        if (!loaders || loaders.length === 0) return `<span class="badge bg-secondary">${i18n.t('common.no_loaders')}</span>`;
         return loaders.map(loader => `<span class="loader-badge">${loader}</span>`).join('');
     }
 
@@ -144,7 +176,7 @@ class UI {
         });
 
         const currentValue = this.versionFilter.value;
-        this.versionFilter.innerHTML = '<option value="">Alle versies</option>';
+        this.versionFilter.innerHTML = `<option value="" data-i18n="filters.all_versions">${i18n.t('filters.all_versions')}</option>`;
         sortedVersions.forEach(version => {
             const option = document.createElement('option');
             option.value = version;
@@ -213,7 +245,9 @@ class UI {
             (a.name || '').localeCompare(b.name || '')
         );
 
-        list.innerHTML = `<li class="category-item ${activeCategory === '' ? 'active' : ''}" data-category="">Alles <span class="badge bg-primary rounded-pill ms-auto" title="Totaal aantal plugins op het platform">0 plugins</span></li>`;
+        const allText = i18n.t('sidebar.all');
+        const pluginsWord = i18n.t('common.plugins');
+        list.innerHTML = `<li class="category-item ${activeCategory === '' ? 'active' : ''}" data-category="">${allText} <span class="badge bg-primary rounded-pill ms-auto">0 ${pluginsWord}</span></li>`;
 
         sortedCategories.forEach(cat => {
             const categoryName = cat.name;
@@ -268,7 +302,7 @@ class UI {
                 const num = (categoryName === '')
                     ? (totalAllCount !== undefined ? totalAllCount : totalAssignments)
                     : (categoryCountsMap[categoryName] || 0);
-                badge.textContent = `${num} ${num === 1 ? 'plugin' : 'plugins'}`;
+                badge.textContent = `${num} ${num === 1 ? i18n.t('common.plugin') : i18n.t('common.plugins')}`;
                 badge.title = categoryName === ''
                     ? `Totaal aantal beschikbare plugins (${num})`
                     : `Aantal plugins in categorie ${categoryName} (${num})`;
@@ -282,7 +316,7 @@ class UI {
         this.paginationContainer.style.display = 'flex';
 
         if (totalPages <= 1) {
-            this.paginationControls.innerHTML = '';
+            this.paginationControls.innerHTML = `<li class="page-item active"><span class="page-link">1</span></li>`;
             return;
         }
 
@@ -344,13 +378,13 @@ class UI {
 
     updateAuthUI(authData) {
         if (authData.logged_in) {
-            this.authButtons.style.display = 'none';
-            this.userButtons.style.display = 'flex';
+            this.authButtons.style.setProperty('display', 'none', 'important');
+            this.userButtons.style.setProperty('display', 'flex', 'important');
             this.username.textContent = authData.username;
             this.adminBtn.style.display = (authData.role === 'admin' || authData.role === 'co-admin') ? 'inline-block' : 'none';
         } else {
-            this.authButtons.style.display = 'block';
-            this.userButtons.style.display = 'none';
+            this.authButtons.style.setProperty('display', 'flex', 'important');
+            this.userButtons.style.setProperty('display', 'none', 'important');
         }
     }
 
@@ -358,7 +392,7 @@ class UI {
         if (!this.resultsCounter) {
             this.resultsCounter = document.createElement('div');
             this.resultsCounter.id = 'resultsCounter';
-            this.resultsCounter.className = 'mb-4';
+            this.resultsCounter.className = 'row justify-content-center mb-4';
             this.pluginsContainer.parentNode.insertBefore(this.resultsCounter, this.pluginsContainer);
         }
 
@@ -366,46 +400,71 @@ class UI {
         const filtered = totalFilteredCount !== undefined ? totalFilteredCount : 0;
         const onPage = pluginsOnCurrentPageCount !== undefined ? pluginsOnCurrentPageCount : 0;
 
+        const totalLabel = i18n.t('counter.total');
+        const filteredLabel = i18n.t('counter.filtered');
+        const shownLabel = i18n.t('counter.shown');
+        const pluginWord = (n) => n === 1 ? i18n.t('common.plugin') : i18n.t('common.plugins');
+
+        const colsClass = activeCategory ? 'row-cols-1 row-cols-sm-2 row-cols-lg-4' : 'row-cols-1 row-cols-sm-3';
+
         let html = `
-            <div class="card shadow-sm border-0 p-3 text-light" style="background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1) !important;">
-                <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 text-center">
-                    <div class="counter-badge-item d-flex align-items-center gap-2 px-3 py-2 rounded" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
-                        <i class="fas fa-database text-primary fs-5"></i>
-                        <div class="text-start">
-                            <small class="d-block text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Totaal op platform</small>
-                            <span class="fw-bold fs-6 text-light">${totalAll} ${totalAll === 1 ? 'plugin' : 'plugins'}</span>
+            <div class="col-lg-10">
+                <div class="card counter-bar-card p-3 text-light shadow-sm">
+                    <div class="row g-3 ${colsClass}">
+                    <div class="col">
+                        <div class="counter-badge-item counter-total d-flex align-items-center gap-3">
+                            <div class="counter-icon-box">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <div class="text-start min-w-0">
+                                <div class="counter-label text-truncate" data-i18n="counter.total">${totalLabel}</div>
+                                <div class="counter-value">${totalAll} <span>${pluginWord(totalAll)}</span></div>
+                            </div>
                         </div>
                     </div>`;
 
         if (activeCategory) {
             html += `
-                    <div class="counter-badge-item d-flex align-items-center gap-2 px-3 py-2 rounded" style="background: rgba(13, 202, 240, 0.15); border: 1px solid rgba(13, 202, 240, 0.3);">
-                        <i class="fas fa-folder text-info fs-5"></i>
-                        <div class="text-start">
-                            <small class="d-block text-info text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">In categorie "${activeCategory}"</small>
-                            <span class="fw-bold fs-6 text-light">${filtered} ${filtered === 1 ? 'plugin' : 'plugins'}</span>
+                    <div class="col">
+                        <div class="counter-badge-item counter-category d-flex align-items-center gap-3">
+                            <div class="counter-icon-box">
+                                <i class="fas fa-folder"></i>
+                            </div>
+                            <div class="text-start min-w-0">
+                                <div class="counter-label text-truncate" title="${activeCategory}">${activeCategory}</div>
+                                <div class="counter-value">${filtered} <span>${pluginWord(filtered)}</span></div>
+                            </div>
                         </div>
                     </div>`;
         }
 
         html += `
-                    <div class="counter-badge-item d-flex align-items-center gap-2 px-3 py-2 rounded" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3);">
-                        <i class="fas fa-filter fs-5" style="color: #c084fc;"></i>
-                        <div class="text-start">
-                            <small class="d-block text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px; color: #c084fc;">Gefilterd resultaat</small>
-                            <span class="fw-bold fs-6 text-light">${filtered} ${filtered === 1 ? 'plugin' : 'plugins'}</span>
+                    <div class="col">
+                        <div class="counter-badge-item counter-filtered d-flex align-items-center gap-3">
+                            <div class="counter-icon-box">
+                                <i class="fas fa-filter"></i>
+                            </div>
+                            <div class="text-start min-w-0">
+                                <div class="counter-label text-truncate" data-i18n="counter.filtered">${filteredLabel}</div>
+                                <div class="counter-value">${filtered} <span>${pluginWord(filtered)}</span></div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="counter-badge-item d-flex align-items-center gap-2 px-3 py-2 rounded" style="background: rgba(40, 167, 69, 0.15); border: 1px solid rgba(40, 167, 69, 0.3);">
-                        <i class="fas fa-eye text-success fs-5"></i>
-                        <div class="text-start">
-                            <small class="d-block text-success text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Getoond op pagina</small>
-                            <span class="fw-bold fs-6 text-light">${onPage} ${onPage === 1 ? 'plugin' : 'plugins'}</span>
+                    <div class="col">
+                        <div class="counter-badge-item counter-shown d-flex align-items-center gap-3">
+                            <div class="counter-icon-box">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                            <div class="text-start min-w-0">
+                                <div class="counter-label text-truncate" data-i18n="counter.shown">${shownLabel}</div>
+                                <div class="counter-value">${onPage} <span>${pluginWord(onPage)}</span></div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>`;
+            </div>
+        </div>`;
 
         this.resultsCounter.innerHTML = html;
     }

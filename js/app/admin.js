@@ -1,12 +1,16 @@
 import ApiAdmin from './api-admin.js';
 import { showAlertModal, showConfirmModal } from './modals.js';
+import i18n from './i18n.js';
 
 class AdminPage {
     constructor() {
+        this.adminLoadingState = document.getElementById('adminLoadingState');
         this.loginForm = document.getElementById('loginForm');
+        this.accessDenied = document.getElementById('accessDenied');
         this.adminPanel = document.getElementById('adminPanel');
         this.adminLoginForm = document.getElementById('adminLoginForm');
-        this.logoutBtn = this.adminPanel.querySelector('button');
+        this.logoutBtn = this.adminPanel ? this.adminPanel.querySelector('button') : null;
+        this.adminLogoutBtn = document.getElementById('adminLogoutBtn');
         this.registrationToggle = document.getElementById('registrationToggle');
         this.usersGrid = document.getElementById('usersGrid');
         this.categoriesGrid = document.getElementById('categoriesGrid');
@@ -32,6 +36,16 @@ class AdminPage {
         this.rollbackSyncToHostToggle = document.getElementById('rollbackSyncToHostToggle');
         this.rollbackAlert = document.getElementById('rollbackAlert');
 
+        this.usersPerPageSelect = document.getElementById('usersPerPageSelect');
+        this.pluginsPerPageSelect = document.getElementById('pluginsPerPageSelect');
+        this.usersPaginationControls = document.getElementById('usersPaginationControls');
+        this.pluginsPaginationControls = document.getElementById('pluginsPaginationControls');
+
+        this.usersCurrentPage = 1;
+        this.usersPerPage = 12;
+        this.pluginsCurrentPage = 1;
+        this.pluginsPerPage = 20;
+
         this.commitHistory = [];
         this.currentRole = null;
         this.pluginsCache = [];
@@ -39,23 +53,42 @@ class AdminPage {
     }
 
     async init() {
+        i18n.applyTranslations();
         this._setupEventListeners();
         try {
             const data = await ApiAdmin.checkSession();
-            if (data.logged_in) {
+            if (this.adminLoadingState) this.adminLoadingState.style.display = 'none';
+
+            if (data.logged_in && data.authorized) {
                 this.currentRole = data.role;
                 this._showAdminPanel();
+            } else if (data.logged_in && !data.authorized) {
+                this._showAccessDenied(data.username);
+            } else {
+                this._showLoginForm();
             }
         } catch (error) {
-            // Not logged in
+            if (this.adminLoadingState) this.adminLoadingState.style.display = 'none';
+            this._showLoginForm();
         }
     }
 
     _setupEventListeners() {
-        this.adminLoginForm.addEventListener('submit', (e) => this._handleLogin(e));
-        this.logoutBtn.addEventListener('click', () => this._handleLogout());
-        this.registrationToggle.addEventListener('change', (e) => this._handleRegistrationToggle(e));
-        this.addCategoryBtn.addEventListener('click', () => this._handleAddCategory());
+        if (this.adminLoginForm) {
+            this.adminLoginForm.addEventListener('submit', (e) => this._handleLogin(e));
+        }
+        if (this.logoutBtn) {
+            this.logoutBtn.addEventListener('click', () => this._handleLogout());
+        }
+        if (this.adminLogoutBtn) {
+            this.adminLogoutBtn.addEventListener('click', () => this._handleLogout());
+        }
+        if (this.registrationToggle) {
+            this.registrationToggle.addEventListener('change', (e) => this._handleRegistrationToggle(e));
+        }
+        if (this.addCategoryBtn) {
+            this.addCategoryBtn.addEventListener('click', () => this._handleAddCategory());
+        }
         if (this.newCategoryName) {
             this.newCategoryName.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
@@ -75,6 +108,20 @@ class AdminPage {
         }
         if (this.rollbackCommitSelect) {
             this.rollbackCommitSelect.addEventListener('change', () => this._handleRollbackSelectChange());
+        }
+        if (this.usersPerPageSelect) {
+            this.usersPerPageSelect.addEventListener('change', (e) => {
+                this.usersPerPage = parseInt(e.target.value, 10);
+                this.usersCurrentPage = 1;
+                this._loadUsers();
+            });
+        }
+        if (this.pluginsPerPageSelect) {
+            this.pluginsPerPageSelect.addEventListener('change', (e) => {
+                this.pluginsPerPage = parseInt(e.target.value, 10);
+                this.pluginsCurrentPage = 1;
+                this._loadPlugins();
+            });
         }
 
         this._setupDynamicEventListeners();
@@ -112,9 +159,13 @@ class AdminPage {
 
     async _handleLogin(e) {
         e.preventDefault();
-        const username = document.getElementById('adminUsername').value;
-        const password = document.getElementById('adminPassword').value;
+        const usernameInput = document.getElementById('adminUsername');
+        const passwordInput = document.getElementById('adminPassword');
+        const username = usernameInput ? usernameInput.value : '';
+        const password = passwordInput ? passwordInput.value : '';
         const errorDiv = document.getElementById('loginError');
+
+        if (errorDiv) errorDiv.style.display = 'none';
 
         try {
             const data = await ApiAdmin.login(username, password);
@@ -122,21 +173,46 @@ class AdminPage {
                 this.currentRole = data.role;
                 this._showAdminPanel();
             } else {
-                errorDiv.textContent = data.error;
-                errorDiv.style.display = 'block';
+                if (errorDiv) {
+                    errorDiv.textContent = data.error || 'Ongeldige inloggegevens';
+                    errorDiv.style.display = 'block';
+                }
             }
         } catch (error) {
-            errorDiv.textContent = 'Login failed';
-            errorDiv.style.display = 'block';
+            if (errorDiv) {
+                errorDiv.textContent = error.message || 'Fout bij inloggen';
+                errorDiv.style.display = 'block';
+            }
         }
     }
 
     async _handleLogout() {
         await ApiAdmin.logout();
-        this.loginForm.style.display = 'block';
-        this.adminPanel.style.display = 'none';
-        document.getElementById('adminUsername').value = '';
-        document.getElementById('adminPassword').value = '';
+        if (this.adminPanel) this.adminPanel.style.display = 'none';
+        if (this.accessDenied) this.accessDenied.style.display = 'none';
+        this._showLoginForm();
+        const u = document.getElementById('adminUsername');
+        const p = document.getElementById('adminPassword');
+        if (u) u.value = '';
+        if (p) p.value = '';
+    }
+
+    _showLoginForm() {
+        if (this.adminLoadingState) this.adminLoadingState.style.display = 'none';
+        if (this.adminPanel) this.adminPanel.style.display = 'none';
+        if (this.accessDenied) this.accessDenied.style.display = 'none';
+        if (this.loginForm) this.loginForm.style.display = 'block';
+    }
+
+    _showAccessDenied(username) {
+        if (this.adminLoadingState) this.adminLoadingState.style.display = 'none';
+        if (this.adminPanel) this.adminPanel.style.display = 'none';
+        if (this.loginForm) this.loginForm.style.display = 'none';
+        if (this.accessDenied) {
+            const unEl = document.getElementById('loggedInUsername');
+            if (unEl) unEl.textContent = username || 'gebruiker';
+            this.accessDenied.style.display = 'block';
+        }
     }
 
     async _handleRegistrationToggle(e) {
@@ -526,13 +602,29 @@ class AdminPage {
         this.registrationToggle.checked = data.registration_enabled;
     }
 
-    async _loadUsers() {
-        const users = await ApiAdmin.getUsers();
+    async _loadUsers(page) {
+        if (page !== undefined) this.usersCurrentPage = page;
+        const res = await ApiAdmin.getUsers({ page: this.usersCurrentPage, per_page: this.usersPerPage });
+        const users = Array.isArray(res) ? res : (res.users || []);
+        const total = Array.isArray(res) ? users.length : (res.total || 0);
+        const totalPages = Array.isArray(res) ? 1 : (res.total_pages || 1);
+
         const userBadge = document.getElementById('userCountBadge');
         if (userBadge) {
-            userBadge.innerHTML = `<i class="fas fa-users me-1"></i>Totaal: ${users.length} ${users.length === 1 ? 'gebruiker' : 'gebruikers'}`;
+            userBadge.innerHTML = `<i class="fas fa-users me-1"></i>Totaal: ${total} ${total === 1 ? 'gebruiker' : 'gebruikers'}`;
         }
-        this.usersGrid.innerHTML = users.map(user => this._renderUser(user)).join('');
+        if (users.length === 0) {
+            this.usersGrid.innerHTML = `
+                <div class="col-12 text-center my-3">
+                    <div class="alert alert-info d-flex align-items-center justify-content-center" role="alert">
+                        <img src="images/add-icon.png" class="warning-icon me-2" alt="Geen gebruikers" style="width: 24px; height: 24px;">
+                        ${i18n.t('common.no_users')}
+                    </div>
+                </div>`;
+        } else {
+            this.usersGrid.innerHTML = users.map(user => this._renderUser(user)).join('');
+        }
+        this._renderPaginationControls(this.usersPaginationControls, this.usersCurrentPage, totalPages, (p) => this._loadUsers(p));
     }
 
     async _loadCategories() {
@@ -542,19 +634,92 @@ class AdminPage {
         if (catBadge) {
             catBadge.innerHTML = `<i class="fas fa-tags me-1"></i>Totaal: ${categories.length} ${categories.length === 1 ? 'categorie' : 'categorieën'}`;
         }
-        this.categoriesGrid.innerHTML = categories.map(cat => this._renderCategory(cat)).join('');
+        if (categories.length === 0) {
+            this.categoriesGrid.innerHTML = `
+                <div class="col-12 text-center my-3">
+                    <div class="alert alert-info d-flex align-items-center justify-content-center" role="alert">
+                        <img src="images/add-icon.png" class="warning-icon me-2" alt="Geen categorieën" style="width: 24px; height: 24px;">
+                        ${i18n.t('common.no_categories')}
+                    </div>
+                </div>`;
+        } else {
+            this.categoriesGrid.innerHTML = categories.map(cat => this._renderCategory(cat)).join('');
+        }
     }
 
-    async _loadPlugins() {
-        const [plugins, categories] = await Promise.all([ApiAdmin.getPlugins(), ApiAdmin.getCategories()]);
+    async _loadPlugins(page) {
+        if (page !== undefined) this.pluginsCurrentPage = page;
+        const [resPlugins, categories] = await Promise.all([
+            ApiAdmin.getPlugins({ page: this.pluginsCurrentPage, per_page: this.pluginsPerPage }),
+            ApiAdmin.getCategories()
+        ]);
+        const plugins = Array.isArray(resPlugins) ? resPlugins : (resPlugins.plugins || []);
+        const total = Array.isArray(resPlugins) ? plugins.length : (resPlugins.total || 0);
+        const totalPages = Array.isArray(resPlugins) ? 1 : (resPlugins.total_pages || 1);
+
         this.pluginsCache = plugins || [];
         this.categoriesCache = categories || [];
         const pluginBadge = document.getElementById('pluginCountBadge');
         if (pluginBadge) {
-            pluginBadge.innerHTML = `<i class="fas fa-puzzle-piece me-1"></i>Totaal: ${plugins.length} ${plugins.length === 1 ? 'plugin' : 'plugins'}`;
+            pluginBadge.innerHTML = `<i class="fas fa-puzzle-piece me-1"></i>Totaal: ${total} ${total === 1 ? 'plugin' : 'plugins'}`;
         }
-        this.categoriesGrid.innerHTML = categories.map(cat => this._renderCategory(cat)).join('');
-        this.pluginsGrid.innerHTML = plugins.map(plugin => this._renderPlugin(plugin, categories)).join('');
+
+        if (categories.length === 0) {
+            this.categoriesGrid.innerHTML = `
+                <div class="col-12 text-center my-3">
+                    <div class="alert alert-info d-flex align-items-center justify-content-center" role="alert">
+                        <img src="images/add-icon.png" class="warning-icon me-2" alt="Geen categorieën" style="width: 24px; height: 24px;">
+                        Geen categorieën beschikbaar.
+                    </div>
+                </div>`;
+        } else {
+            this.categoriesGrid.innerHTML = categories.map(cat => this._renderCategory(cat)).join('');
+        }
+
+        if (plugins.length === 0) {
+            this.pluginsGrid.innerHTML = `
+                <div class="col-12 text-center my-3">
+                    <div class="alert alert-info d-flex align-items-center justify-content-center" role="alert">
+                        <img src="images/add-icon.png" class="warning-icon me-2" alt="Geen plugins" style="width: 24px; height: 24px;">
+                        ${i18n.t('common.no_plugins')}
+                    </div>
+                </div>`;
+        } else {
+            this.pluginsGrid.innerHTML = plugins.map(plugin => this._renderPlugin(plugin, categories)).join('');
+        }
+        this._renderPaginationControls(this.pluginsPaginationControls, this.pluginsCurrentPage, totalPages, (p) => this._loadPlugins(p));
+    }
+
+    _renderPaginationControls(container, currentPage, totalPages, onPageClick) {
+        if (!container) return;
+        if (totalPages <= 1) {
+            container.innerHTML = `<li class="page-item active"><span class="page-link">1</span></li>`;
+            return;
+        }
+
+        let html = '';
+        const prevDisabled = currentPage <= 1 ? 'disabled' : '';
+        html += `<li class="page-item ${prevDisabled}"><button class="page-link" data-page="${currentPage - 1}">&laquo;</button></li>`;
+
+        for (let p = 1; p <= totalPages; p++) {
+            const active = p === currentPage ? 'active' : '';
+            html += `<li class="page-item ${active}"><button class="page-link" data-page="${p}">${p}</button></li>`;
+        }
+
+        const nextDisabled = currentPage >= totalPages ? 'disabled' : '';
+        html += `<li class="page-item ${nextDisabled}"><button class="page-link" data-page="${currentPage + 1}">&raquo;</button></li>`;
+
+        container.innerHTML = html;
+
+        container.querySelectorAll('button.page-link').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const page = parseInt(btn.dataset.page, 10);
+                if (page && page !== currentPage && page >= 1 && page <= totalPages) {
+                    onPageClick(page);
+                }
+            });
+        });
     }
 
     _renderUser(user) {

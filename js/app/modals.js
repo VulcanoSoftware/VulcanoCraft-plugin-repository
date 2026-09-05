@@ -1,14 +1,67 @@
 import API from './api.js';
 import UI from './ui.js';
+import i18n from './i18n.js';
+
+function ensureAlertModalExists() {
+    let modalEl = document.getElementById('genericAlertModal');
+    if (!modalEl) {
+        modalEl = document.createElement('div');
+        modalEl.className = 'modal fade';
+        modalEl.id = 'genericAlertModal';
+        modalEl.tabIndex = -1;
+        modalEl.setAttribute('aria-hidden', 'true');
+        modalEl.innerHTML = `
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="genericAlertModalTitle">
+                            <i class="fas fa-info-circle me-2 text-primary" id="genericAlertModalIcon"></i><span id="genericAlertModalTitleText">${i18n.t('common.confirm')}</span>
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="genericAlertModalBody"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="genericAlertOkBtn">${i18n.t('common.ok')}</button>
+                    </div>
+                </div>
+            </div>`;
+        document.body.appendChild(modalEl);
+    }
+    return modalEl;
+}
+
+function ensureConfirmModalExists() {
+    let modalEl = document.getElementById('genericConfirmModal');
+    if (!modalEl) {
+        modalEl = document.createElement('div');
+        modalEl.className = 'modal fade';
+        modalEl.id = 'genericConfirmModal';
+        modalEl.tabIndex = -1;
+        modalEl.setAttribute('aria-hidden', 'true');
+        modalEl.innerHTML = `
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="genericConfirmModalTitle">
+                            <i class="fas fa-question-circle me-2 text-warning" id="genericConfirmModalIcon"></i><span id="genericConfirmModalTitleText">${i18n.t('common.confirm')}</span>
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="genericConfirmModalBody"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="genericConfirmCancelBtn">${i18n.t('common.cancel')}</button>
+                        <button type="button" class="btn btn-danger" id="genericConfirmOkBtn">${i18n.t('common.confirm')}</button>
+                    </div>
+                </div>
+            </div>`;
+        document.body.appendChild(modalEl);
+    }
+    return modalEl;
+}
 
 export function showAlertModal(message, title = 'Melding', iconClass = 'fas fa-info-circle text-primary') {
     return new Promise((resolve) => {
-        const modalEl = document.getElementById('genericAlertModal');
-        if (!modalEl) {
-            alert(message);
-            resolve();
-            return;
-        }
+        const modalEl = ensureAlertModalExists();
         const titleTextEl = document.getElementById('genericAlertModalTitleText');
         const bodyEl = document.getElementById('genericAlertModalBody');
         const iconEl = document.getElementById('genericAlertModalIcon');
@@ -30,11 +83,7 @@ export function showAlertModal(message, title = 'Melding', iconClass = 'fas fa-i
 
 export function showConfirmModal({ title = 'Bevestiging', message, confirmText = 'Bevestigen', confirmClass = 'btn-danger', iconClass = 'fas fa-question-circle text-warning' }) {
     return new Promise((resolve) => {
-        const modalEl = document.getElementById('genericConfirmModal');
-        if (!modalEl) {
-            resolve(confirm(message));
-            return;
-        }
+        const modalEl = ensureConfirmModalExists();
         const titleTextEl = document.getElementById('genericConfirmModalTitleText');
         const bodyEl = document.getElementById('genericConfirmModalBody');
         const iconEl = document.getElementById('genericConfirmModalIcon');
@@ -72,8 +121,8 @@ class Modals {
     constructor() {
         this.addModalEl = document.getElementById('addPluginModal');
         this.deleteModalEl = document.getElementById('deleteConfirmModal');
-        this.addModal = new bootstrap.Modal(this.addModalEl);
-        this.deleteModal = new bootstrap.Modal(this.deleteModalEl);
+        this._addModal = null;
+        this._deleteModal = null;
 
         this.pluginUrlInput = document.getElementById('pluginUrl');
         this.bulkPluginUrlsInput = document.getElementById('bulkPluginUrls');
@@ -102,11 +151,25 @@ class Modals {
         this._addEventListeners();
     }
 
+    get addModal() {
+        if (!this._addModal && this.addModalEl && window.bootstrap) {
+            this._addModal = bootstrap.Modal.getOrCreateInstance(this.addModalEl);
+        }
+        return this._addModal;
+    }
+
+    get deleteModal() {
+        if (!this._deleteModal && this.deleteModalEl && window.bootstrap) {
+            this._deleteModal = bootstrap.Modal.getOrCreateInstance(this.deleteModalEl);
+        }
+        return this._deleteModal;
+    }
+
     _addEventListeners() {
-        this.fetchButton.addEventListener('click', () => this.handleFetch());
-        this.confirmYes.addEventListener('click', () => this.handleAddConfirm());
-        this.confirmNo.addEventListener('click', () => this.handleAddCancel());
-        this.confirmDeleteButton.addEventListener('click', () => this.handleDeleteConfirm());
+        if (this.fetchButton) this.fetchButton.addEventListener('click', () => this.handleFetch());
+        if (this.confirmYes) this.confirmYes.addEventListener('click', () => this.handleAddConfirm());
+        if (this.confirmNo) this.confirmNo.addEventListener('click', () => this.handleAddCancel());
+        if (this.confirmDeleteButton) this.confirmDeleteButton.addEventListener('click', () => this.handleDeleteConfirm());
 
         if (this.selectAllBtn) {
             this.selectAllBtn.addEventListener('click', () => this._toggleAllBulkCheckboxes(true));
@@ -147,7 +210,9 @@ class Modals {
             });
         }
 
-        this.deleteModalEl.addEventListener('shown.bs.modal', () => this.startDeleteAnimation());
+        if (this.deleteModalEl) {
+            this.deleteModalEl.addEventListener('shown.bs.modal', () => this.startDeleteAnimation());
+        }
     }
 
     async handleFetch() {
@@ -514,7 +579,22 @@ class Modals {
     updateAddModalPreview(plugin) {
         document.getElementById('previewTitle').textContent = plugin.title || 'Geen titel';
         document.getElementById('previewDescription').textContent = plugin.description || 'Geen beschrijving beschikbaar';
-        document.getElementById('previewAuthor').textContent = plugin.author || 'Onbekend';
+
+        let authorsHtml = 'Onbekend';
+        if (plugin.author) {
+            let authors = [];
+            if (Array.isArray(plugin.author)) {
+                authors = plugin.author.map(a => String(a).trim()).filter(Boolean);
+            } else if (typeof plugin.author === 'string') {
+                const str = plugin.author.trim();
+                authors = str.includes(',') ? str.split(',').map(a => a.trim()).filter(Boolean) : str.split(/\s+/).map(a => a.trim()).filter(Boolean);
+            }
+            authors = Array.from(new Set(authors));
+            if (authors.length > 0) {
+                authorsHtml = authors.map(a => `<span class="author-badge">${a}</span>`).join('');
+            }
+        }
+        document.getElementById('previewAuthor').innerHTML = authorsHtml;
         document.getElementById('previewIcon').src = plugin.icon || 'images/plugin-placeholder.png';
 
         const versionsContainer = document.getElementById('previewVersions');
