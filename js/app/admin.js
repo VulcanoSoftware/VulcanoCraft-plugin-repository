@@ -1,5 +1,6 @@
 import ApiAdmin from './api-admin.js';
 import { showAlertModal, showConfirmModal } from './modals.js';
+import i18n from './i18n.js';
 
 class AdminPage {
     constructor() {
@@ -52,6 +53,7 @@ class AdminPage {
     }
 
     async init() {
+        i18n.applyTranslations();
         this._setupEventListeners();
         try {
             const data = await ApiAdmin.checkSession();
@@ -616,7 +618,7 @@ class AdminPage {
                 <div class="col-12 text-center my-3">
                     <div class="alert alert-info d-flex align-items-center justify-content-center" role="alert">
                         <img src="images/add-icon.png" class="warning-icon me-2" alt="Geen gebruikers" style="width: 24px; height: 24px;">
-                        Geen gebruikers gevonden.
+                        ${i18n.t('common.no_users')}
                     </div>
                 </div>`;
         } else {
@@ -637,7 +639,7 @@ class AdminPage {
                 <div class="col-12 text-center my-3">
                     <div class="alert alert-info d-flex align-items-center justify-content-center" role="alert">
                         <img src="images/add-icon.png" class="warning-icon me-2" alt="Geen categorieën" style="width: 24px; height: 24px;">
-                        Geen categorieën beschikbaar.
+                        ${i18n.t('common.no_categories')}
                     </div>
                 </div>`;
         } else {
@@ -679,7 +681,7 @@ class AdminPage {
                 <div class="col-12 text-center my-3">
                     <div class="alert alert-info d-flex align-items-center justify-content-center" role="alert">
                         <img src="images/add-icon.png" class="warning-icon me-2" alt="Geen plugins" style="width: 24px; height: 24px;">
-                        Geen plugins beschikbaar.
+                        ${i18n.t('common.no_plugins')}
                     </div>
                 </div>`;
         } else {

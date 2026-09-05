@@ -176,7 +176,7 @@ class UI {
         });
 
         const currentValue = this.versionFilter.value;
-        this.versionFilter.innerHTML = '<option value="">Alle versies</option>';
+        this.versionFilter.innerHTML = `<option value="" data-i18n="filters.all_versions">${i18n.t('filters.all_versions')}</option>`;
         sortedVersions.forEach(version => {
             const option = document.createElement('option');
             option.value = version;
@@ -400,6 +400,11 @@ class UI {
         const filtered = totalFilteredCount !== undefined ? totalFilteredCount : 0;
         const onPage = pluginsOnCurrentPageCount !== undefined ? pluginsOnCurrentPageCount : 0;
 
+        const totalLabel = i18n.t('counter.total');
+        const filteredLabel = i18n.t('counter.filtered');
+        const shownLabel = i18n.t('counter.shown');
+        const pluginWord = (n) => n === 1 ? i18n.t('common.plugin') : i18n.t('common.plugins');
+
         const colsClass = activeCategory ? 'row-cols-1 row-cols-sm-2 row-cols-lg-4' : 'row-cols-1 row-cols-sm-3';
 
         let html = `
@@ -412,8 +417,8 @@ class UI {
                                 <i class="fas fa-database"></i>
                             </div>
                             <div class="text-start min-w-0">
-                                <div class="counter-label text-truncate" data-i18n="counter.total">Totaal op platform</div>
-                                <div class="counter-value">${totalAll} <span data-i18n="${totalAll === 1 ? 'common.plugin' : 'common.plugins'}">${totalAll === 1 ? 'plugin' : 'plugins'}</span></div>
+                                <div class="counter-label text-truncate" data-i18n="counter.total">${totalLabel}</div>
+                                <div class="counter-value">${totalAll} <span>${pluginWord(totalAll)}</span></div>
                             </div>
                         </div>
                     </div>`;
@@ -427,7 +432,7 @@ class UI {
                             </div>
                             <div class="text-start min-w-0">
                                 <div class="counter-label text-truncate" title="${activeCategory}">${activeCategory}</div>
-                                <div class="counter-value">${filtered} <span data-i18n="${filtered === 1 ? 'common.plugin' : 'common.plugins'}">${filtered === 1 ? 'plugin' : 'plugins'}</span></div>
+                                <div class="counter-value">${filtered} <span>${pluginWord(filtered)}</span></div>
                             </div>
                         </div>
                     </div>`;
@@ -440,8 +445,8 @@ class UI {
                                 <i class="fas fa-filter"></i>
                             </div>
                             <div class="text-start min-w-0">
-                                <div class="counter-label text-truncate" data-i18n="counter.filtered">Gefilterd resultaat</div>
-                                <div class="counter-value">${filtered} <span data-i18n="${filtered === 1 ? 'common.plugin' : 'common.plugins'}">${filtered === 1 ? 'plugin' : 'plugins'}</span></div>
+                                <div class="counter-label text-truncate" data-i18n="counter.filtered">${filteredLabel}</div>
+                                <div class="counter-value">${filtered} <span>${pluginWord(filtered)}</span></div>
                             </div>
                         </div>
                     </div>
@@ -452,8 +457,8 @@ class UI {
                                 <i class="fas fa-eye"></i>
                             </div>
                             <div class="text-start min-w-0">
-                                <div class="counter-label text-truncate" data-i18n="counter.shown">Getoond op pagina</div>
-                                <div class="counter-value">${onPage} <span data-i18n="${onPage === 1 ? 'common.plugin' : 'common.plugins'}">${onPage === 1 ? 'plugin' : 'plugins'}</span></div>
+                                <div class="counter-label text-truncate" data-i18n="counter.shown">${shownLabel}</div>
+                                <div class="counter-value">${onPage} <span>${pluginWord(onPage)}</span></div>
                             </div>
                         </div>
                     </div>
