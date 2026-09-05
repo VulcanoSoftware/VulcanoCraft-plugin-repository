@@ -364,6 +364,26 @@
 
     <div class="container-fluid my-5">
       <header class="text-center mb-5 position-relative">
+        <!-- Language Selector Dropdown (Top Right) -->
+        <div class="dropdown position-absolute top-0 end-0 me-3 mt-2 z-3" id="languageDropdownContainer">
+          <button class="btn btn-outline-light dropdown-toggle d-inline-flex align-items-center gap-2" type="button" id="languageDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+            <img src="images/flags/nl.svg" id="currentLanguageFlag" alt="NL" width="22" height="16" class="rounded-1 shadow-sm">
+            <span id="currentLanguageText">Nederlands</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="languageDropdownBtn" style="background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.15) !important;">
+            <li>
+              <a class="dropdown-item d-flex align-items-center gap-2 text-light py-2" href="#" id="langSelectNl">
+                <img src="images/flags/nl.svg" alt="NL" width="22" height="16" class="rounded-1 shadow-sm"> Nederlands
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item d-flex align-items-center gap-2 text-light py-2" href="#" id="langSelectEn">
+                <img src="images/flags/gb.svg" alt="EN" width="22" height="16" class="rounded-1 shadow-sm"> English
+              </a>
+            </li>
+          </ul>
+        </div>
+
         <h1 class="ml9 text-center position-relative">
           <div>
             <img class="header-icon mb-4" src="images/plugin-repo-icon.png" alt="Plugin Repository" loading="lazy">
@@ -374,7 +394,7 @@
         </h1>
         <p class="lead text-light" data-i18n="app.subtitle">Overzicht van alle beschikbare plugins</p>
 
-        <!-- Auth buttons & Language selector -->
+        <!-- Auth buttons -->
         <div class="btn-container text-center d-flex flex-wrap align-items-center justify-content-center gap-2">
           <div id="authButtons" class="align-items-center flex-wrap gap-2">
             <a class="btn btn-outline-light" href="/login-page">
@@ -406,26 +426,6 @@
             <button class="btn btn-outline-light me-1" id="logoutBtn" type="button">
               <i class="fas fa-sign-out-alt me-2"></i><span data-i18n="nav.logout">Uitloggen</span>
             </button>
-          </div>
-
-          <!-- Language Selector Dropdown -->
-          <div class="dropdown d-inline-block ms-1" id="languageDropdownContainer">
-            <button class="btn btn-outline-light dropdown-toggle d-inline-flex align-items-center gap-2" type="button" id="languageDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
-              <img src="images/flags/nl.svg" id="currentLanguageFlag" alt="NL" width="22" height="16" class="rounded-1 shadow-sm">
-              <span id="currentLanguageText">Nederlands</span>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="languageDropdownBtn" style="background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.15) !important;">
-              <li>
-                <a class="dropdown-item d-flex align-items-center gap-2 text-light py-2" href="#" id="langSelectNl">
-                  <img src="images/flags/nl.svg" alt="NL" width="22" height="16" class="rounded-1 shadow-sm"> Nederlands
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item d-flex align-items-center gap-2 text-light py-2" href="#" id="langSelectEn">
-                  <img src="images/flags/gb.svg" alt="EN" width="22" height="16" class="rounded-1 shadow-sm"> English
-                </a>
-              </li>
-            </ul>
           </div>
 
           <input type="file" id="replaceFileInput" accept=".txt" style="display: none;">
@@ -569,7 +569,7 @@
         </div>
 
         <div class="row justify-content-center">
-          <div class="col-xxl-10 col-xl-11 col-lg-12">
+          <div class="col-lg-10">
             <div id="categoryHeaderActionContainer" class="card shadow-sm border-0 mb-3 p-3 text-light" style="display: none; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1) !important;">
               <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div class="d-flex align-items-center gap-2">
