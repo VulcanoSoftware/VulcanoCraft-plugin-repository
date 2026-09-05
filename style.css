@@ -682,6 +682,86 @@ body {
   margin-top: 1rem;
 }
 
+/* Styled Pagination Bar & Dropdowns */
+.pagination-bar-card {
+  background: rgba(30, 41, 59, 0.75) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 16px;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease;
+}
+
+.pagination-bar-card:hover {
+  border-color: rgba(102, 126, 234, 0.4) !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+}
+
+.per-page-dropdown {
+  background-color: rgba(15, 23, 42, 0.8) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 12px !important;
+  padding: 0.45rem 2.2rem 0.45rem 0.9rem !important;
+  font-weight: 600 !important;
+  font-size: 0.92rem !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease !important;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2338f9d7' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.75rem center !important;
+  background-size: 14px 12px !important;
+}
+
+.per-page-dropdown:hover, .per-page-dropdown:focus {
+  background-color: rgba(30, 41, 59, 0.95) !important;
+  border-color: #38f9d7 !important;
+  box-shadow: 0 0 0 0.25rem rgba(56, 249, 215, 0.25) !important;
+  outline: none;
+}
+
+.per-page-dropdown option {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  padding: 0.5rem !important;
+}
+
+.pagination .page-link {
+  background-color: rgba(15, 23, 42, 0.7) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #e2e8f0 !important;
+  border-radius: 10px !important;
+  margin: 0 3px !important;
+  font-weight: 600 !important;
+  transition: all 0.25s ease !important;
+  padding: 0.45rem 0.85rem !important;
+}
+
+.pagination .page-link:hover {
+  background-color: #667eea !important;
+  border-color: #667eea !important;
+  color: #ffffff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.pagination .page-item.active .page-link {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%) !important;
+  border-color: #38f9d7 !important;
+  color: #041418 !important;
+  box-shadow: 0 4px 14px rgba(67, 233, 123, 0.4);
+}
+
+.pagination .page-item.disabled .page-link {
+  background-color: rgba(15, 23, 42, 0.3) !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
+  color: #64748b !important;
+  opacity: 0.6;
+}
+
 /* Utility helper */
 .min-w-0 {
   min-width: 0 !important;

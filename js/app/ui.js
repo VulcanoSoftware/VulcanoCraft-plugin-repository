@@ -311,7 +311,7 @@ class UI {
         this.paginationContainer.style.display = 'flex';
 
         if (totalPages <= 1) {
-            this.paginationControls.innerHTML = '';
+            this.paginationControls.innerHTML = `<li class="page-item active"><span class="page-link">1</span></li>`;
             return;
         }
 
