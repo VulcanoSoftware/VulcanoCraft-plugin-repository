@@ -611,7 +611,17 @@ class AdminPage {
         if (userBadge) {
             userBadge.innerHTML = `<i class="fas fa-users me-1"></i>Totaal: ${total} ${total === 1 ? 'gebruiker' : 'gebruikers'}`;
         }
-        this.usersGrid.innerHTML = users.map(user => this._renderUser(user)).join('');
+        if (users.length === 0) {
+            this.usersGrid.innerHTML = `
+                <div class="col-12 text-center my-3">
+                    <div class="alert alert-info d-flex align-items-center justify-content-center" role="alert">
+                        <img src="images/add-icon.png" class="warning-icon me-2" alt="Geen gebruikers" style="width: 24px; height: 24px;">
+                        Geen gebruikers gevonden.
+                    </div>
+                </div>`;
+        } else {
+            this.usersGrid.innerHTML = users.map(user => this._renderUser(user)).join('');
+        }
         this._renderPaginationControls(this.usersPaginationControls, this.usersCurrentPage, totalPages, (p) => this._loadUsers(p));
     }
 
@@ -622,7 +632,17 @@ class AdminPage {
         if (catBadge) {
             catBadge.innerHTML = `<i class="fas fa-tags me-1"></i>Totaal: ${categories.length} ${categories.length === 1 ? 'categorie' : 'categorieën'}`;
         }
-        this.categoriesGrid.innerHTML = categories.map(cat => this._renderCategory(cat)).join('');
+        if (categories.length === 0) {
+            this.categoriesGrid.innerHTML = `
+                <div class="col-12 text-center my-3">
+                    <div class="alert alert-info d-flex align-items-center justify-content-center" role="alert">
+                        <img src="images/add-icon.png" class="warning-icon me-2" alt="Geen categorieën" style="width: 24px; height: 24px;">
+                        Geen categorieën beschikbaar.
+                    </div>
+                </div>`;
+        } else {
+            this.categoriesGrid.innerHTML = categories.map(cat => this._renderCategory(cat)).join('');
+        }
     }
 
     async _loadPlugins(page) {
@@ -641,8 +661,30 @@ class AdminPage {
         if (pluginBadge) {
             pluginBadge.innerHTML = `<i class="fas fa-puzzle-piece me-1"></i>Totaal: ${total} ${total === 1 ? 'plugin' : 'plugins'}`;
         }
-        this.categoriesGrid.innerHTML = categories.map(cat => this._renderCategory(cat)).join('');
-        this.pluginsGrid.innerHTML = plugins.map(plugin => this._renderPlugin(plugin, categories)).join('');
+
+        if (categories.length === 0) {
+            this.categoriesGrid.innerHTML = `
+                <div class="col-12 text-center my-3">
+                    <div class="alert alert-info d-flex align-items-center justify-content-center" role="alert">
+                        <img src="images/add-icon.png" class="warning-icon me-2" alt="Geen categorieën" style="width: 24px; height: 24px;">
+                        Geen categorieën beschikbaar.
+                    </div>
+                </div>`;
+        } else {
+            this.categoriesGrid.innerHTML = categories.map(cat => this._renderCategory(cat)).join('');
+        }
+
+        if (plugins.length === 0) {
+            this.pluginsGrid.innerHTML = `
+                <div class="col-12 text-center my-3">
+                    <div class="alert alert-info d-flex align-items-center justify-content-center" role="alert">
+                        <img src="images/add-icon.png" class="warning-icon me-2" alt="Geen plugins" style="width: 24px; height: 24px;">
+                        Geen plugins beschikbaar.
+                    </div>
+                </div>`;
+        } else {
+            this.pluginsGrid.innerHTML = plugins.map(plugin => this._renderPlugin(plugin, categories)).join('');
+        }
         this._renderPaginationControls(this.pluginsPaginationControls, this.pluginsCurrentPage, totalPages, (p) => this._loadPlugins(p));
     }
 
