@@ -387,7 +387,7 @@ class UI {
         if (!this.resultsCounter) {
             this.resultsCounter = document.createElement('div');
             this.resultsCounter.id = 'resultsCounter';
-            this.resultsCounter.className = 'mb-4';
+            this.resultsCounter.className = 'row justify-content-center mb-4';
             this.pluginsContainer.parentNode.insertBefore(this.resultsCounter, this.pluginsContainer);
         }
 
@@ -398,8 +398,9 @@ class UI {
         const colsClass = activeCategory ? 'row-cols-1 row-cols-sm-2 row-cols-lg-4' : 'row-cols-1 row-cols-sm-3';
 
         let html = `
-            <div class="card counter-bar-card p-3 text-light shadow-sm">
-                <div class="row g-3 ${colsClass}">
+            <div class="col-lg-10">
+                <div class="card counter-bar-card p-3 text-light shadow-sm">
+                    <div class="row g-3 ${colsClass}">
                     <div class="col">
                         <div class="counter-badge-item counter-total d-flex align-items-center gap-3">
                             <div class="counter-icon-box">
@@ -452,7 +453,8 @@ class UI {
                         </div>
                     </div>
                 </div>
-            </div>`;
+            </div>
+        </div>`;
 
         this.resultsCounter.innerHTML = html;
     }
