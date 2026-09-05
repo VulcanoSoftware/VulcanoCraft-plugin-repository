@@ -176,12 +176,26 @@
               </div>
 
               <div class="mb-5" id="userManagement">
-                <div class="d-flex align-items-center mb-3">
-                  <h4 class="mb-0"><i class="fas fa-users me-2"></i>Gebruikers</h4>
-                  <span id="userCountBadge" class="badge bg-primary ms-3"><i class="fas fa-users me-1"></i>Totaal: 0 gebruikers</span>
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                  <div class="d-flex align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-users me-2"></i>Gebruikers</h4>
+                    <span id="userCountBadge" class="badge bg-primary ms-3"><i class="fas fa-users me-1"></i>Totaal: 0 gebruikers</span>
+                  </div>
+                  <div class="d-flex align-items-center gap-2">
+                    <label for="usersPerPageSelect" class="form-label mb-0 small text-muted">Aantal per pagina:</label>
+                    <select id="usersPerPageSelect" class="form-select form-select-sm per-page-dropdown w-auto">
+                      <option value="12" selected>12</option>
+                      <option value="24">24</option>
+                      <option value="48">48</option>
+                      <option value="0">Alle</option>
+                    </select>
+                  </div>
                 </div>
                 <div class="row" id="usersGrid">
                   <div class="col-12 text-center"><p>Laden...</p></div>
+                </div>
+                <div class="d-flex justify-content-center mt-3" id="usersPaginationNav">
+                  <ul class="pagination pagination-sm mb-0" id="usersPaginationControls"></ul>
                 </div>
               </div>
 
@@ -204,12 +218,26 @@
               </div>
 
               <div id="pluginManagement">
-                <div class="d-flex align-items-center mb-3">
-                  <h4 class="mb-0"><i class="fas fa-puzzle-piece me-2"></i>Plugins</h4>
-                  <span id="pluginCountBadge" class="badge bg-primary ms-3"><i class="fas fa-puzzle-piece me-1"></i>Totaal: 0 plugins</span>
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                  <div class="d-flex align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-puzzle-piece me-2"></i>Plugins</h4>
+                    <span id="pluginCountBadge" class="badge bg-primary ms-3"><i class="fas fa-puzzle-piece me-1"></i>Totaal: 0 plugins</span>
+                  </div>
+                  <div class="d-flex align-items-center gap-2">
+                    <label for="pluginsPerPageSelect" class="form-label mb-0 small text-muted">Aantal per pagina:</label>
+                    <select id="pluginsPerPageSelect" class="form-select form-select-sm per-page-dropdown w-auto">
+                      <option value="20" selected>20</option>
+                      <option value="40">40</option>
+                      <option value="100">100</option>
+                      <option value="0">Alle</option>
+                    </select>
+                  </div>
                 </div>
                 <div class="row" id="pluginsGrid">
                   <div class="col-12 text-center"><p>Laden...</p></div>
+                </div>
+                <div class="d-flex justify-content-center mt-3" id="pluginsPaginationNav">
+                  <ul class="pagination pagination-sm mb-0" id="pluginsPaginationControls"></ul>
                 </div>
               </div>
             </div>

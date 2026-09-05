@@ -35,6 +35,16 @@ class AdminPage {
         this.rollbackSyncToHostToggle = document.getElementById('rollbackSyncToHostToggle');
         this.rollbackAlert = document.getElementById('rollbackAlert');
 
+        this.usersPerPageSelect = document.getElementById('usersPerPageSelect');
+        this.pluginsPerPageSelect = document.getElementById('pluginsPerPageSelect');
+        this.usersPaginationControls = document.getElementById('usersPaginationControls');
+        this.pluginsPaginationControls = document.getElementById('pluginsPaginationControls');
+
+        this.usersCurrentPage = 1;
+        this.usersPerPage = 12;
+        this.pluginsCurrentPage = 1;
+        this.pluginsPerPage = 20;
+
         this.commitHistory = [];
         this.currentRole = null;
         this.pluginsCache = [];
@@ -96,6 +106,20 @@ class AdminPage {
         }
         if (this.rollbackCommitSelect) {
             this.rollbackCommitSelect.addEventListener('change', () => this._handleRollbackSelectChange());
+        }
+        if (this.usersPerPageSelect) {
+            this.usersPerPageSelect.addEventListener('change', (e) => {
+                this.usersPerPage = parseInt(e.target.value, 10);
+                this.usersCurrentPage = 1;
+                this._loadUsers();
+            });
+        }
+        if (this.pluginsPerPageSelect) {
+            this.pluginsPerPageSelect.addEventListener('change', (e) => {
+                this.pluginsPerPage = parseInt(e.target.value, 10);
+                this.pluginsCurrentPage = 1;
+                this._loadPlugins();
+            });
         }
 
         this._setupDynamicEventListeners();
@@ -576,15 +600,19 @@ class AdminPage {
         this.registrationToggle.checked = data.registration_enabled;
     }
 
-    async _loadUsers(page = 1) {
-        const res = await ApiAdmin.getUsers({ page, per_page: 12 });
+    async _loadUsers(page) {
+        if (page !== undefined) this.usersCurrentPage = page;
+        const res = await ApiAdmin.getUsers({ page: this.usersCurrentPage, per_page: this.usersPerPage });
         const users = Array.isArray(res) ? res : (res.users || []);
         const total = Array.isArray(res) ? users.length : (res.total || 0);
+        const totalPages = Array.isArray(res) ? 1 : (res.total_pages || 1);
+
         const userBadge = document.getElementById('userCountBadge');
         if (userBadge) {
             userBadge.innerHTML = `<i class="fas fa-users me-1"></i>Totaal: ${total} ${total === 1 ? 'gebruiker' : 'gebruikers'}`;
         }
         this.usersGrid.innerHTML = users.map(user => this._renderUser(user)).join('');
+        this._renderPaginationControls(this.usersPaginationControls, this.usersCurrentPage, totalPages, (p) => this._loadUsers(p));
     }
 
     async _loadCategories() {
@@ -597,13 +625,16 @@ class AdminPage {
         this.categoriesGrid.innerHTML = categories.map(cat => this._renderCategory(cat)).join('');
     }
 
-    async _loadPlugins(page = 1) {
+    async _loadPlugins(page) {
+        if (page !== undefined) this.pluginsCurrentPage = page;
         const [resPlugins, categories] = await Promise.all([
-            ApiAdmin.getPlugins({ page, per_page: 20 }),
+            ApiAdmin.getPlugins({ page: this.pluginsCurrentPage, per_page: this.pluginsPerPage }),
             ApiAdmin.getCategories()
         ]);
         const plugins = Array.isArray(resPlugins) ? resPlugins : (resPlugins.plugins || []);
         const total = Array.isArray(resPlugins) ? plugins.length : (resPlugins.total || 0);
+        const totalPages = Array.isArray(resPlugins) ? 1 : (resPlugins.total_pages || 1);
+
         this.pluginsCache = plugins || [];
         this.categoriesCache = categories || [];
         const pluginBadge = document.getElementById('pluginCountBadge');
@@ -612,6 +643,39 @@ class AdminPage {
         }
         this.categoriesGrid.innerHTML = categories.map(cat => this._renderCategory(cat)).join('');
         this.pluginsGrid.innerHTML = plugins.map(plugin => this._renderPlugin(plugin, categories)).join('');
+        this._renderPaginationControls(this.pluginsPaginationControls, this.pluginsCurrentPage, totalPages, (p) => this._loadPlugins(p));
+    }
+
+    _renderPaginationControls(container, currentPage, totalPages, onPageClick) {
+        if (!container) return;
+        if (totalPages <= 1) {
+            container.innerHTML = `<li class="page-item active"><span class="page-link">1</span></li>`;
+            return;
+        }
+
+        let html = '';
+        const prevDisabled = currentPage <= 1 ? 'disabled' : '';
+        html += `<li class="page-item ${prevDisabled}"><button class="page-link" data-page="${currentPage - 1}">&laquo;</button></li>`;
+
+        for (let p = 1; p <= totalPages; p++) {
+            const active = p === currentPage ? 'active' : '';
+            html += `<li class="page-item ${active}"><button class="page-link" data-page="${p}">${p}</button></li>`;
+        }
+
+        const nextDisabled = currentPage >= totalPages ? 'disabled' : '';
+        html += `<li class="page-item ${nextDisabled}"><button class="page-link" data-page="${currentPage + 1}">&raquo;</button></li>`;
+
+        container.innerHTML = html;
+
+        container.querySelectorAll('button.page-link').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const page = parseInt(btn.dataset.page, 10);
+                if (page && page !== currentPage && page >= 1 && page <= totalPages) {
+                    onPageClick(page);
+                }
+            });
+        });
     }
 
     _renderUser(user) {
