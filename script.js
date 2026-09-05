@@ -344,22 +344,27 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch("/auth-status")
             .then((response) => response.json())
             .then((data) => {
+                const ab = document.getElementById("authButtons");
+                const ub = document.getElementById("userButtons");
                 if (data.logged_in) {
-                    document.getElementById("authButtons").style.display = "none";
-                    document.getElementById("userButtons").style.display = "flex";
-                    document.getElementById("username").textContent = data.username;
-                    if (data.role === "admin" || data.role === "co-admin") {
-                        document.getElementById("adminBtn").style.display =
-                            "inline-block";
+                    if (ab) ab.style.setProperty('display', 'none', 'important');
+                    if (ub) ub.style.setProperty('display', 'flex', 'important');
+                    const un = document.getElementById("username");
+                    if (un) un.textContent = data.username;
+                    const adm = document.getElementById("adminBtn");
+                    if (adm) {
+                        adm.style.display = (data.role === "admin" || data.role === "co-admin") ? "inline-block" : "none";
                     }
                 } else {
-                    document.getElementById("authButtons").style.display = "block";
-                    document.getElementById("userButtons").style.display = "none";
+                    if (ab) ab.style.setProperty('display', 'flex', 'important');
+                    if (ub) ub.style.setProperty('display', 'none', 'important');
                 }
             })
             .catch(() => {
-                document.getElementById("authButtons").style.display = "block";
-                document.getElementById("userButtons").style.display = "none";
+                const ab = document.getElementById("authButtons");
+                const ub = document.getElementById("userButtons");
+                if (ab) ab.style.setProperty('display', 'flex', 'important');
+                if (ub) ub.style.setProperty('display', 'none', 'important');
             });
     }
 

@@ -376,7 +376,7 @@
 
         <!-- Auth buttons & Language selector -->
         <div class="btn-container text-center d-flex flex-wrap align-items-center justify-content-center gap-2">
-          <div id="authButtons" class="d-inline-flex align-items-center gap-2">
+          <div id="authButtons" class="align-items-center flex-wrap gap-2">
             <a class="btn btn-outline-light" href="/login-page">
               <i class="fas fa-sign-in-alt me-2"></i><span data-i18n="nav.login">Inloggen</span>
             </a>
@@ -384,7 +384,7 @@
               <i class="fas fa-file-download me-1"></i> <span data-i18n="nav.export_txt">Exporteer TXT</span>
             </button>
           </div>
-          <div id="userButtons" style="display: none" class="align-items-center flex-wrap gap-2">
+          <div id="userButtons" style="display: none !important" class="align-items-center flex-wrap gap-2">
             <span class="text-light me-2"><span data-i18n="nav.welcome">Welkom</span>, <span id="username"></span></span>
             <a class="btn btn-outline-light me-1" href="/change_password" data-i18n="nav.change_password">Wachtwoord Wijzigen</a>
             <button class="btn button-creative btn-lg floating-add-btn me-1" data-bs-target="#addPluginModal" data-bs-toggle="modal" type="button">

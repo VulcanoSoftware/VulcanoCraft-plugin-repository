@@ -373,13 +373,13 @@ class UI {
 
     updateAuthUI(authData) {
         if (authData.logged_in) {
-            this.authButtons.style.display = 'none';
-            this.userButtons.style.display = 'flex';
+            this.authButtons.style.setProperty('display', 'none', 'important');
+            this.userButtons.style.setProperty('display', 'flex', 'important');
             this.username.textContent = authData.username;
             this.adminBtn.style.display = (authData.role === 'admin' || authData.role === 'co-admin') ? 'inline-block' : 'none';
         } else {
-            this.authButtons.style.display = 'block';
-            this.userButtons.style.display = 'none';
+            this.authButtons.style.setProperty('display', 'flex', 'important');
+            this.userButtons.style.setProperty('display', 'none', 'important');
         }
     }
 
