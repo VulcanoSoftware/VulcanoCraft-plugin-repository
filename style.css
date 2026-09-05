@@ -682,6 +682,72 @@ body {
   margin-top: 1rem;
 }
 
+/* Counter bar styling */
+.counter-bar-card {
+  background: rgba(30, 41, 59, 0.7) !important;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 12px;
+}
+
+.counter-bar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.counter-badge-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: all 0.25s ease;
+  height: 100%;
+}
+
+.counter-badge-item:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.counter-badge-item.border-total {
+  background: rgba(13, 110, 253, 0.12);
+  border-color: rgba(13, 110, 253, 0.3);
+}
+
+.counter-badge-item.border-category {
+  background: rgba(13, 202, 240, 0.12);
+  border-color: rgba(13, 202, 240, 0.3);
+}
+
+.counter-badge-item.border-filtered {
+  background: rgba(168, 85, 247, 0.12);
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+.counter-badge-item.border-page {
+  background: rgba(40, 167, 69, 0.12);
+  border-color: rgba(40, 167, 69, 0.3);
+}
+
+.counter-badge-item .label-text {
+  font-size: 0.68rem;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.counter-badge-item .value-text {
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
 /* Utility helper */
 .min-w-0 {
   min-width: 0 !important;

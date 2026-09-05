@@ -36,6 +36,7 @@ class UI {
 
     _createPluginCard(plugin, authStatus, currentUser) {
         const { logged_in, role } = authStatus;
+        const formattedAuthors = this._formatAuthors(plugin.author);
         const formattedVersions = this._formatVersions(plugin.versions || '');
         const formattedLoaders = this._formatLoaders(plugin.loaders);
         const domain = this._getDomainFromUrl(plugin.url || '');
@@ -68,10 +69,10 @@ class UI {
                     <div class="card-body">
                         <p class="card-text description">${plugin.description || 'Geen beschrijving beschikbaar'}</p>
                         <div class="row mb-3">
-                            <div class="col-md-6">
-                                <div class="plugin-info">
-                                    <strong><img src="images/author-icon.png" class="info-icon" alt="Auteur"> Auteur:</strong>
-                                    <span class="author-badge">${plugin.author || 'Onbekend'}</span>
+                            <div class="col-12">
+                                <div class="plugin-info d-flex align-items-center flex-wrap gap-2">
+                                    <strong><img src="images/author-icon.png" class="info-icon" alt="Auteur"> Auteurs:</strong>
+                                    <div class="authors-container d-inline-flex flex-wrap gap-2 align-items-center">${formattedAuthors}</div>
                                 </div>
                             </div>
                         </div>
@@ -100,6 +101,23 @@ class UI {
                     </div>
                 </div>
             </div>`;
+    }
+
+    _formatAuthors(authorInput) {
+        if (!authorInput) return '<span class="author-badge">Onbekend</span>';
+        let authors = [];
+        if (Array.isArray(authorInput)) {
+            authors = authorInput.flatMap(a => (typeof a === 'string' ? a.split(/[,;&|]|\s+(?:and|&)\s+/i) : []));
+        } else if (typeof authorInput === 'string') {
+            authors = authorInput.split(/[,;&|]|\s+(?:and|&)\s+/i);
+        } else {
+            return '<span class="author-badge">Onbekend</span>';
+        }
+
+        const cleanedAuthors = authors.map(a => a.trim()).filter(a => a.length > 0);
+        if (cleanedAuthors.length === 0) return '<span class="author-badge">Onbekend</span>';
+
+        return cleanedAuthors.map(author => `<span class="author-badge">${author}</span>`).join('');
     }
 
     _formatVersions(versionsString) {
@@ -367,41 +385,41 @@ class UI {
         const onPage = pluginsOnCurrentPageCount !== undefined ? pluginsOnCurrentPageCount : 0;
 
         let html = `
-            <div class="card shadow-sm border-0 p-3 text-light" style="background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1) !important;">
-                <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 text-center">
-                    <div class="counter-badge-item d-flex align-items-center gap-2 px-3 py-2 rounded" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
-                        <i class="fas fa-database text-primary fs-5"></i>
-                        <div class="text-start">
-                            <small class="d-block text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Totaal op platform</small>
-                            <span class="fw-bold fs-6 text-light">${totalAll} ${totalAll === 1 ? 'plugin' : 'plugins'}</span>
+            <div class="card shadow-sm border-0 p-3 text-light counter-bar-card">
+                <div class="counter-bar-grid">
+                    <div class="counter-badge-item border-total">
+                        <i class="fas fa-database text-primary fs-5 flex-shrink-0"></i>
+                        <div class="text-start min-w-0">
+                            <small class="d-block text-muted text-uppercase fw-bold label-text">Totaal op platform</small>
+                            <span class="fw-bold fs-6 text-light value-text">${totalAll} ${totalAll === 1 ? 'plugin' : 'plugins'}</span>
                         </div>
                     </div>`;
 
         if (activeCategory) {
             html += `
-                    <div class="counter-badge-item d-flex align-items-center gap-2 px-3 py-2 rounded" style="background: rgba(13, 202, 240, 0.15); border: 1px solid rgba(13, 202, 240, 0.3);">
-                        <i class="fas fa-folder text-info fs-5"></i>
-                        <div class="text-start">
-                            <small class="d-block text-info text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">In categorie "${activeCategory}"</small>
-                            <span class="fw-bold fs-6 text-light">${filtered} ${filtered === 1 ? 'plugin' : 'plugins'}</span>
+                    <div class="counter-badge-item border-category">
+                        <i class="fas fa-folder text-info fs-5 flex-shrink-0"></i>
+                        <div class="text-start min-w-0">
+                            <small class="d-block text-info text-uppercase fw-bold label-text" title="In categorie '${activeCategory}'">In "${activeCategory}"</small>
+                            <span class="fw-bold fs-6 text-light value-text">${filtered} ${filtered === 1 ? 'plugin' : 'plugins'}</span>
                         </div>
                     </div>`;
         }
 
         html += `
-                    <div class="counter-badge-item d-flex align-items-center gap-2 px-3 py-2 rounded" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3);">
-                        <i class="fas fa-filter fs-5" style="color: #c084fc;"></i>
-                        <div class="text-start">
-                            <small class="d-block text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px; color: #c084fc;">Gefilterd resultaat</small>
-                            <span class="fw-bold fs-6 text-light">${filtered} ${filtered === 1 ? 'plugin' : 'plugins'}</span>
+                    <div class="counter-badge-item border-filtered">
+                        <i class="fas fa-filter fs-5 flex-shrink-0" style="color: #c084fc;"></i>
+                        <div class="text-start min-w-0">
+                            <small class="d-block text-uppercase fw-bold label-text" style="color: #c084fc;">Gefilterd resultaat</small>
+                            <span class="fw-bold fs-6 text-light value-text">${filtered} ${filtered === 1 ? 'plugin' : 'plugins'}</span>
                         </div>
                     </div>
 
-                    <div class="counter-badge-item d-flex align-items-center gap-2 px-3 py-2 rounded" style="background: rgba(40, 167, 69, 0.15); border: 1px solid rgba(40, 167, 69, 0.3);">
-                        <i class="fas fa-eye text-success fs-5"></i>
-                        <div class="text-start">
-                            <small class="d-block text-success text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Getoond op pagina</small>
-                            <span class="fw-bold fs-6 text-light">${onPage} ${onPage === 1 ? 'plugin' : 'plugins'}</span>
+                    <div class="counter-badge-item border-page">
+                        <i class="fas fa-eye text-success fs-5 flex-shrink-0"></i>
+                        <div class="text-start min-w-0">
+                            <small class="d-block text-success text-uppercase fw-bold label-text">Getoond op pagina</small>
+                            <span class="fw-bold fs-6 text-light value-text">${onPage} ${onPage === 1 ? 'plugin' : 'plugins'}</span>
                         </div>
                     </div>
                 </div>

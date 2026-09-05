@@ -82,7 +82,9 @@ function setupEventListeners() {
                 .then((response) => response.json())
                 .then((data) => {
                     if (!data.success) {
-                        alert("Fout bij opslaan instellingen");
+                        if (window.showAlertModal) {
+                            window.showAlertModal("Fout bij opslaan instellingen", "Fout", "fas fa-exclamation-triangle text-danger");
+                        }
                         this.checked = !enabled;
                     }
                 });
@@ -221,7 +223,9 @@ function addCategory() {
                 loadCategories();
                 loadPlugins(); // Refresh dropdowns
             } else {
-                alert("Fout bij toevoegen categorie: " + data.error);
+                if (window.showAlertModal) {
+                    window.showAlertModal("Fout bij toevoegen categorie: " + data.error, "Fout", "fas fa-exclamation-triangle text-danger");
+                }
             }
         });
 }
@@ -234,7 +238,9 @@ function updateCategory(oldName) {
     const version = document.getElementById(`cat-version-${oldName}`).value.trim();
 
     if (!newName) {
-        alert("Categorie naam mag niet leeg zijn.");
+        if (window.showAlertModal) {
+            window.showAlertModal("Categorie naam mag niet leeg zijn.", "Waarschuwing", "fas fa-exclamation-circle text-warning");
+        }
         loadCategories(); // revert
         return;
     }
@@ -261,7 +267,9 @@ function updateCategory(oldName) {
                     loadPlugins();
                 }
             } else {
-                alert("Fout bij bijwerken categorie: " + data.error);
+                if (window.showAlertModal) {
+                    window.showAlertModal("Fout bij bijwerken categorie: " + data.error, "Fout", "fas fa-exclamation-triangle text-danger");
+                }
                 loadCategories(); // Revert on failure
             }
         });
@@ -340,7 +348,9 @@ function changeRole(username, newRole) {
             if (data.success) {
                 loadUsers();
             } else {
-                alert("Fout bij wijzigen rol");
+                if (window.showAlertModal) {
+                    window.showAlertModal("Fout bij wijzigen rol", "Fout", "fas fa-exclamation-triangle text-danger");
+                }
             }
         });
 }
@@ -384,13 +394,17 @@ function updatePluginDetails(originalUrl, encodedUrl) {
         .then((response) => response.json())
         .then((data) => {
             if (!data.success) {
-                alert("Fout bij bijwerken plugin details: " + data.error);
+                if (window.showAlertModal) {
+                    window.showAlertModal("Fout bij bijwerken plugin details: " + data.error, "Fout", "fas fa-exclamation-triangle text-danger");
+                }
                 loadPlugins(); // Revert on error
             }
             // No reload on success to prevent jarring UX
         })
         .catch((error) => {
             console.error("Error:", error);
-            alert("Fout bij bijwerken plugin details.");
+            if (window.showAlertModal) {
+                window.showAlertModal("Fout bij bijwerken plugin details.", "Fout", "fas fa-exclamation-triangle text-danger");
+            }
         });
 }

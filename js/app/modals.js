@@ -72,8 +72,8 @@ class Modals {
     constructor() {
         this.addModalEl = document.getElementById('addPluginModal');
         this.deleteModalEl = document.getElementById('deleteConfirmModal');
-        this.addModal = new bootstrap.Modal(this.addModalEl);
-        this.deleteModal = new bootstrap.Modal(this.deleteModalEl);
+        this.addModal = this.addModalEl ? bootstrap.Modal.getOrCreateInstance(this.addModalEl) : null;
+        this.deleteModal = this.deleteModalEl ? bootstrap.Modal.getOrCreateInstance(this.deleteModalEl) : null;
 
         this.pluginUrlInput = document.getElementById('pluginUrl');
         this.bulkPluginUrlsInput = document.getElementById('bulkPluginUrls');
@@ -103,10 +103,10 @@ class Modals {
     }
 
     _addEventListeners() {
-        this.fetchButton.addEventListener('click', () => this.handleFetch());
-        this.confirmYes.addEventListener('click', () => this.handleAddConfirm());
-        this.confirmNo.addEventListener('click', () => this.handleAddCancel());
-        this.confirmDeleteButton.addEventListener('click', () => this.handleDeleteConfirm());
+        if (this.fetchButton) this.fetchButton.addEventListener('click', () => this.handleFetch());
+        if (this.confirmYes) this.confirmYes.addEventListener('click', () => this.handleAddConfirm());
+        if (this.confirmNo) this.confirmNo.addEventListener('click', () => this.handleAddCancel());
+        if (this.confirmDeleteButton) this.confirmDeleteButton.addEventListener('click', () => this.handleDeleteConfirm());
 
         if (this.selectAllBtn) {
             this.selectAllBtn.addEventListener('click', () => this._toggleAllBulkCheckboxes(true));
@@ -147,7 +147,9 @@ class Modals {
             });
         }
 
-        this.deleteModalEl.addEventListener('shown.bs.modal', () => this.startDeleteAnimation());
+        if (this.deleteModalEl) {
+            this.deleteModalEl.addEventListener('shown.bs.modal', () => this.startDeleteAnimation());
+        }
     }
 
     async handleFetch() {
@@ -511,10 +513,32 @@ class Modals {
         this.deleteModal.show();
     }
 
+    _formatAuthors(authorInput) {
+        if (!authorInput) return '<span class="author-badge">Onbekend</span>';
+        let authors = [];
+        if (Array.isArray(authorInput)) {
+            authors = authorInput.flatMap(a => (typeof a === 'string' ? a.split(/[,;&|]|\s+(?:and|&)\s+/i) : []));
+        } else if (typeof authorInput === 'string') {
+            authors = authorInput.split(/[,;&|]|\s+(?:and|&)\s+/i);
+        } else {
+            return '<span class="author-badge">Onbekend</span>';
+        }
+
+        const cleanedAuthors = authors.map(a => a.trim()).filter(a => a.length > 0);
+        if (cleanedAuthors.length === 0) return '<span class="author-badge">Onbekend</span>';
+
+        return cleanedAuthors.map(author => `<span class="author-badge">${author}</span>`).join('');
+    }
+
     updateAddModalPreview(plugin) {
         document.getElementById('previewTitle').textContent = plugin.title || 'Geen titel';
         document.getElementById('previewDescription').textContent = plugin.description || 'Geen beschrijving beschikbaar';
-        document.getElementById('previewAuthor').textContent = plugin.author || 'Onbekend';
+
+        const previewAuthorEl = document.getElementById('previewAuthor');
+        if (previewAuthorEl) {
+            previewAuthorEl.innerHTML = this._formatAuthors(plugin.author);
+        }
+
         document.getElementById('previewIcon').src = plugin.icon || 'images/plugin-placeholder.png';
 
         const versionsContainer = document.getElementById('previewVersions');

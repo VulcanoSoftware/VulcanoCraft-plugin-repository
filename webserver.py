@@ -1183,20 +1183,43 @@ def admin_check_session():
 @app.route('/admin/users', methods=['GET'])
 @require_co_admin
 def admin_get_users():
-    """Haal alle gebruikers op met plugin counts"""
+    """Haal alle gebruikers op met plugin counts en paginering"""
     users = load_users()
     plugins = load_plugins()
     
+    search = request.args.get('search', '').lower().strip()
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 20))
+
     user_data = []
     for u in users:
-        plugin_count = len([p for p in plugins if p.get('owner') == u['username']])
+        uname = u['username']
+        if search and search not in uname.lower():
+            continue
+        plugin_count = len([p for p in plugins if p.get('owner') == uname])
         user_data.append({
-            'username': u['username'], 
+            'username': uname,
             'role': u.get('role', 'user'),
             'plugin_count': plugin_count
         })
     
-    return jsonify(user_data)
+    if per_page > 0:
+        paginated_users, total, page, total_pages = paginate_items(user_data, page, per_page)
+        return jsonify({
+            'users': paginated_users,
+            'total': total,
+            'page': page,
+            'per_page': per_page,
+            'total_pages': total_pages
+        })
+
+    return jsonify({
+        'users': user_data,
+        'total': len(user_data),
+        'page': 1,
+        'per_page': len(user_data),
+        'total_pages': 1
+    })
 
 @app.route('/admin/categories', methods=['GET'])
 @require_co_admin
@@ -1359,8 +1382,45 @@ def admin_change_role(username):
 @app.route('/admin/plugins', methods=['GET'])
 @require_co_admin
 def admin_get_plugins():
-    """Haal alle plugins op"""
-    return jsonify(load_plugins())
+    """Haal alle plugins op met paginering en zoekfunctie"""
+    plugins = load_plugins()
+
+    search = request.args.get('search', '').lower().strip()
+    category = request.args.get('category', '').strip()
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 20))
+
+    filtered_plugins = []
+    for p in plugins:
+        if search:
+            title_match = search in (p.get('title') or '').lower()
+            author_match = search in (p.get('author') or '').lower()
+            url_match = search in (p.get('url') or '').lower()
+            if not (title_match or author_match or url_match):
+                continue
+        if category:
+            p_cats = p.get('categories') or ([p.get('category')] if p.get('category') else [])
+            if category not in p_cats:
+                continue
+        filtered_plugins.append(p)
+
+    if per_page > 0:
+        paginated_plugins, total, page, total_pages = paginate_items(filtered_plugins, page, per_page)
+        return jsonify({
+            'plugins': paginated_plugins,
+            'total': total,
+            'page': page,
+            'per_page': per_page,
+            'total_pages': total_pages
+        })
+
+    return jsonify({
+        'plugins': filtered_plugins,
+        'total': len(filtered_plugins),
+        'page': 1,
+        'per_page': len(filtered_plugins),
+        'total_pages': 1
+    })
 
 @app.route('/admin/plugins/<path:url>', methods=['DELETE'])
 @require_co_admin
