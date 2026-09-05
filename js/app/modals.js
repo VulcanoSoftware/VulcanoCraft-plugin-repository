@@ -72,8 +72,8 @@ class Modals {
     constructor() {
         this.addModalEl = document.getElementById('addPluginModal');
         this.deleteModalEl = document.getElementById('deleteConfirmModal');
-        this.addModal = new bootstrap.Modal(this.addModalEl);
-        this.deleteModal = new bootstrap.Modal(this.deleteModalEl);
+        this.addModal = this.addModalEl ? bootstrap.Modal.getOrCreateInstance(this.addModalEl) : null;
+        this.deleteModal = this.deleteModalEl ? bootstrap.Modal.getOrCreateInstance(this.deleteModalEl) : null;
 
         this.pluginUrlInput = document.getElementById('pluginUrl');
         this.bulkPluginUrlsInput = document.getElementById('bulkPluginUrls');
@@ -103,10 +103,10 @@ class Modals {
     }
 
     _addEventListeners() {
-        this.fetchButton.addEventListener('click', () => this.handleFetch());
-        this.confirmYes.addEventListener('click', () => this.handleAddConfirm());
-        this.confirmNo.addEventListener('click', () => this.handleAddCancel());
-        this.confirmDeleteButton.addEventListener('click', () => this.handleDeleteConfirm());
+        if (this.fetchButton) this.fetchButton.addEventListener('click', () => this.handleFetch());
+        if (this.confirmYes) this.confirmYes.addEventListener('click', () => this.handleAddConfirm());
+        if (this.confirmNo) this.confirmNo.addEventListener('click', () => this.handleAddCancel());
+        if (this.confirmDeleteButton) this.confirmDeleteButton.addEventListener('click', () => this.handleDeleteConfirm());
 
         if (this.selectAllBtn) {
             this.selectAllBtn.addEventListener('click', () => this._toggleAllBulkCheckboxes(true));
@@ -147,7 +147,9 @@ class Modals {
             });
         }
 
-        this.deleteModalEl.addEventListener('shown.bs.modal', () => this.startDeleteAnimation());
+        if (this.deleteModalEl) {
+            this.deleteModalEl.addEventListener('shown.bs.modal', () => this.startDeleteAnimation());
+        }
     }
 
     async handleFetch() {
