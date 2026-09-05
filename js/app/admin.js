@@ -3,10 +3,13 @@ import { showAlertModal, showConfirmModal } from './modals.js';
 
 class AdminPage {
     constructor() {
+        this.adminLoadingState = document.getElementById('adminLoadingState');
         this.loginForm = document.getElementById('loginForm');
+        this.accessDenied = document.getElementById('accessDenied');
         this.adminPanel = document.getElementById('adminPanel');
         this.adminLoginForm = document.getElementById('adminLoginForm');
-        this.logoutBtn = this.adminPanel.querySelector('button');
+        this.logoutBtn = this.adminPanel ? this.adminPanel.querySelector('button') : null;
+        this.adminLogoutBtn = document.getElementById('adminLogoutBtn');
         this.registrationToggle = document.getElementById('registrationToggle');
         this.usersGrid = document.getElementById('usersGrid');
         this.categoriesGrid = document.getElementById('categoriesGrid');
@@ -42,18 +45,32 @@ class AdminPage {
         this._setupEventListeners();
         try {
             const data = await ApiAdmin.checkSession();
-            if (data.logged_in) {
+            if (this.adminLoadingState) this.adminLoadingState.style.display = 'none';
+
+            if (data.logged_in && data.authorized) {
                 this.currentRole = data.role;
                 this._showAdminPanel();
+            } else if (data.logged_in && !data.authorized) {
+                this._showAccessDenied(data.username);
+            } else {
+                this._showLoginForm();
             }
         } catch (error) {
-            // Not logged in
+            if (this.adminLoadingState) this.adminLoadingState.style.display = 'none';
+            this._showLoginForm();
         }
     }
 
     _setupEventListeners() {
-        this.adminLoginForm.addEventListener('submit', (e) => this._handleLogin(e));
-        this.logoutBtn.addEventListener('click', () => this._handleLogout());
+        if (this.adminLoginForm) {
+            this.adminLoginForm.addEventListener('submit', (e) => this._handleLogin(e));
+        }
+        if (this.logoutBtn) {
+            this.logoutBtn.addEventListener('click', () => this._handleLogout());
+        }
+        if (this.adminLogoutBtn) {
+            this.adminLogoutBtn.addEventListener('click', () => this._handleLogout());
+        }
         this.registrationToggle.addEventListener('change', (e) => this._handleRegistrationToggle(e));
         this.addCategoryBtn.addEventListener('click', () => this._handleAddCategory());
         if (this.newCategoryName) {
@@ -112,9 +129,13 @@ class AdminPage {
 
     async _handleLogin(e) {
         e.preventDefault();
-        const username = document.getElementById('adminUsername').value;
-        const password = document.getElementById('adminPassword').value;
+        const usernameInput = document.getElementById('adminUsername');
+        const passwordInput = document.getElementById('adminPassword');
+        const username = usernameInput ? usernameInput.value : '';
+        const password = passwordInput ? passwordInput.value : '';
         const errorDiv = document.getElementById('loginError');
+
+        if (errorDiv) errorDiv.style.display = 'none';
 
         try {
             const data = await ApiAdmin.login(username, password);
@@ -122,21 +143,46 @@ class AdminPage {
                 this.currentRole = data.role;
                 this._showAdminPanel();
             } else {
-                errorDiv.textContent = data.error;
-                errorDiv.style.display = 'block';
+                if (errorDiv) {
+                    errorDiv.textContent = data.error || 'Ongeldige inloggegevens';
+                    errorDiv.style.display = 'block';
+                }
             }
         } catch (error) {
-            errorDiv.textContent = 'Login failed';
-            errorDiv.style.display = 'block';
+            if (errorDiv) {
+                errorDiv.textContent = error.message || 'Fout bij inloggen';
+                errorDiv.style.display = 'block';
+            }
         }
     }
 
     async _handleLogout() {
         await ApiAdmin.logout();
-        this.loginForm.style.display = 'block';
-        this.adminPanel.style.display = 'none';
-        document.getElementById('adminUsername').value = '';
-        document.getElementById('adminPassword').value = '';
+        if (this.adminPanel) this.adminPanel.style.display = 'none';
+        if (this.accessDenied) this.accessDenied.style.display = 'none';
+        this._showLoginForm();
+        const u = document.getElementById('adminUsername');
+        const p = document.getElementById('adminPassword');
+        if (u) u.value = '';
+        if (p) p.value = '';
+    }
+
+    _showLoginForm() {
+        if (this.adminLoadingState) this.adminLoadingState.style.display = 'none';
+        if (this.adminPanel) this.adminPanel.style.display = 'none';
+        if (this.accessDenied) this.accessDenied.style.display = 'none';
+        if (this.loginForm) this.loginForm.style.display = 'block';
+    }
+
+    _showAccessDenied(username) {
+        if (this.adminLoadingState) this.adminLoadingState.style.display = 'none';
+        if (this.adminPanel) this.adminPanel.style.display = 'none';
+        if (this.loginForm) this.loginForm.style.display = 'none';
+        if (this.accessDenied) {
+            const unEl = document.getElementById('loggedInUsername');
+            if (unEl) unEl.textContent = username || 'gebruiker';
+            this.accessDenied.style.display = 'block';
+        }
     }
 
     async _handleRegistrationToggle(e) {
