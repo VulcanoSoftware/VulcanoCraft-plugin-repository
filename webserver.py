@@ -1169,20 +1169,23 @@ def admin_login():
     password = raw_password if isinstance(raw_password, str) else ''
 
     if not username or not password:
-        return jsonify({'error': 'Invalid credentials'}), 401
+        return jsonify({'error': 'Gebruikersnaam en wachtwoord vereist'}), 400
 
     users = load_users()
     user = next((u for u in users if u['username'] == username), None)
 
-    if user and user.get('role') in ['admin', 'co-admin']:
+    if user:
         is_valid, needs_rehash = verify_password(user.get('password', ''), password)
         if is_valid:
+            if user.get('role') not in ['admin', 'co-admin']:
+                return jsonify({'error': 'Dit account heeft geen beheerdersrechten (admin/co-admin)'}), 403
             if needs_rehash:
                 new_hash = hash_password(password)
                 db.users.update_one({"username": username}, {"$set": {"password": new_hash}})
             session['user'] = username
             return jsonify({'success': True, 'role': user.get('role')})
-    return jsonify({'error': 'Invalid credentials'}), 401
+
+    return jsonify({'error': 'Ongeldige inloggegevens'}), 401
 
 @app.route('/admin/logout', methods=['POST'])
 def admin_logout():
@@ -1194,9 +1197,11 @@ def admin_logout():
 def admin_check_session():
     """Check admin session status"""
     user = get_current_user()
-    if user and user.get('role') in ['admin', 'co-admin']:
-        return jsonify({'logged_in': True, 'role': user.get('role'), 'username': user.get('username')})
-    return jsonify({'logged_in': False})
+    if user:
+        if user.get('role') in ['admin', 'co-admin']:
+            return jsonify({'logged_in': True, 'authorized': True, 'role': user.get('role'), 'username': user.get('username')})
+        return jsonify({'logged_in': True, 'authorized': False, 'role': user.get('role', 'user'), 'username': user.get('username')})
+    return jsonify({'logged_in': False, 'authorized': False})
 
 @app.route('/admin/users', methods=['GET'])
 @require_co_admin
