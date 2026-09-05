@@ -1,3 +1,5 @@
+import i18n from './i18n.js';
+
 class UI {
     constructor() {
         this.pluginsContainer = document.getElementById('pluginsContainer');
@@ -16,7 +18,7 @@ class UI {
 
     renderPlugins(plugins, authStatus, currentUser) {
         if (plugins.length === 0) {
-            this.showEmptyMessage('Nog geen plugins beschikbaar.');
+            this.showEmptyMessage(i18n.t('common.no_plugins'));
             return;
         }
 
@@ -40,11 +42,12 @@ class UI {
         const formattedLoaders = this._formatLoaders(plugin.loaders);
         const formattedAuthors = this._formatAuthors(plugin.author);
         const domain = this._getDomainFromUrl(plugin.url || '');
-        const ownerInfo = plugin.owner ? `<small class="text-muted ms-2">door ${plugin.owner}</small>` : '';
+        const ownerInfo = plugin.owner ? `<small class="text-muted ms-2">${i18n.t('common.by')} ${plugin.owner}</small>` : '';
         const canDelete = logged_in && (role === 'admin' || role === 'co-admin' || plugin.owner === currentUser);
-        const firstLetter = (plugin.title || 'P')[0].toUpperCase();
+        const titleText = plugin.title || i18n.t('common.no_title');
+        const firstLetter = (titleText)[0].toUpperCase();
         const iconHtml = plugin.icon
-            ? `<img src="${plugin.icon}" alt="${plugin.title} icon" class="plugin-icon me-3" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="plugin-icon-letter me-3" style="display:none;">${firstLetter}</div>`
+            ? `<img src="${plugin.icon}" alt="${titleText} icon" class="plugin-icon me-3" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="plugin-icon-letter me-3" style="display:none;">${firstLetter}</div>`
             : `<div class="plugin-icon-letter me-3">${firstLetter}</div>`;
 
         return `
@@ -54,20 +57,20 @@ class UI {
                         <div class="d-flex align-items-center">
                             ${iconHtml}
                             <div>
-                                <h5 class="card-title mb-0">${plugin.title || 'Geen titel'}${ownerInfo}</h5>
+                                <h5 class="card-title mb-0">${titleText}${ownerInfo}</h5>
                             </div>
                         </div>
                         <div>
                             <span class="domain-badge">${domain}</span>
                             ${canDelete ? `
                                 <button class="btn btn-delete ms-2 delete-btn" data-url="${plugin.url}" data-title="${plugin.title}" data-category-context="${plugin._categoryContext || ''}">
-                                    <img src="images/delete-icon.png" class="btn-icon" alt="Verwijderen">
+                                    <img src="images/delete-icon.png" class="btn-icon" alt="${i18n.t('common.delete')}">
                                 </button>` : ''
                             }
                         </div>
                     </div>
                     <div class="card-body">
-                        <p class="card-text description">${plugin.description || 'Geen beschrijving beschikbaar'}</p>
+                        <p class="card-text description">${plugin.description || i18n.t('common.no_description')}</p>
                         <div class="row mb-3">
                             <div class="col-12">
                                 <div class="plugin-info d-flex align-items-center flex-wrap gap-2">
@@ -91,7 +94,7 @@ class UI {
                         <div class="d-flex justify-content-between align-items-center">
                             <a href="${plugin.url || '#'}" class="btn btn-primary" target="_blank">
                                 <img src="images/external-link-icon.png" class="btn-icon" alt="Externe link">
-                                Bekijk Plugin
+                                ${i18n.t('common.view_plugin')}
                             </a>
                             <div class="url-container">
                                 <small class="text-muted plugin-url" title="${plugin.url || ''}">
@@ -132,14 +135,14 @@ class UI {
     }
 
     _formatVersions(versionsString) {
-        if (!versionsString) return '<span class="badge bg-secondary">Geen versies</span>';
+        if (!versionsString) return `<span class="badge bg-secondary">${i18n.t('common.no_versions')}</span>`;
         const versions = versionsString.split(' ').filter(v => v);
-        if (versions.length === 0) return '<span class="badge bg-secondary">Geen versies</span>';
+        if (versions.length === 0) return `<span class="badge bg-secondary">${i18n.t('common.no_versions')}</span>`;
         return versions.map((version, i) => `<span class="version-badge" style="animation-delay: ${i * 100}ms">${version}</span>`).join('');
     }
 
     _formatLoaders(loaders) {
-        if (!loaders || loaders.length === 0) return '<span class="badge bg-secondary">Geen loaders</span>';
+        if (!loaders || loaders.length === 0) return `<span class="badge bg-secondary">${i18n.t('common.no_loaders')}</span>`;
         return loaders.map(loader => `<span class="loader-badge">${loader}</span>`).join('');
     }
 
@@ -242,7 +245,9 @@ class UI {
             (a.name || '').localeCompare(b.name || '')
         );
 
-        list.innerHTML = `<li class="category-item ${activeCategory === '' ? 'active' : ''}" data-category="">Alles <span class="badge bg-primary rounded-pill ms-auto" title="Totaal aantal plugins op het platform">0 plugins</span></li>`;
+        const allText = i18n.t('sidebar.all');
+        const pluginsWord = i18n.t('common.plugins');
+        list.innerHTML = `<li class="category-item ${activeCategory === '' ? 'active' : ''}" data-category="">${allText} <span class="badge bg-primary rounded-pill ms-auto">0 ${pluginsWord}</span></li>`;
 
         sortedCategories.forEach(cat => {
             const categoryName = cat.name;
@@ -297,7 +302,7 @@ class UI {
                 const num = (categoryName === '')
                     ? (totalAllCount !== undefined ? totalAllCount : totalAssignments)
                     : (categoryCountsMap[categoryName] || 0);
-                badge.textContent = `${num} ${num === 1 ? 'plugin' : 'plugins'}`;
+                badge.textContent = `${num} ${num === 1 ? i18n.t('common.plugin') : i18n.t('common.plugins')}`;
                 badge.title = categoryName === ''
                     ? `Totaal aantal beschikbare plugins (${num})`
                     : `Aantal plugins in categorie ${categoryName} (${num})`;
