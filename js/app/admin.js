@@ -71,8 +71,12 @@ class AdminPage {
         if (this.adminLogoutBtn) {
             this.adminLogoutBtn.addEventListener('click', () => this._handleLogout());
         }
-        this.registrationToggle.addEventListener('change', (e) => this._handleRegistrationToggle(e));
-        this.addCategoryBtn.addEventListener('click', () => this._handleAddCategory());
+        if (this.registrationToggle) {
+            this.registrationToggle.addEventListener('change', (e) => this._handleRegistrationToggle(e));
+        }
+        if (this.addCategoryBtn) {
+            this.addCategoryBtn.addEventListener('click', () => this._handleAddCategory());
+        }
         if (this.newCategoryName) {
             this.newCategoryName.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
