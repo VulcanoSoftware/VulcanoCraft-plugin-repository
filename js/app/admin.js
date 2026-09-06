@@ -87,6 +87,24 @@ class AdminPage {
         if (dashboardLogoutBtn) {
             dashboardLogoutBtn.addEventListener('click', () => this._handleLogout());
         }
+        const langNlBtn = document.getElementById('langSelectNl');
+        const langEnBtn = document.getElementById('langSelectEn');
+
+        if (langNlBtn) {
+            langNlBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                i18n.setLanguage('nl', true);
+                this._loadAllData();
+            });
+        }
+
+        if (langEnBtn) {
+            langEnBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                i18n.setLanguage('en', true);
+                this._loadAllData();
+            });
+        }
         if (this.registrationToggle) {
             this.registrationToggle.addEventListener('change', (e) => this._handleRegistrationToggle(e));
         }
