@@ -8,8 +8,11 @@ const translations = {
         "nav.change_password": "Wachtwoord Wijzigen",
         "nav.add": "Toevoegen",
         "nav.export_txt": "Exporteer TXT",
+        "nav.export_txt_title": "Exporteer huidige plugin lijst als TXT",
         "nav.replace_txt": "Lijst Vervangen (TXT)",
+        "nav.replace_txt_title": "Vervang huidige lijst door TXT bestand",
         "nav.append_txt": "TXT Bijvoegen",
+        "nav.append_txt_title": "Voeg plugins uit TXT bestand toe",
         "nav.admin": "Admin",
         "nav.home": "Home",
         "sidebar.title": "Server Categorieën",
@@ -223,8 +226,11 @@ const translations = {
         "nav.change_password": "Change Password",
         "nav.add": "Add Plugin",
         "nav.export_txt": "Export TXT",
+        "nav.export_txt_title": "Export current plugin list as TXT",
         "nav.replace_txt": "Replace List (TXT)",
+        "nav.replace_txt_title": "Replace current list with TXT file",
         "nav.append_txt": "Append TXT",
+        "nav.append_txt_title": "Append plugins from TXT file",
         "nav.admin": "Admin",
         "nav.home": "Home",
         "sidebar.title": "Server Categories",
@@ -467,6 +473,12 @@ class I18n {
     }
 
     applyTranslations() {
+        document.documentElement.lang = this.currentLang;
+
+        document.querySelectorAll('input[type="file"]').forEach(el => {
+            el.lang = this.currentLang;
+        });
+
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
             el.textContent = this.t(key);

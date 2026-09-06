@@ -771,7 +771,7 @@ class AdminPage {
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div class="d-flex align-items-center gap-2">
                                 <h5 class="card-title mb-0">${category.name}</h5>
-                                <span class="badge bg-info text-dark" title="Aantal plugins in deze categorie"><i class="fas fa-puzzle-piece me-1"></i>${catPluginsCount} ${pluginWord}</span>
+                                <span class="badge bg-info text-dark" title="${i18n.t('admin.category_plugins_count')}"><i class="fas fa-puzzle-piece me-1"></i>${catPluginsCount} ${pluginWord}</span>
                             </div>
                             <button class="btn btn-danger btn-sm delete-category-btn" data-name="${safeCatName}"><i class="fas fa-trash"></i></button>
                         </div>
