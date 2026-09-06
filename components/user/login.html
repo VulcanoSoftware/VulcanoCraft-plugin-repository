@@ -30,50 +30,50 @@
                   height: 80px;
                   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
                 ">
-              <h2 class="fw-bold text-primary mb-3">Welkom!</h2>
-              <p class="text-muted mb-4">Log in of maak een account aan</p>
+              <h2 class="fw-bold text-primary mb-3" data-i18n="auth.welcome">Welkom!</h2>
+              <p class="text-muted mb-4" data-i18n="auth.subtitle">Log in of maak een account aan</p>
             </div>
 
             <!-- Login Form -->
             <div id="loginForm">
-              <h4 class="mb-3">Inloggen</h4>
+              <h4 class="mb-3" data-i18n="auth.login_title">Inloggen</h4>
               <div class="mb-3">
-                <input class="form-control form-control-lg" id="loginUsername" type="text" placeholder="Gebruikersnaam">
+                <input class="form-control form-control-lg" id="loginUsername" type="text" placeholder="Gebruikersnaam" data-i18n-placeholder="auth.username">
               </div>
               <div class="mb-3">
-                <input class="form-control form-control-lg" id="loginPassword" type="password" placeholder="Wachtwoord">
+                <input class="form-control form-control-lg" id="loginPassword" type="password" placeholder="Wachtwoord" data-i18n-placeholder="auth.password">
               </div>
               <div class="alert alert-danger" id="loginError" style="display: none"></div>
               <button class="btn btn-primary btn-lg w-100 mb-3" id="loginBtn" type="button">
-                <i class="fas fa-sign-in-alt me-2"></i>Inloggen
+                <i class="fas fa-sign-in-alt me-2"></i><span data-i18n="auth.login_btn">Inloggen</span>
               </button>
               <p class="text-muted">
-                Nog geen account? <a id="showRegister" href="#">Registreren</a>
+                <span data-i18n="auth.no_account">Nog geen account?</span> <a id="showRegister" href="#" data-i18n="auth.register_link">Registreren</a>
               </p>
             </div>
 
             <!-- Register Form -->
             <div id="registerForm" style="display: none">
-              <h4 class="mb-3">Account Aanmaken</h4>
+              <h4 class="mb-3" data-i18n="auth.register_title">Account Aanmaken</h4>
               <div class="mb-3">
-                <input class="form-control form-control-lg" id="registerUsername" type="text" placeholder="Gebruikersnaam">
+                <input class="form-control form-control-lg" id="registerUsername" type="text" placeholder="Gebruikersnaam" data-i18n-placeholder="auth.username">
               </div>
               <div class="mb-3">
-                <input class="form-control form-control-lg" id="registerPassword" type="password" placeholder="Wachtwoord">
+                <input class="form-control form-control-lg" id="registerPassword" type="password" placeholder="Wachtwoord" data-i18n-placeholder="auth.password">
               </div>
               <div class="alert alert-danger" id="registerError" style="display: none"></div>
               <button class="btn btn-primary btn-lg w-100 mb-3" id="registerBtn" type="button">
-                <i class="fas fa-user-plus me-2"></i>Account Aanmaken
+                <i class="fas fa-user-plus me-2"></i><span data-i18n="auth.register_btn">Account Aanmaken</span>
               </button>
               <p class="text-muted">
-                Al een account? <a id="showLogin" href="#">Inloggen</a>
+                <span data-i18n="auth.has_account">Al een account?</span> <a id="showLogin" href="#" data-i18n="auth.login_link">Inloggen</a>
               </p>
             </div>
 
             <div class="mt-4 pt-3 border-top">
               <small class="text-muted">
                 <i class="fas fa-shield-alt me-1"></i>
-                Veilig en privé
+                <span data-i18n="auth.safe_private">Veilig en privé</span>
               </small>
             </div>
           </div>

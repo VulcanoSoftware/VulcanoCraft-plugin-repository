@@ -1,4 +1,5 @@
 import ApiAuth from './api-auth.js';
+import i18n from './i18n.js';
 
 class ChangePasswordPage {
     constructor() {
@@ -42,4 +43,7 @@ class ChangePasswordPage {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => new ChangePasswordPage());
+document.addEventListener('DOMContentLoaded', () => {
+    i18n.applyTranslations();
+    new ChangePasswordPage();
+});
