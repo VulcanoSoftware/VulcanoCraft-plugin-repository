@@ -611,7 +611,7 @@ class AdminPage {
 
         const userBadge = document.getElementById('userCountBadge');
         if (userBadge) {
-            userBadge.innerHTML = `<i class="fas fa-users me-1"></i>Totaal: ${total} ${total === 1 ? 'gebruiker' : 'gebruikers'}`;
+            userBadge.innerHTML = `<i class="fas fa-users me-1"></i>${i18n.t('admin.total_label')}: ${total} ${total === 1 ? i18n.t('admin.user_singular') : i18n.t('admin.user_plural')}`;
         }
         if (users.length === 0) {
             this.usersGrid.innerHTML = `
@@ -632,7 +632,7 @@ class AdminPage {
         this.categoriesCache = categories || [];
         const catBadge = document.getElementById('categoryCountBadge');
         if (catBadge) {
-            catBadge.innerHTML = `<i class="fas fa-tags me-1"></i>Totaal: ${categories.length} ${categories.length === 1 ? 'categorie' : 'categorieën'}`;
+            catBadge.innerHTML = `<i class="fas fa-tags me-1"></i>${i18n.t('admin.total_label')}: ${categories.length} ${categories.length === 1 ? i18n.t('admin.category_singular') : i18n.t('admin.category_plural')}`;
         }
         if (categories.length === 0) {
             this.categoriesGrid.innerHTML = `
@@ -661,7 +661,7 @@ class AdminPage {
         this.categoriesCache = categories || [];
         const pluginBadge = document.getElementById('pluginCountBadge');
         if (pluginBadge) {
-            pluginBadge.innerHTML = `<i class="fas fa-puzzle-piece me-1"></i>Totaal: ${total} ${total === 1 ? 'plugin' : 'plugins'}`;
+            pluginBadge.innerHTML = `<i class="fas fa-puzzle-piece me-1"></i>${i18n.t('admin.total_label')}: ${total} ${total === 1 ? i18n.t('common.plugin') : i18n.t('common.plugins')}`;
         }
 
         if (categories.length === 0) {
@@ -728,6 +728,8 @@ class AdminPage {
             .map(r => `<option value="${r}" ${user.role === r ? 'selected' : ''}>${r.charAt(0).toUpperCase() + r.slice(1)}</option>`)
             .join('');
 
+        const pluginWord = user.plugin_count === 1 ? i18n.t('common.plugin') : i18n.t('common.plugins');
+
         return `
             <div class="col-md-4 col-lg-3 mb-3">
                 <div class="card h-100">
@@ -735,10 +737,10 @@ class AdminPage {
                         <i class="fas fa-user-circle" style="font-size: 3rem; color: #6c757d;"></i>
                         <h6 class="card-title">${user.username}</h6>
                         <span class="badge ${this._getRoleBadgeClass(user.role)}">${user.role}</span>
-                        <span class="badge bg-primary"><i class="fas fa-puzzle-piece me-1"></i>${user.plugin_count} plugins</span>
+                        <span class="badge bg-primary"><i class="fas fa-puzzle-piece me-1"></i>${user.plugin_count} ${pluginWord}</span>
                         ${canEdit ? `
                             <select class="form-select form-select-sm mb-2 user-role-select" data-username="${user.username}">${roleOptions}</select>
-                            <button class="btn btn-danger btn-sm delete-user-btn" data-username="${user.username}"><i class="fas fa-trash me-1"></i>Verwijderen</button>
+                            <button class="btn btn-danger btn-sm delete-user-btn" data-username="${user.username}"><i class="fas fa-trash me-1"></i>${i18n.t('common.delete')}</button>
                         ` : ''}
                     </div>
                 </div>
@@ -748,6 +750,7 @@ class AdminPage {
     _renderCategory(category) {
         const safeCatName = category.name.replace(/'/g, "\\'");
         const catPluginsCount = (this.pluginsCache || []).filter(p => p.category === category.name || (Array.isArray(p.categories) && p.categories.includes(category.name))).length;
+        const pluginWord = catPluginsCount === 1 ? i18n.t('common.plugin') : i18n.t('common.plugins');
         return `
             <div class="col-lg-6 mb-4">
                 <div class="card h-100">
@@ -755,19 +758,19 @@ class AdminPage {
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div class="d-flex align-items-center gap-2">
                                 <h5 class="card-title mb-0">${category.name}</h5>
-                                <span class="badge bg-info text-dark" title="Aantal plugins in deze categorie"><i class="fas fa-puzzle-piece me-1"></i>${catPluginsCount} ${catPluginsCount === 1 ? 'plugin' : 'plugins'}</span>
+                                <span class="badge bg-info text-dark" title="Aantal plugins in deze categorie"><i class="fas fa-puzzle-piece me-1"></i>${catPluginsCount} ${pluginWord}</span>
                             </div>
                             <button class="btn btn-danger btn-sm delete-category-btn" data-name="${safeCatName}"><i class="fas fa-trash"></i></button>
                         </div>
                         <input type="text" class="form-control form-control-sm mb-2 category-field cat-name" value="${category.name}" data-name="${safeCatName}">
-                        <input type="text" class="form-control form-control-sm mb-2 category-field cat-image" value="${category.image_url || ''}" data-name="${safeCatName}" placeholder="Image URL">
+                        <input type="text" class="form-control form-control-sm mb-2 category-field cat-image" value="${category.image_url || ''}" data-name="${safeCatName}" placeholder="${i18n.t('admin.image_url')}">
                         <div class="form-check form-switch mb-2">
                             <input class="form-check-input category-field cat-show" type="checkbox" ${category.show_image ? 'checked' : ''} data-name="${safeCatName}">
-                            <label class="form-check-label">Afbeelding tonen</label>
+                            <label class="form-check-label">${i18n.t('admin.show_image')}</label>
                         </div>
                         <div class="row g-2">
-                            <div class="col"><input type="text" class="form-control form-control-sm category-field cat-software" value="${category.software || ''}" data-name="${safeCatName}" placeholder="Software"></div>
-                            <div class="col"><input type="text" class="form-control form-control-sm category-field cat-version" value="${category.version || ''}" data-name="${safeCatName}" placeholder="Versie"></div>
+                            <div class="col"><input type="text" class="form-control form-control-sm category-field cat-software" value="${category.software || ''}" data-name="${safeCatName}" placeholder="${i18n.t('admin.software')}"></div>
+                            <div class="col"><input type="text" class="form-control form-control-sm category-field cat-version" value="${category.version || ''}" data-name="${safeCatName}" placeholder="${i18n.t('admin.version')}"></div>
                         </div>
                     </div>
                 </div>
@@ -784,13 +787,13 @@ class AdminPage {
                             <img src="${plugin.icon || '/images/plugin-placeholder.png'}" style="width: 40px; height: 40px; margin-right: 10px;" alt="icon" loading="lazy">
                             <div style="flex-grow: 1;">
                                 <input type="text" class="form-control form-control-sm mb-1 plugin-field plugin-title" value="${plugin.title}" data-url="${plugin.url}">
-                                <input type="text" class="form-control form-control-sm mb-1 plugin-field plugin-author" value="${plugin.author || 'Onbekend'}" data-url="${plugin.url}">
+                                <input type="text" class="form-control form-control-sm mb-1 plugin-field plugin-author" value="${plugin.author || i18n.t('common.unknown')}" data-url="${plugin.url}">
                                 <select class="form-select form-select-sm plugin-field plugin-category" data-url="${plugin.url}">
-                                    <option value="">Geen categorie</option>${categoryOptions}
+                                    <option value="">${i18n.t('admin.no_category')}</option>${categoryOptions}
                                 </select>
                             </div>
                         </div>
-                        <button class="btn btn-danger btn-sm delete-plugin-btn" data-url="${plugin.url}" data-title="${plugin.title}"><i class="fas fa-trash me-1"></i>Verwijderen</button>
+                        <button class="btn btn-danger btn-sm delete-plugin-btn" data-url="${plugin.url}" data-title="${plugin.title}"><i class="fas fa-trash me-1"></i>${i18n.t('common.delete')}</button>
                     </div>
                 </div>
             </div>`;
