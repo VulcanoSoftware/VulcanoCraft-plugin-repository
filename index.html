@@ -171,27 +171,27 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="exportTxtModalLabel">
-              <i class="fas fa-file-download me-2"></i>Exporteer Plugins als TXT
+              <i class="fas fa-file-download me-2"></i><span data-i18n="nav.export_txt">Exporteer Plugins als TXT</span>
             </h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <div class="mb-3">
               <label for="exportCategorySelect" class="form-label fw-bold">
-                <i class="fas fa-list me-1"></i> Kies Categorie om te exporteren
+                <i class="fas fa-list me-1"></i> <span data-i18n="modal.select_category_export">Kies Categorie om te exporteren</span>
               </label>
               <select class="form-select" id="exportCategorySelect">
-                <option value="ALL">Alle categorieën</option>
+                <option value="ALL" data-i18n="modal.all_categories">Alle categorieën</option>
               </select>
             </div>
-            <div class="form-text text-muted">
+            <div class="form-text text-muted" data-i18n="modal.export_help">
               Selecteer de specifieke categorie die je wilt exporteren, of kies "Alle categorieën" voor het volledige overzicht ingedeeld per categorie.
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuleren</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><span data-i18n="common.cancel">Annuleren</span></button>
             <button type="button" class="btn btn-info text-white" id="confirmExportBtn">
-              <i class="fas fa-download me-1"></i> Exporteer
+              <i class="fas fa-download me-1"></i> <span data-i18n="modal.export">Exporteer</span>
             </button>
           </div>
         </div>
@@ -204,33 +204,33 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="importTxtModalLabel">
-              <i class="fas fa-file-import me-2"></i><span id="importModalTitleText">Importeer TXT</span>
+              <i class="fas fa-file-import me-2"></i><span id="importModalTitleText" data-i18n="modal.import_txt_title">Importeer TXT</span>
             </h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <div class="mb-3">
               <label for="importCategorySelect" class="form-label fw-bold">
-                <i class="fas fa-list me-1"></i> Kies Categorie
+                <i class="fas fa-list me-1"></i> <span data-i18n="modal.select_category_import">Kies Categorie</span>
               </label>
               <select class="form-select" id="importCategorySelect">
-                <option value="ALL">Alle categorieën</option>
+                <option value="ALL" data-i18n="modal.all_categories">Alle categorieën</option>
               </select>
-              <div class="form-text mt-1" id="importCategoryHelpText">
+              <div class="form-text mt-1" id="importCategoryHelpText" data-i18n="modal.import_help">
                 Als je "Alle categorieën" kiest, worden categoriekopjes in het TXT bestand (bijv. [Survival]) automatisch ingelezen.
               </div>
             </div>
             <div class="mb-3">
               <label for="importModalFileInput" class="form-label fw-bold">
-                <i class="fas fa-file-alt me-1"></i> Kies TXT Bestand
+                <i class="fas fa-file-alt me-1"></i> <span data-i18n="modal.choose_txt">Kies TXT Bestand</span>
               </label>
               <input class="form-control" type="file" id="importModalFileInput" accept=".txt">
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuleren</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><span data-i18n="common.cancel">Annuleren</span></button>
             <button type="button" class="btn btn-primary" id="confirmImportBtn">
-              <i class="fas fa-arrow-right me-1"></i> Verder
+              <i class="fas fa-arrow-right me-1"></i> <span data-i18n="modal.next">Verder</span>
             </button>
           </div>
         </div>
@@ -243,19 +243,19 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="missingCategoriesModalLabel">
-              <i class="fas fa-folder-plus me-2 text-warning"></i>Nieuwe Categorieën Gevonden
+              <i class="fas fa-folder-plus me-2 text-warning"></i><span data-i18n="modal.missing_cats_title">Nieuwe Categorieën Gevonden</span>
             </h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <p>De volgende categorieën uit het geïmporteerde TXT-bestand bestaan nog niet op de site:</p>
+            <p data-i18n="modal.missing_cats_intro">De volgende categorieën uit het geïmporteerde TXT-bestand bestaan nog niet op de site:</p>
             <ul id="missingCategoriesList" class="list-group mb-3"></ul>
-            <p class="mb-0">Wilt u deze categorieën automatisch aanmaken op de site?</p>
+            <p class="mb-0" data-i18n="modal.missing_cats_ask">Wilt u deze categorieën automatisch aanmaken op de site?</p>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" id="skipCreateCategoriesBtn">Nee, overslaan</button>
+            <button type="button" class="btn btn-secondary" id="skipCreateCategoriesBtn"><span data-i18n="modal.skip_create">Nee, overslaan</span></button>
             <button type="button" class="btn btn-success" id="confirmCreateCategoriesBtn">
-              <i class="fas fa-plus me-1"></i> Ja, aanmaken
+              <i class="fas fa-plus me-1"></i> <span data-i18n="modal.confirm_create">Ja, aanmaken</span>
             </button>
           </div>
         </div>
