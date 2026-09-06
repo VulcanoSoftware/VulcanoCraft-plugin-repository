@@ -1,4 +1,5 @@
 import ApiAuth from './api-auth.js';
+import i18n from './i18n.js';
 
 class LoginPage {
     constructor() {
@@ -140,4 +141,7 @@ class LoginPage {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => new LoginPage());
+document.addEventListener('DOMContentLoaded', () => {
+    i18n.applyTranslations();
+    new LoginPage();
+});
