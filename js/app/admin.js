@@ -265,9 +265,9 @@ class AdminPage {
     async _handleDeleteUser(button) {
         const username = button.dataset.username;
         const confirmed = await showConfirmModal({
-            title: 'Gebruiker Verwijderen',
-            message: `Weet je zeker dat je gebruiker "<strong>${username}</strong>" wilt verwijderen?`,
-            confirmText: 'Verwijderen',
+            title: i18n.t('admin.delete_user_title'),
+            message: i18n.t('admin.delete_user_confirm', { username }),
+            confirmText: i18n.t('common.delete'),
             confirmClass: 'btn-danger',
             iconClass: 'fas fa-user-times text-danger'
         });
@@ -319,15 +319,15 @@ class AdminPage {
 
         let message = '';
         if (pluginCount > 0) {
-            message = `<div class="alert alert-warning mb-3"><i class="fas fa-exclamation-triangle me-2"></i>Deze categorie bevat <strong>${pluginCount} plugin(s)</strong>!</div>Weet je zeker dat je de categorie "<strong>${name}</strong>" wilt verwijderen?<br><br><span class="text-danger"><strong>Belangrijk:</strong> De categorie inclusief alle ${pluginCount} bijbehorende plugins/inhoud worden definitief verwijderd.</span>`;
+            message = `<div class="alert alert-warning mb-3"><i class="fas fa-exclamation-triangle me-2"></i>${i18n.t('admin.delete_cat_warn', { count: pluginCount })}</div>${i18n.t('admin.delete_cat_confirm', { name })}`;
         } else {
-            message = `Weet je zeker dat je de categorie "<strong>${name}</strong>" wilt verwijderen?`;
+            message = i18n.t('admin.delete_cat_confirm', { name });
         }
 
         const confirmed = await showConfirmModal({
-            title: 'Categorie Verwijderen',
+            title: i18n.t('admin.delete_category_title'),
             message: message,
-            confirmText: pluginCount > 0 ? 'Verwijderen inclusief plugins' : 'Verwijderen',
+            confirmText: pluginCount > 0 ? i18n.t('admin.delete_inc_plugins') : i18n.t('common.delete'),
             confirmClass: 'btn-danger',
             iconClass: 'fas fa-trash-alt text-danger'
         });
@@ -366,9 +366,9 @@ class AdminPage {
         const url = button.dataset.url;
         const title = button.dataset.title;
         const confirmed = await showConfirmModal({
-            title: 'Plugin Verwijderen',
-            message: `Weet je zeker dat je plugin "<strong>${title}</strong>" wilt verwijderen?`,
-            confirmText: 'Verwijderen',
+            title: i18n.t('admin.delete_plugin_title'),
+            message: i18n.t('admin.delete_plugin_confirm', { title }),
+            confirmText: i18n.t('common.delete'),
             confirmClass: 'btn-danger',
             iconClass: 'fas fa-trash-alt text-danger'
         });
@@ -500,7 +500,7 @@ class AdminPage {
     async _handleApplyUpdate() {
         const confirmed = await showConfirmModal({
             title: i18n.t('admin.apply_update_title'),
-            message: 'Weet je zeker dat je de update wilt downloaden en toepassen? De server herstart automatisch na het updaten.',
+            message: i18n.t('admin.apply_update_confirm'),
             confirmText: i18n.t('admin.apply_update'),
             confirmClass: 'btn-success',
             iconClass: 'fas fa-download text-success'
@@ -547,7 +547,7 @@ class AdminPage {
 
         const confirmed = await showConfirmModal({
             title: i18n.t('admin.rollback_title'),
-            message: `Weet je zeker dat je wilt terugrollen naar commit <code>${selectedCommit.slice(0, 7)}</code>? De server herstart automatisch na het terugrollen.`,
+            message: i18n.t('admin.rollback_confirm', { commit: selectedCommit.slice(0, 7) }),
             confirmText: i18n.t('admin.rollback_btn'),
             confirmClass: 'btn-warning',
             iconClass: 'fas fa-undo text-warning'
@@ -682,7 +682,7 @@ class AdminPage {
                 <div class="col-12 text-center my-3">
                     <div class="alert alert-info d-flex align-items-center justify-content-center" role="alert">
                         <img src="images/add-icon.png" class="warning-icon me-2" alt="Geen categorieën" style="width: 24px; height: 24px;">
-                        Geen categorieën beschikbaar.
+                        ${i18n.t('common.no_categories')}
                     </div>
                 </div>`;
         } else {
