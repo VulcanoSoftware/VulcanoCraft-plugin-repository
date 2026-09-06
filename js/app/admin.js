@@ -412,7 +412,7 @@ class AdminPage {
             this.updateAlert.style.display = 'block';
         } finally {
             this.checkUpdateBtn.disabled = false;
-            this.checkUpdateBtn.innerHTML = '<i class="fas fa-search me-1"></i>Check op Updates';
+            this.checkUpdateBtn.innerHTML = `<i class="fas fa-search me-1"></i>${i18n.t('admin.check_updates')}`;
         }
     }
 
@@ -424,7 +424,7 @@ class AdminPage {
         if (this.commitHistory.length === 0) {
             const opt = document.createElement('option');
             opt.value = '';
-            opt.textContent = 'Geen commit historie beschikbaar';
+            opt.textContent = i18n.t('admin.loading_commit_history');
             this.rollbackCommitSelect.appendChild(opt);
             if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.disabled = true;
             return;
@@ -433,14 +433,15 @@ class AdminPage {
         const defaultTargetSha = data.full_previous_commit || '';
         let defaultSelectedIndex = -1;
 
+        const langLocale = i18n.lang === 'en' ? 'en-US' : 'nl-NL';
         this.commitHistory.forEach((item, index) => {
             const opt = document.createElement('option');
             opt.value = item.sha;
-            let label = `[${item.short_sha}] ${item.message} (${item.author}, ${new Date(item.date).toLocaleDateString('nl-NL')})`;
+            let label = `[${item.short_sha}] ${item.message} (${item.author}, ${new Date(item.date).toLocaleDateString(langLocale)})`;
             if (item.is_current) {
-                label += ' - (HUIDIGE VERSIE)';
+                label += ` - (${i18n.t('admin.current_version')})`;
             } else if (item.sha === defaultTargetSha) {
-                label += ' - (VORIGE RELEASE)';
+                label += ` - (${i18n.t('admin.previous_release')})`;
             }
             opt.textContent = label;
             this.rollbackCommitSelect.appendChild(opt);
@@ -490,9 +491,9 @@ class AdminPage {
 
     async _handleApplyUpdate() {
         const confirmed = await showConfirmModal({
-            title: 'Software Update Toepassen',
+            title: i18n.t('admin.apply_update_title'),
             message: 'Weet je zeker dat je de update wilt downloaden en toepassen? De server herstart automatisch na het updaten.',
-            confirmText: 'Update Toepassen',
+            confirmText: i18n.t('admin.apply_update'),
             confirmClass: 'btn-success',
             iconClass: 'fas fa-download text-success'
         });
@@ -525,7 +526,7 @@ class AdminPage {
             this.applyUpdateBtn.disabled = false;
             this.checkUpdateBtn.disabled = false;
             if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.disabled = false;
-            this.applyUpdateBtn.innerHTML = '<i class="fas fa-download me-1"></i>Update Toepassen';
+            this.applyUpdateBtn.innerHTML = `<i class="fas fa-download me-1"></i>${i18n.t('admin.apply_update')}`;
         }
     }
 
@@ -537,9 +538,9 @@ class AdminPage {
         }
 
         const confirmed = await showConfirmModal({
-            title: 'Versie Terugrollen',
+            title: i18n.t('admin.rollback_title'),
             message: `Weet je zeker dat je wilt terugrollen naar commit <code>${selectedCommit.slice(0, 7)}</code>? De server herstart automatisch na het terugrollen.`,
-            confirmText: 'Terugrollen',
+            confirmText: i18n.t('admin.rollback_btn'),
             confirmClass: 'btn-warning',
             iconClass: 'fas fa-undo text-warning'
         });
@@ -572,7 +573,7 @@ class AdminPage {
             if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.disabled = false;
             if (this.checkUpdateBtn) this.checkUpdateBtn.disabled = false;
             if (this.applyUpdateBtn) this.applyUpdateBtn.disabled = false;
-            if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.innerHTML = '<i class="fas fa-undo me-1"></i>Geselecteerde Versie Terugrollen';
+            if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.innerHTML = `<i class="fas fa-undo me-1"></i>${i18n.t('admin.rollback_btn')}`;
         }
     }
 
