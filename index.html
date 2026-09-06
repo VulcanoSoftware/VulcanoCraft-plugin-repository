@@ -51,7 +51,7 @@
                   <div class="mb-3">
                     <label class="form-label" for="pluginUrl">
                       <img class="input-icon" src="images/link-icon.png" alt="URL" loading="lazy">
-                      Plugin URL
+                      <span data-i18n="modal.plugin_url">Plugin URL</span>
                     </label>
                     <input class="form-control" id="pluginUrl" type="url" placeholder="https://modrinth.com/plugin/...">
                   </div>
@@ -60,10 +60,10 @@
                   <div class="mb-3">
                     <label class="form-label" for="bulkPluginUrls">
                       <img class="input-icon" src="images/link-icon.png" alt="URLs" loading="lazy">
-                      Plugin URL's (één per regel)
+                      <span data-i18n="modal.plugin_urls_bulk">Plugin URL's (één per regel)</span>
                     </label>
                     <textarea class="form-control" id="bulkPluginUrls" rows="6" placeholder="https://modrinth.com/plugin/1&#10;https://spigotmc.org/resources/2&#10;https://hangar.papermc.io/author/3"></textarea>
-                    <div class="form-text">Plak meerdere plugin URL's, gescheiden door een nieuwe regel. Druk op Ctrl+Enter om op te halen.</div>
+                    <div class="form-text" data-i18n="modal.bulk_help">Plak meerdere plugin URL's, gescheiden door een nieuwe regel. Druk op Ctrl+Enter om op te halen.</div>
                   </div>
                 </div>
               </div>
@@ -72,7 +72,7 @@
             <div id="step2" style="display: none">
               <div class="alert alert-info d-flex align-items-center mb-2">
                 <img class="loading-icon me-2" src="images/loading-icon.gif" alt="Laden" loading="lazy">
-                <span id="fetchProgressText">Plugin informatie wordt opgehaald...</span>
+                <span id="fetchProgressText" data-i18n="modal.fetch_info">Plugin informatie wordt opgehaald...</span>
               </div>
               <div class="progress" style="height: 10px; display: none;" id="fetchProgressBarContainer">
                 <div class="progress-bar progress-bar-striped progress-bar-animated" id="fetchProgressBar" role="progressbar" style="width: 0%"></div>
@@ -83,7 +83,7 @@
               <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <h5 class="mb-0 d-flex align-items-center">
                   <img class="modal-icon me-2" src="images/details-icon.png" alt="Info" loading="lazy">
-                  Plugin details &amp; Controle
+                  <span data-i18n="modal.details_check">Plugin details &amp; Controle</span>
                 </h5>
                 <span id="selectedCountBadge" class="badge bg-primary" style="display: none;">0 geselecteerd</span>
               </div>
@@ -100,14 +100,14 @@
                     <div class="mb-3">
                       <p class="me-4 mb-0">
                         <strong><img class="info-icon" src="images/author-icon.png" alt="Auteur" loading="lazy">
-                          Auteur:</strong>
+                          <span data-i18n="common.author">Auteur</span>:</strong>
                         <span id="previewAuthor"></span>
                       </p>
                     </div>
                     <div>
                       <p class="mb-1">
                         <strong><img class="info-icon" src="images/version-icon.png" alt="Versies" loading="lazy">
-                          Versies:</strong>
+                          <span data-i18n="common.supported_versions">Versies</span>:</strong>
                       </p>
                       <div class="versions-container" id="previewVersions"></div>
                     </div>
@@ -119,8 +119,8 @@
               <div id="bulkPreviewContainer" style="display: none;">
                 <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
                   <div class="btn-group btn-group-sm flex-shrink-0">
-                    <button type="button" class="btn btn-outline-secondary" id="selectAllBtn"><i class="fas fa-check-square me-1"></i> Alles selecteren</button>
-                    <button type="button" class="btn btn-outline-secondary" id="deselectAllBtn"><i class="far fa-square me-1"></i> Alles deselecteren</button>
+                    <button type="button" class="btn btn-outline-secondary" id="selectAllBtn"><i class="fas fa-check-square me-1"></i> <span data-i18n="modal.select_all">Alles selecteren</span></button>
+                    <button type="button" class="btn btn-outline-secondary" id="deselectAllBtn"><i class="far fa-square me-1"></i> <span data-i18n="modal.deselect_all">Alles deselecteren</span></button>
                   </div>
                   <small class="text-muted text-truncate min-w-0" id="bulkSummaryText"></small>
                 </div>
@@ -154,11 +154,11 @@
           <div class="modal-footer">
             <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">
               <img class="btn-icon" src="images/cancel-icon.png" alt="Annuleren">
-              Annuleren
+              <span data-i18n="common.cancel">Annuleren</span>
             </button>
             <button class="btn btn-primary" id="fetchButton" type="button">
               <img class="btn-icon" src="images/fetch-icon.png" alt="Ophalen">
-              Ophalen
+              <span data-i18n="modal.fetch">Ophalen</span>
             </button>
           </div>
         </div>

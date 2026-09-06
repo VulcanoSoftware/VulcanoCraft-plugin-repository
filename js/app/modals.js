@@ -229,7 +229,7 @@ class Modals {
     async _handleSingleFetch() {
         const url = this.pluginUrlInput.value.trim();
         if (!url) {
-            this.showError('Vul een URL in');
+            this.showError(i18n.t('error.enter_url'));
             return;
         }
 
@@ -238,7 +238,7 @@ class Modals {
 
         const fetchProgressText = document.getElementById('fetchProgressText');
         const progressBarContainer = document.getElementById('fetchProgressBarContainer');
-        if (fetchProgressText) fetchProgressText.textContent = 'Plugin informatie wordt opgehaald...';
+        if (fetchProgressText) fetchProgressText.textContent = i18n.t('modal.fetch_info');
         if (progressBarContainer) progressBarContainer.style.display = 'none';
 
         try {
@@ -249,13 +249,13 @@ class Modals {
             document.getElementById('singlePreviewContainer').style.display = 'block';
             document.getElementById('bulkPreviewContainer').style.display = 'none';
             document.getElementById('selectedCountBadge').style.display = 'none';
-            document.getElementById('confirmationQuestionText').textContent = 'Is dit de correcte plugin?';
+            document.getElementById('confirmationQuestionText').textContent = i18n.t('modal.confirm_question');
 
             this.showStep(3);
             this._toggleAddModalButtons(false);
             this._setModalStatic(true);
         } catch (error) {
-            this.showError(`Fout bij ophalen plugin: ${error.message}`);
+            this.showError(`${error.message}`);
             this.showStep(1);
         }
     }
@@ -263,7 +263,7 @@ class Modals {
     async _handleBulkFetch() {
         const rawText = this.bulkPluginUrlsInput.value.trim();
         if (!rawText) {
-            this.showError('Vul ten minste één URL in');
+            this.showError(i18n.t('error.enter_url_bulk'));
             return;
         }
 
@@ -272,7 +272,7 @@ class Modals {
         ));
 
         if (urls.length === 0) {
-            this.showError('Geen geldige URL\'s gevonden');
+            this.showError(i18n.t('error.no_valid_urls'));
             return;
         }
 
@@ -294,7 +294,7 @@ class Modals {
             const percent = Math.round((currentNum / urls.length) * 100);
 
             if (fetchProgressText) {
-                fetchProgressText.textContent = `Plugin ${currentNum} van ${urls.length} ophalen... (${url})`;
+                fetchProgressText.textContent = `${i18n.t('common.plugin')} ${currentNum} / ${urls.length} (${url})`;
             }
             if (progressBar) {
                 progressBar.style.width = `${percent}%`;
@@ -330,7 +330,7 @@ class Modals {
         document.getElementById('singlePreviewContainer').style.display = 'none';
         document.getElementById('bulkPreviewContainer').style.display = 'block';
         document.getElementById('selectedCountBadge').style.display = 'inline-block';
-        document.getElementById('confirmationQuestionText').textContent = 'Wilt u de geselecteerde plugins toevoegen?';
+        document.getElementById('confirmationQuestionText').textContent = i18n.t('modal.add_selected_question');
 
         this.showStep(3);
         this._toggleAddModalButtons(false);
@@ -345,7 +345,7 @@ class Modals {
         this.cachedBulkPlugins.forEach((item, index) => {
             if (item.status === 'success') {
                 const plugin = item.plugin;
-                const versionsStr = plugin.versions ? plugin.versions.split(' ').slice(0, 3).join(', ') : 'Geen';
+                const versionsStr = plugin.versions ? plugin.versions.split(' ').slice(0, 3).join(', ') : i18n.t('common.no_versions');
                 const firstLetter = (plugin.title || 'P')[0].toUpperCase();
                 const iconHtml = plugin.icon
                     ? `<img src="${plugin.icon}" class="bulk-preview-icon flex-shrink-0 me-2" alt="icon" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="bulk-preview-icon-letter flex-shrink-0 me-2" style="display:none;">${firstLetter}</div>`
@@ -360,10 +360,10 @@ class Modals {
                             ${iconHtml}
                             <div class="flex-grow-1 min-w-0">
                                 <div class="d-flex justify-content-between align-items-center gap-2 min-w-0">
-                                    <h6 class="mb-0 text-truncate min-w-0" title="${plugin.title || 'Geen titel'}">${plugin.title || 'Geen titel'}</h6>
-                                    <small class="text-muted text-nowrap flex-shrink-0">${plugin.author || 'Onbekend'}</small>
+                                    <h6 class="mb-0 text-truncate min-w-0" title="${plugin.title || i18n.t('common.no_title')}">${plugin.title || i18n.t('common.no_title')}</h6>
+                                    <small class="text-muted text-nowrap flex-shrink-0">${plugin.author || i18n.t('common.unknown')}</small>
                                 </div>
-                                <div class="small text-muted text-truncate min-w-0" title="${plugin.description || 'Geen beschrijving'}">${plugin.description || 'Geen beschrijving'}</div>
+                                <div class="small text-muted text-truncate min-w-0" title="${plugin.description || i18n.t('common.no_description')}">${plugin.description || i18n.t('common.no_description')}</div>
                                 <div class="small mt-1 d-flex flex-wrap align-items-center gap-1 min-w-0">
                                     ${item.targetCategory ? `<span class="badge bg-primary text-truncate flex-shrink-0"><i class="fas fa-folder me-1"></i>${item.targetCategory}</span>` : ''}
                                     <span class="badge bg-info text-dark flex-shrink-0">v: ${versionsStr}</span>
@@ -411,15 +411,15 @@ class Modals {
 
         const countBadge = document.getElementById('selectedCountBadge');
         if (countBadge) {
-            countBadge.innerHTML = `<i class="fas fa-check-square me-1"></i>Geselecteerd: ${selectedCount} / ${totalSuccess}`;
+            countBadge.innerHTML = `<i class="fas fa-check-square me-1"></i>${i18n.t('modal.selected')}: ${selectedCount} / ${totalSuccess}`;
         }
 
         const summaryText = document.getElementById('bulkSummaryText');
         if (summaryText) {
             summaryText.innerHTML = `
-                <span class="badge bg-primary me-1"><i class="fas fa-check-square me-1"></i>Geselecteerd voor import: ${selectedCount}</span>
-                <span class="badge bg-success me-1"><i class="fas fa-check-circle me-1"></i>Succesvol opgehaald: ${totalSuccess}</span>
-                <span class="badge bg-secondary"><i class="fas fa-list me-1"></i>Totaal URL's in bestand: ${totalTotal}</span>`;
+                <span class="badge bg-primary me-1"><i class="fas fa-check-square me-1"></i>${i18n.t('modal.selected_for_import')}: ${selectedCount}</span>
+                <span class="badge bg-success me-1"><i class="fas fa-check-circle me-1"></i>${i18n.t('modal.successful_fetched')}: ${totalSuccess}</span>
+                <span class="badge bg-secondary"><i class="fas fa-list me-1"></i>${i18n.t('modal.total_urls_file')}: ${totalTotal}</span>`;
         }
 
         if (this.confirmYes) {
@@ -431,7 +431,7 @@ class Modals {
         try {
             const authData = await API.getAuthStatus();
             if (!authData.logged_in) {
-                this.showError('Je moet ingelogd zijn om plugins toe te voegen.');
+                this.showError(i18n.t('error.login_required'));
                 return;
             }
 
@@ -451,7 +451,7 @@ class Modals {
                 await this._addBulkPlugins(targetCat);
             }
         } catch (error) {
-            this.showError(`Fout bij toevoegen: ${error.message}`);
+            this.showError(`${error.message}`);
         } finally {
             this._setConfirmYesLoading(false);
         }
@@ -497,17 +497,17 @@ class Modals {
         const data = await API.addPlugin(this.cachedPluginData);
         if (data.success) {
             this.addSuccess = true;
-            UI.showSuccessMessage('Plugin succesvol toegevoegd!');
+            UI.showSuccessMessage(i18n.t('success.plugin_added'));
             this.addModal.hide();
         } else {
-            this.showError(`Fout bij toevoegen: ${data.error}`);
+            this.showError(`${data.error}`);
         }
     }
 
     async _addBulkPlugins(activeCategory) {
         const selectedItems = this.cachedBulkPlugins.filter(i => i.selected && i.status === 'success');
         if (selectedItems.length === 0) {
-            this.showError('Selecteer ten minste één plugin om toe te voegen.');
+            this.showError(i18n.t('error.select_at_least_one'));
             return;
         }
 
@@ -533,7 +533,7 @@ class Modals {
 
         if (addedCount > 0) {
             this.addSuccess = true;
-            UI.showSuccessMessage(`${addedCount} plugin(s) succesvol toegevoegd!${failCount > 0 ? ` (${failCount} mislukt)` : ''}`);
+            UI.showSuccessMessage(`${addedCount} ${i18n.t('success.bulk_plugins_added')}`);
             this.addModal.hide();
         } else {
             this.showError(`Fout bij toevoegen van plugins (${failCount} mislukt)`);
@@ -559,13 +559,13 @@ class Modals {
         try {
             const data = await API.deletePlugin(this.currentDeleteUrl, categoryContext || undefined);
             if (data.success) {
-                UI.showSuccessMessage(`Plugin "${pluginTitle}" succesvol verwijderd!`);
+                UI.showSuccessMessage(i18n.t('success.plugin_deleted', { title: pluginTitle }));
                 this.deleteModal.hide();
             } else {
-                this.showError(`Fout bij verwijderen: ${data.error}`);
+                this.showError(`${data.error}`);
             }
         } catch (error) {
-            this.showError(`Fout bij verwijderen: ${error.message}`);
+            this.showError(`${error.message}`);
         }
     }
 
@@ -651,10 +651,10 @@ class Modals {
     _setConfirmYesLoading(isLoading) {
         const btn = this.confirmYes;
         if (isLoading) {
-            btn.innerHTML = '<img src="images/loading-icon.gif" class="loading-icon me-2" alt="Laden"> Toevoegen...';
+            btn.innerHTML = `<img src="images/loading-icon.gif" class="loading-icon me-2" alt="Laden"> ${i18n.t('modal.adding')}`;
             btn.disabled = true;
         } else {
-            btn.innerHTML = '<img src="images/confirm-icon.png" class="btn-icon" alt="Ja"> Ja';
+            btn.innerHTML = `<img src="images/confirm-icon.png" class="btn-icon" alt="Ja"> <span data-i18n="modal.yes_add">${i18n.t('modal.yes_add')}</span>`;
             btn.disabled = false;
         }
     }
