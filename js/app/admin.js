@@ -53,10 +53,16 @@ class AdminPage {
     }
 
     async init() {
-        i18n.applyTranslations();
         this._setupEventListeners();
         try {
             const data = await ApiAdmin.checkSession();
+            if (data.logged_in && data.language) {
+                i18n.setLanguage(data.language, false);
+            } else {
+                const savedLang = localStorage.getItem('user_language') || 'nl';
+                i18n.setLanguage(savedLang, false);
+            }
+
             if (this.adminLoadingState) this.adminLoadingState.style.display = 'none';
 
             if (data.logged_in && data.authorized) {
@@ -69,6 +75,8 @@ class AdminPage {
             }
         } catch (error) {
             if (this.adminLoadingState) this.adminLoadingState.style.display = 'none';
+            const savedLang = localStorage.getItem('user_language') || 'nl';
+            i18n.setLanguage(savedLang, false);
             this._showLoginForm();
         }
     }
@@ -86,24 +94,6 @@ class AdminPage {
         const dashboardLogoutBtn = document.getElementById('adminDashboardLogoutBtn');
         if (dashboardLogoutBtn) {
             dashboardLogoutBtn.addEventListener('click', () => this._handleLogout());
-        }
-        const langNlBtn = document.getElementById('langSelectNl');
-        const langEnBtn = document.getElementById('langSelectEn');
-
-        if (langNlBtn) {
-            langNlBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                i18n.setLanguage('nl', true);
-                this._loadAllData();
-            });
-        }
-
-        if (langEnBtn) {
-            langEnBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                i18n.setLanguage('en', true);
-                this._loadAllData();
-            });
         }
         if (this.registrationToggle) {
             this.registrationToggle.addEventListener('change', (e) => this._handleRegistrationToggle(e));
