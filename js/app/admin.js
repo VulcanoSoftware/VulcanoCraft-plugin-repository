@@ -83,6 +83,10 @@ class AdminPage {
         if (this.adminLogoutBtn) {
             this.adminLogoutBtn.addEventListener('click', () => this._handleLogout());
         }
+        const dashboardLogoutBtn = document.getElementById('adminDashboardLogoutBtn');
+        if (dashboardLogoutBtn) {
+            dashboardLogoutBtn.addEventListener('click', () => this._handleLogout());
+        }
         if (this.registrationToggle) {
             this.registrationToggle.addEventListener('change', (e) => this._handleRegistrationToggle(e));
         }
@@ -387,7 +391,7 @@ class AdminPage {
 
             if (data.update_available) {
                 this.updateStatusBadge.className = 'badge bg-warning text-dark';
-                this.updateStatusBadge.textContent = 'Update beschikbaar!';
+                this.updateStatusBadge.textContent = i18n.t('admin.update_available');
                 if (this.currentRole === 'admin') {
                     this.applyUpdateBtn.style.display = 'inline-block';
                 } else {
@@ -395,7 +399,7 @@ class AdminPage {
                 }
             } else {
                 this.updateStatusBadge.className = 'badge bg-success';
-                this.updateStatusBadge.textContent = 'Up-to-date';
+                this.updateStatusBadge.textContent = i18n.t('admin.up_to_date');
                 this.applyUpdateBtn.style.display = 'none';
             }
 
