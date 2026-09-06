@@ -147,6 +147,18 @@ const translations = {
         "modal.choose_txt": "Kies TXT Bestand",
         "modal.export": "Exporteer",
         "modal.next": "Verder",
+        "modal.yes_delete_all": "Ja, alle plugins verwijderen",
+        "modal.yes_replace": "Ja, Vervangen",
+        "modal.yes_append": "Ja, Bijvoegen",
+        "error.load_plugins": "Fout bij het laden van plugins.",
+        "error.no_plugins_export": "Geen plugins om te exporteren.",
+        "error.export_failed": "Fout bij het exporteren van plugins.",
+        "success.export_all": "Alle categorieën succesvol geëxporteerd als TXT-bestand!",
+        "success.export_category": "Categorie \"{category}\" succesvol geëxporteerd als TXT-bestand!",
+        "success.clear_category": "Alle plugins in de categorie \"{category}\" zijn succesvol verwijderd!",
+        "warning.title": "Waarschuwing",
+        "warning.select_txt": "Selecteer a.u.b. een TXT bestand.",
+        "warning.no_valid_urls_txt": "Geen geldige plugin URL's gevonden in het TXT bestand.",
         "footer.text": "Plugin Repository"
     },
     en: {
@@ -297,6 +309,18 @@ const translations = {
         "modal.choose_txt": "Choose TXT File",
         "modal.export": "Export",
         "modal.next": "Next",
+        "modal.yes_delete_all": "Yes, remove all plugins",
+        "modal.yes_replace": "Yes, Replace",
+        "modal.yes_append": "Yes, Append",
+        "error.load_plugins": "Error loading plugins.",
+        "error.no_plugins_export": "No plugins to export.",
+        "error.export_failed": "Error exporting plugins.",
+        "success.export_all": "All categories successfully exported as TXT file!",
+        "success.export_category": "Category \"{category}\" successfully exported as TXT file!",
+        "success.clear_category": "All plugins in category \"{category}\" were successfully removed!",
+        "warning.title": "Warning",
+        "warning.select_txt": "Please select a TXT file.",
+        "warning.no_valid_urls_txt": "No valid plugin URLs found in the TXT file.",
         "footer.text": "Plugin Repository"
     }
 };
