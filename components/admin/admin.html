@@ -12,9 +12,9 @@
     <!-- Loading Spinner / Checking state -->
     <div class="container mt-5 text-center text-light" id="adminLoadingState">
       <div class="spinner-border text-light mb-3" role="status" style="width: 3rem; height: 3rem;">
-        <span class="visually-hidden">Laden...</span>
+        <span class="visually-hidden" data-i18n="common.loading">Laden...</span>
       </div>
-      <h5>Sessie controleren...</h5>
+      <h5 data-i18n="admin.checking_session">Sessie controleren...</h5>
     </div>
 
     <!-- Admin Login Form (Hidden by default until session check completes) -->
@@ -83,15 +83,15 @@
           <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
               <h3>
-                <i class="fas fa-cog me-2"></i>Admin Panel -
+                <i class="fas fa-cog me-2"></i><span data-i18n="admin.title">Admin Panel</span> -
                 <span id="adminRole"></span>
               </h3>
-              <div>
-                <a class="btn btn-outline-primary me-2" href="/">
-                  <i class="fas fa-home me-2"></i>Home
+              <div class="d-flex align-items-center gap-2">
+                <a class="btn btn-outline-primary" href="/">
+                  <i class="fas fa-home me-1"></i><span data-i18n="nav.home">Home</span>
                 </a>
-                <button class="btn btn-secondary">
-                  Logout
+                <button class="btn btn-secondary" id="adminDashboardLogoutBtn">
+                  <span data-i18n="nav.logout">Uitloggen</span>
                 </button>
               </div>
             </div>
@@ -130,10 +130,10 @@
                     </div>
                     <div id="updateDetails" class="small text-muted" style="display: none;">
                       <hr>
-                      <p class="mb-1"><strong>Huidige Commit:</strong> <code id="currentCommit"></code></p>
-                      <p class="mb-1"><strong>Nieuwste Commit op GitHub:</strong> <code id="latestCommit"></code></p>
-                      <p class="mb-1"><strong>Commit Bericht:</strong> <span id="commitMessage"></span></p>
-                      <p class="mb-0"><strong>Datum:</strong> <span id="commitDate"></span></p>
+                      <p class="mb-1"><strong data-i18n="admin.current_commit">Huidige Commit</strong>: <code id="currentCommit"></code></p>
+                      <p class="mb-1"><strong data-i18n="admin.latest_commit">Nieuwste Commit op GitHub</strong>: <code id="latestCommit"></code></p>
+                      <p class="mb-1"><strong data-i18n="admin.commit_message">Commit Bericht</strong>: <span id="commitMessage"></span></p>
+                      <p class="mb-0"><strong data-i18n="admin.date">Datum</strong>: <span id="commitDate"></span></p>
                     </div>
                     <div class="alert alert-info mt-3 mb-0" id="updateAlert" style="display: none;"></div>
                   </div>
@@ -144,24 +144,24 @@
                 <h4><i class="fas fa-history me-2"></i><span data-i18n="admin.rollback_system">Terugrol Systeem</span></h4>
                 <div class="card bg-light">
                   <div class="card-body">
-                    <p class="text-muted small mb-3">
+                    <p class="text-muted small mb-3" data-i18n="admin.rollback_desc">
                       Selecteer een commit uit de geschiedenis om de applicatie nauwkeurig naar die versie terug te rollen. De vorige release is standaard geselecteerd.
                     </p>
                     <div class="mb-3">
-                      <label for="rollbackCommitSelect" class="form-label fw-bold">Kies Commit / Versie om naar terug te rollen:</label>
+                      <label for="rollbackCommitSelect" class="form-label fw-bold" data-i18n="admin.rollback_select_label">Kies Commit / Versie om naar terug te rollen:</label>
                       <select class="form-select" id="rollbackCommitSelect">
-                        <option value="">Laden van commit geschiedenis...</option>
+                        <option value="" data-i18n="admin.loading_commit_history">Laden van commit geschiedenis...</option>
                       </select>
                     </div>
                     <div id="selectedCommitDetails" class="small alert alert-secondary mb-3" style="display: none;">
-                      <p class="mb-1"><strong>Geselecteerde Commit SHA:</strong> <code id="rollbackSelectedSha"></code></p>
-                      <p class="mb-1"><strong>Auteur:</strong> <span id="rollbackSelectedAuthor"></span></p>
-                      <p class="mb-1"><strong>Datum:</strong> <span id="rollbackSelectedDate"></span></p>
-                      <p class="mb-0"><strong>Bericht:</strong> <span id="rollbackSelectedMsg"></span></p>
+                      <p class="mb-1"><strong data-i18n="admin.selected_commit_sha">Geselecteerde Commit SHA</strong>: <code id="rollbackSelectedSha"></code></p>
+                      <p class="mb-1"><strong data-i18n="common.author">Auteur</strong>: <span id="rollbackSelectedAuthor"></span></p>
+                      <p class="mb-1"><strong data-i18n="admin.date">Datum</strong>: <span id="rollbackSelectedDate"></span></p>
+                      <p class="mb-0"><strong data-i18n="admin.message">Bericht</strong>: <span id="rollbackSelectedMsg"></span></p>
                     </div>
                     <div class="form-check form-switch mb-3">
                       <input class="form-check-input" type="checkbox" id="rollbackSyncToHostToggle">
-                      <label class="form-check-label small text-muted" for="rollbackSyncToHostToggle">
+                      <label class="form-check-label small text-muted" for="rollbackSyncToHostToggle" data-i18n="admin.rollback_sync_to_host">
                         Synchroniseer na terugrollen naar het host-systeem (sync_to_host)
                       </label>
                     </div>
