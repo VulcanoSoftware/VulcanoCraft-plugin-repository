@@ -247,7 +247,8 @@ class UI {
 
         const allText = i18n.t('sidebar.all');
         const pluginsWord = i18n.t('common.plugins');
-        list.innerHTML = `<li class="category-item ${activeCategory === '' ? 'active' : ''}" data-category="">${allText} <span class="badge bg-primary rounded-pill ms-auto">0 ${pluginsWord}</span></li>`;
+        const totalPluginsTooltip = i18n.t('sidebar.total_plugins_tooltip');
+        list.innerHTML = `<li class="category-item ${activeCategory === '' ? 'active' : ''}" data-category="">${allText} <span class="badge bg-primary rounded-pill ms-auto" title="${totalPluginsTooltip}">0 ${pluginsWord}</span></li>`;
 
         sortedCategories.forEach(cat => {
             const categoryName = cat.name;
@@ -304,8 +305,8 @@ class UI {
                     : (categoryCountsMap[categoryName] || 0);
                 badge.textContent = `${num} ${num === 1 ? i18n.t('common.plugin') : i18n.t('common.plugins')}`;
                 badge.title = categoryName === ''
-                    ? `Totaal aantal beschikbare plugins (${num})`
-                    : `Aantal plugins in categorie ${categoryName} (${num})`;
+                    ? i18n.t('sidebar.total_available_tooltip', { num })
+                    : i18n.t('sidebar.category_count_tooltip', { category: categoryName, num });
             }
         });
     }
@@ -325,7 +326,7 @@ class UI {
         // Previous button
         const prevDisabled = currentPage <= 1 ? 'disabled' : '';
         html += `<li class="page-item ${prevDisabled}">
-            <button class="page-link" data-page="${currentPage - 1}" aria-label="Vorige">&laquo;</button>
+            <button class="page-link" data-page="${currentPage - 1}" aria-label="${i18n.t('pagination.previous')}">&laquo;</button>
         </li>`;
 
         // Page numbers
@@ -359,7 +360,7 @@ class UI {
         // Next button
         const nextDisabled = currentPage >= totalPages ? 'disabled' : '';
         html += `<li class="page-item ${nextDisabled}">
-            <button class="page-link" data-page="${currentPage + 1}" aria-label="Volgende">&raquo;</button>
+            <button class="page-link" data-page="${currentPage + 1}" aria-label="${i18n.t('pagination.next')}">&raquo;</button>
         </li>`;
 
         this.paginationControls.innerHTML = html;
