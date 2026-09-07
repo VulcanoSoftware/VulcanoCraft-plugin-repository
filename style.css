@@ -2448,7 +2448,3 @@ body {
   gap: 1rem;
   margin-top: 1rem;
 }
-
-.btn-icon {
-    margin-right: 0.5rem; /* zelfde waarde als de huidige gap */
-}
