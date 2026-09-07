@@ -283,13 +283,21 @@ body {
 
 /* Utility contrast classes for explicit dark or light icon overrides */
 .btn-icon-dark:not(:hover):not(:focus) .btn-icon,
-.btn-icon-dark:not(:hover):not(:focus).btn-icon {
+.btn-icon-dark:not(:hover):not(:focus).btn-icon,
+.btn-icon-dark:not(:hover):not(:focus) .btn-icon-lg,
+.btn-icon-dark:not(:hover):not(:focus) i,
+.btn-icon-dark:not(:hover):not(:focus) img {
   filter: brightness(0) !important;
+  color: #000000 !important;
 }
 
 .btn-icon-light:not(:hover):not(:focus) .btn-icon,
-.btn-icon-light:not(:hover):not(:focus).btn-icon {
+.btn-icon-light:not(:hover):not(:focus).btn-icon,
+.btn-icon-light:not(:hover):not(:focus) .btn-icon-lg,
+.btn-icon-light:not(:hover):not(:focus) i,
+.btn-icon-light:not(:hover):not(:focus) img {
   filter: brightness(0) invert(1) !important;
+  color: #ffffff !important;
 }
 
 /* Icons outside buttons keep margin for spacing */

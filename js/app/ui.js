@@ -47,7 +47,7 @@ class UI {
         const denom = widthSq + heightSq;
 
         buttons.forEach(btn => {
-            const icon = btn.querySelector('.btn-icon');
+            const icon = btn.querySelector('.btn-icon, .btn-icon-lg, i, img');
             if (!icon) return;
 
             const rect = btn.getBoundingClientRect();
@@ -66,7 +66,7 @@ class UI {
 
             const brightness = (r * 299 + g * 587 + b * 114) / 1000;
 
-            if (brightness < 70) {
+            if (brightness < 130) {
                 btn.classList.add('btn-icon-light');
                 btn.classList.remove('btn-icon-dark');
             } else {
