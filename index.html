@@ -522,62 +522,66 @@
                     </div>
                   </div>
 
-                  <div class="row g-3 align-items-end">
-                    <div class="col-lg-5 col-md-6">
-                      <label class="form-label fw-bold">
-                        <img class="input-icon" src="images/plugin-repo-icon.png" alt="Platform" loading="lazy">
-                        <span data-i18n="filters.platform_label">Platform</span>
-                      </label>
-                      <div class="platform-filters">
-                        <div class="form-check form-check-inline">
-                          <input class="form-check-input platform-filter" id="hangarFilter" type="checkbox" value="hangar" checked>
-                          <label class="form-check-label" for="hangarFilter">Hangar</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                          <input class="form-check-input platform-filter" id="spigotFilter" type="checkbox" value="spigot" checked>
-                          <label class="form-check-label" for="spigotFilter">Spigot</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                          <input class="form-check-input platform-filter" id="modrinthFilter" type="checkbox" value="modrinth" checked>
-                          <label class="form-check-label" for="modrinthFilter">Modrinth</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                          <input class="form-check-input platform-filter" id="curseforgeFilter" type="checkbox" value="curseforge" checked>
-                          <label class="form-check-label" for="curseforgeFilter">CurseForge</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                          <input class="form-check-input platform-filter" id="bukkitdevFilter" type="checkbox" value="bukkitdev" checked>
-                          <label class="form-check-label" for="bukkitdevFilter">BukkitDev</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                          <input class="form-check-input platform-filter" id="githubFilter" type="checkbox" value="github" checked>
-                          <label class="form-check-label" for="githubFilter">GitHub</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                          <input class="form-check-input platform-filter" id="planetminecraftFilter" type="checkbox" value="planetminecraft" checked>
-                          <label class="form-check-label" for="planetminecraftFilter">PlanetMinecraft</label>
+                  <div class="row g-3 align-items-stretch">
+                    <div class="col-lg-5 col-md-6 d-flex flex-column justify-content-between">
+                      <div>
+                        <label class="form-label fw-bold">
+                          <img class="input-icon" src="images/plugin-repo-icon.png" alt="Platform" loading="lazy">
+                          <span data-i18n="filters.platform_label">Platform</span>
+                        </label>
+                        <div class="platform-filters">
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input platform-filter" id="hangarFilter" type="checkbox" value="hangar" checked>
+                            <label class="form-check-label" for="hangarFilter">Hangar</label>
+                          </div>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input platform-filter" id="spigotFilter" type="checkbox" value="spigot" checked>
+                            <label class="form-check-label" for="spigotFilter">Spigot</label>
+                          </div>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input platform-filter" id="modrinthFilter" type="checkbox" value="modrinth" checked>
+                            <label class="form-check-label" for="modrinthFilter">Modrinth</label>
+                          </div>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input platform-filter" id="curseforgeFilter" type="checkbox" value="curseforge" checked>
+                            <label class="form-check-label" for="curseforgeFilter">CurseForge</label>
+                          </div>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input platform-filter" id="bukkitdevFilter" type="checkbox" value="bukkitdev" checked>
+                            <label class="form-check-label" for="bukkitdevFilter">BukkitDev</label>
+                          </div>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input platform-filter" id="githubFilter" type="checkbox" value="github" checked>
+                            <label class="form-check-label" for="githubFilter">GitHub</label>
+                          </div>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input platform-filter" id="planetminecraftFilter" type="checkbox" value="planetminecraft" checked>
+                            <label class="form-check-label" for="planetminecraftFilter">PlanetMinecraft</label>
+                          </div>
                         </div>
                       </div>
-                      <div class="mt-2 d-flex justify-content-center gap-2">
-                        <button class="btn btn-sm btn-outline-success" id="checkAllPlatforms" data-i18n-title="filters.check_all_platforms" title="Alle platformen selecteren"><img src="images/check_all.png" width="30px" height="30px"></button>
-                        <button class="btn btn-sm btn-outline-danger" id="uncheckAllPlatforms" data-i18n-title="filters.uncheck_all_platforms" title="Alle platformen deselecteren"><img src="images/uncheck_all.png" width="30px" height="30px"></button>
-                      </div>
-                    </div>
-                    <div class="col-lg-5 col-md-6">
-                      <label class="form-label fw-bold">
-                        <img class="input-icon" src="images/plugin-repo-icon.png" alt="Platform" loading="lazy">
-                        <span data-i18n="filters.loader_label">Software/Loader</span>
-                      </label>
-                      <div class="loader-filters" id="loaderFilters">
-                        <!-- Loader checkboxes will be dynamically inserted here -->
-                      </div>
-                      <div class="mt-2 d-flex justify-content-center gap-2">
-                        <button class="btn btn-sm btn-outline-success" id="checkAllLoaders" data-i18n-title="filters.check_all_loaders" title="Alle software/loaders selecteren"><img src="images/check_all.png" width="30px" height="30px"></button>
-                        <button class="btn btn-sm btn-outline-danger" id="uncheckAllLoaders" data-i18n-title="filters.uncheck_all_loaders" title="Alle software/loaders deselecteren"><img src="images/uncheck_all.png" width="30px" height="30px"></button>
+                      <div class="mt-3 d-flex justify-content-center gap-2">
+                        <button class="btn btn-sm btn-outline-success filter-quick-btn" id="checkAllPlatforms" data-i18n-title="filters.check_all_platforms" title="Alle platformen selecteren"><img src="images/check_all.png" width="24" height="24" alt="Select all"></button>
+                        <button class="btn btn-sm btn-outline-danger filter-quick-btn" id="uncheckAllPlatforms" data-i18n-title="filters.uncheck_all_platforms" title="Alle platformen deselecteren"><img src="images/uncheck_all.png" width="24" height="24" alt="Deselect all"></button>
                       </div>
                     </div>
-                    <div class="col-lg-2 col-md-12">
-                      <button class="btn btn-outline-secondary w-100 reset-filters-btn" id="resetFilters" type="button">
+                    <div class="col-lg-5 col-md-6 d-flex flex-column justify-content-between">
+                      <div>
+                        <label class="form-label fw-bold">
+                          <img class="input-icon" src="images/plugin-repo-icon.png" alt="Platform" loading="lazy">
+                          <span data-i18n="filters.loader_label">Software/Loader</span>
+                        </label>
+                        <div class="loader-filters" id="loaderFilters">
+                          <!-- Loader checkboxes will be dynamically inserted here -->
+                        </div>
+                      </div>
+                      <div class="mt-3 d-flex justify-content-center gap-2">
+                        <button class="btn btn-sm btn-outline-success filter-quick-btn" id="checkAllLoaders" data-i18n-title="filters.check_all_loaders" title="Alle software/loaders selecteren"><img src="images/check_all.png" width="24" height="24" alt="Select all"></button>
+                        <button class="btn btn-sm btn-outline-danger filter-quick-btn" id="uncheckAllLoaders" data-i18n-title="filters.uncheck_all_loaders" title="Deselect all loaders"><img src="images/uncheck_all.png" width="24" height="24" alt="Deselect all"></button>
+                      </div>
+                    </div>
+                    <div class="col-lg-2 col-md-12 d-flex align-items-end">
+                      <button class="btn btn-outline-secondary w-100 reset-filters-btn h-100" id="resetFilters" type="button">
                         <img class="btn-icon" src="images/cancel-icon.png" alt="Reset" loading="lazy">
                         <span data-i18n="filters.reset">Reset</span>
                       </button>
