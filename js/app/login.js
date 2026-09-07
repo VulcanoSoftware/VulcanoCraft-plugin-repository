@@ -77,11 +77,11 @@ class LoginPage {
             if (data.success) {
                 window.location.href = '/';
             } else {
-                this.loginError.textContent = data.error;
+                this.loginError.textContent = data.error || i18n.t('auth.login_failed');
                 this.loginError.style.display = 'block';
             }
         } catch (error) {
-            this.loginError.textContent = 'Fout bij inloggen';
+            this.loginError.textContent = i18n.t('auth.login_failed');
             this.loginError.style.display = 'block';
         }
     }
@@ -94,17 +94,17 @@ class LoginPage {
         try {
             const data = await ApiAuth.register(username, password);
             if (data.success) {
-                this._showSuccessMessage('Registratie succesvol! Je kunt nu inloggen.');
+                this._showSuccessMessage(i18n.t('auth.register_success'));
                 setTimeout(() => {
                     this.registerForm.style.display = 'none';
                     this.loginForm.style.display = 'block';
                 }, 2000);
             } else {
-                this.registerError.textContent = data.error;
+                this.registerError.textContent = data.error || i18n.t('auth.register_failed');
                 this.registerError.style.display = 'block';
             }
         } catch (error) {
-            this.registerError.textContent = 'Fout bij registreren';
+            this.registerError.textContent = i18n.t('auth.register_failed');
             this.registerError.style.display = 'block';
         }
     }
@@ -113,9 +113,9 @@ class LoginPage {
         const overlay = this._createOverlay(`
             <div style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);">
                 <i class="fas fa-user-slash"></i>
-                <h4>Registratie Uitgeschakeld</h4>
-                <p>Nieuwe registraties zijn momenteel niet toegestaan.</p>
-                <button class="btn btn-light btn-lg" id="closeRegistrationMessage">Sluiten</button>
+                <h4>${i18n.t('auth.registration_disabled_title')}</h4>
+                <p>${i18n.t('auth.registration_disabled_msg')}</p>
+                <button class="btn btn-light btn-lg" id="closeRegistrationMessage">${i18n.t('common.close')}</button>
             </div>
         `);
         overlay.querySelector('#closeRegistrationMessage').addEventListener('click', () => overlay.remove());
@@ -125,7 +125,7 @@ class LoginPage {
         const overlay = this._createOverlay(`
             <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
                 <i class="fas fa-check-circle"></i>
-                <h4>Succes!</h4>
+                <h4>${i18n.t('common.success')}</h4>
                 <p>${message}</p>
             </div>
         `);

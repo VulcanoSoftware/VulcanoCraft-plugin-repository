@@ -286,14 +286,14 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="genericAlertModalTitle">
-              <i class="fas fa-info-circle me-2 text-primary" id="genericAlertModalIcon"></i><span id="genericAlertModalTitleText">Melding</span>
+              <i class="fas fa-info-circle me-2 text-primary" id="genericAlertModalIcon"></i><span id="genericAlertModalTitleText" data-i18n="common.notice">Melding</span>
             </h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body" id="genericAlertModalBody">
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="genericAlertOkBtn">OK</button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="genericAlertOkBtn" data-i18n="common.ok">OK</button>
           </div>
         </div>
       </div>
@@ -305,15 +305,15 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="genericConfirmModalTitle">
-              <i class="fas fa-question-circle me-2 text-warning" id="genericConfirmModalIcon"></i><span id="genericConfirmModalTitleText">Bevestiging</span>
+              <i class="fas fa-question-circle me-2 text-warning" id="genericConfirmModalIcon"></i><span id="genericConfirmModalTitleText" data-i18n="common.confirm_title">Bevestiging</span>
             </h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body" id="genericConfirmModalBody">
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="genericConfirmCancelBtn">Annuleren</button>
-            <button type="button" class="btn btn-danger" id="genericConfirmOkBtn">Bevestigen</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="genericConfirmCancelBtn" data-i18n="common.cancel">Annuleren</button>
+            <button type="button" class="btn btn-danger" id="genericConfirmOkBtn" data-i18n="common.confirm">Bevestigen</button>
           </div>
         </div>
       </div>
@@ -325,17 +325,16 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="clearCategoryModalTitle">
-              <i class="fas fa-trash-alt me-2 text-danger"></i>Categorie Leegmaken
+              <i class="fas fa-trash-alt me-2 text-danger"></i><span data-i18n="clear_category.title">Categorie Leegmaken</span>
             </h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body" id="clearCategoryModalBody">
-            Weet je zeker dat je alle plugins in de categorie <strong id="clearCategoryNameText"></strong> wilt verwijderen?
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuleren</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="common.cancel">Annuleren</button>
             <button type="button" class="btn btn-danger" id="confirmClearCategoryBtn">
-              <i class="fas fa-trash-alt me-1"></i> Ja, alle plugins verwijderen
+              <i class="fas fa-trash-alt me-1"></i> <span data-i18n="modal.yes_delete_all">Ja, alle plugins verwijderen</span>
             </button>
           </div>
         </div>
@@ -357,10 +356,7 @@
             <div class="text-center mb-3">
               <img class="delete-modal-icon" src="images/confirm-delete-icon.png" alt="Bevestig verwijderen" loading="lazy">
             </div>
-            <p class="text-center">
-              Weet je zeker dat je de plugin
-              <strong id="pluginToDeleteTitle">FancyNpcs</strong> wilt
-              verwijderen?
+            <p class="text-center" id="deleteConfirmModalQuestion">
             </p>
             <p class="text-center text-muted" data-i18n="modal.delete_confirm_text">
               Deze actie kan niet ongedaan worden gemaakt.
@@ -478,7 +474,7 @@
                   <span data-i18n="sidebar.title">Server Categorieën</span>
                 </h5>
                 <ul id="categorySidebar" class="list-unstyled category-list mt-3">
-                  <li class="category-item active" data-category="">Alles <span class="badge bg-primary rounded-pill ms-auto">0</span></li>
+                  <li class="category-item active" data-category=""><span data-i18n="sidebar.all">Alles</span> <span class="badge bg-primary rounded-pill ms-auto">0</span></li>
                 </ul>
               </div>
             </div>
@@ -623,7 +619,7 @@
             <!-- Plugins worden hier dynamisch geladen -->
             <div class="text-center">
               <img class="loading-plugins" src="images/loading-plugins-icon.gif" alt="Plugins laden" loading="lazy">
-              <p class="mt-2">Plugins laden...</p>
+              <p class="mt-2" data-i18n="common.loading">Plugins laden...</p>
             </div>
           </div>
         </div>

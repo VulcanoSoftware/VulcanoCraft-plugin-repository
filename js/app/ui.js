@@ -30,7 +30,7 @@ class UI {
         this.pluginsContainer.innerHTML = `
             <div class="col-12 text-center">
                 <div class="alert alert-info d-flex align-items-center justify-content-center" role="alert">
-                    <img src="images/add-icon.png" class="warning-icon me-2" alt="Geen plugins">
+                    <img src="images/add-icon.png" class="warning-icon me-2" alt="">
                     ${message}
                 </div>
             </div>`;
@@ -248,7 +248,7 @@ class UI {
         const allText = i18n.t('sidebar.all');
         const pluginsWord = i18n.t('common.plugins');
         const totalPluginsTooltip = i18n.t('sidebar.total_plugins_tooltip');
-        list.innerHTML = `<li class="category-item ${activeCategory === '' ? 'active' : ''}" data-category="">${allText} <span class="badge bg-primary rounded-pill ms-auto" title="${totalPluginsTooltip}">0 ${pluginsWord}</span></li>`;
+        list.innerHTML = `<li class="category-item ${activeCategory === '' ? 'active' : ''}" data-category=""><span data-i18n="sidebar.all">${allText}</span> <span class="badge bg-primary rounded-pill ms-auto" title="${totalPluginsTooltip}">0 ${pluginsWord}</span></li>`;
 
         sortedCategories.forEach(cat => {
             const categoryName = cat.name;
