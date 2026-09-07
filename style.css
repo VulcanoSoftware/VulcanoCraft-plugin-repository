@@ -222,6 +222,44 @@ body {
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
 }
 
+/* Colorize header buttons icons (in #authButtons and #userButtons) to inherit button text color */
+#authButtons .btn .btn-icon,
+#userButtons .btn .btn-icon {
+  background-color: currentColor;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+#exportTxtBtn .btn-icon,
+#exportTxtUserBtn .btn-icon {
+  -webkit-mask-image: url("images/export.png");
+  mask-image: url("images/export.png");
+}
+
+#replaceTxtBtn .btn-icon {
+  -webkit-mask-image: url("images/replace.png");
+  mask-image: url("images/replace.png");
+}
+
+#appendTxtBtn .btn-icon {
+  -webkit-mask-image: url("images/append.png");
+  mask-image: url("images/append.png");
+}
+
+#adminBtn .btn-icon {
+  -webkit-mask-image: url("images/admin.png");
+  mask-image: url("images/admin.png");
+}
+
+#logoutBtn .btn-icon {
+  -webkit-mask-image: url("images/logout.png");
+  mask-image: url("images/logout.png");
+}
+
 /* Icons outside buttons keep margin for spacing */
 .modal-icon,
 .input-icon,
@@ -904,12 +942,18 @@ body {
   padding: 0.5rem !important;
 }
 
+.pagination {
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 4px 2px !important;
+}
+
 .pagination .page-link {
   background-color: rgba(15, 23, 42, 0.7) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
   color: #e2e8f0 !important;
   border-radius: 10px !important;
-  margin: 0 3px !important;
+  margin: 0 2px !important;
   font-weight: 600 !important;
   transition: all 0.25s ease !important;
   padding: 0.45rem 0.85rem !important;
@@ -935,6 +979,12 @@ body {
   border-color: rgba(255, 255, 255, 0.05) !important;
   color: #64748b !important;
   opacity: 0.6;
+}
+
+.pagination-sm .page-link {
+  padding: 0.25rem 0.6rem !important;
+  font-size: 0.825rem !important;
+  border-radius: 8px !important;
 }
 
 /* Utility helper */
@@ -2285,19 +2335,52 @@ body {
   box-shadow: 0 8px 18px rgba(67,233,123,0.12);
 }
 
-.server-info {
-    display: block;
-    font-size: 0.8rem;
-    color: #495057;
-    margin-left: calc(36px + 0.75rem); /* Align with text, considering icon width and gap */
-    margin-top: -0.4rem;
-    margin-bottom: 0.4rem;
-    font-weight: 500;
+.category-details {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
-.category-item:hover .server-info,
-.category-item.active .server-info {
-    color: #fff;
+.server-info {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.software-badge,
+.version-tag-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.2;
+  transition: all 0.2s ease;
+}
+
+.software-badge {
+  background-color: rgba(59, 130, 246, 0.12);
+  color: #2563eb;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.version-tag-badge {
+  background-color: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.category-item:hover .software-badge,
+.category-item:hover .version-tag-badge {
+  background-color: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.category-item.active .software-badge,
+.category-item.active .version-tag-badge {
+  background-color: rgba(4, 20, 24, 0.12);
+  color: #041418;
+  border-color: rgba(4, 20, 24, 0.25);
 }
 
 .results-count-badge {
