@@ -37,29 +37,25 @@ class Filters {
             }
         });
         this.resetButton.addEventListener('click', () => this.reset());
-        const handleSwitchChange = (activeSwitch, otherSwitch) => {
-            if (otherSwitch) {
-                otherSwitch.checked = activeSwitch.checked;
-            }
-            [this.includeExcludeSwitch, this.categoryIncludeExcludeSwitch].forEach(sw => {
-                if (sw) {
-                    const label = document.querySelector(`label[for=${sw.id}]`);
-                    if (label) {
-                        label.textContent = sw.checked ? i18n.t('filters.include') : i18n.t('filters.exclude');
-                    }
+        const updateSwitchLabel = (sw) => {
+            if (sw) {
+                const label = document.querySelector(`label[for=${sw.id}]`);
+                if (label) {
+                    label.textContent = sw.checked ? i18n.t('filters.include') : i18n.t('filters.exclude');
                 }
-            });
-            this.applyFilters();
+            }
         };
 
         if (this.includeExcludeSwitch) {
             this.includeExcludeSwitch.addEventListener('change', () => {
-                handleSwitchChange(this.includeExcludeSwitch, this.categoryIncludeExcludeSwitch);
+                updateSwitchLabel(this.includeExcludeSwitch);
+                this.applyFilters();
             });
         }
         if (this.categoryIncludeExcludeSwitch) {
             this.categoryIncludeExcludeSwitch.addEventListener('change', () => {
-                handleSwitchChange(this.categoryIncludeExcludeSwitch, this.includeExcludeSwitch);
+                updateSwitchLabel(this.categoryIncludeExcludeSwitch);
+                this.applyFilters();
             });
         }
     }
@@ -93,7 +89,8 @@ class Filters {
             platforms: this._getSelectedValues('.platform-filter'),
             loaders: loaderCheckboxes.length > 0 ? this._getSelectedValues('.loader-filter') : undefined,
             category: selectedCategory,
-            include: this.includeExcludeSwitch.checked
+            include: this.includeExcludeSwitch ? this.includeExcludeSwitch.checked : true,
+            categoryInclude: this.categoryIncludeExcludeSwitch ? this.categoryIncludeExcludeSwitch.checked : true
         };
     }
 
