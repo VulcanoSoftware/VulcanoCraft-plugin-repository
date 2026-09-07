@@ -27,11 +27,53 @@ class UI {
     }
 
     initHeaderButtonContrastListeners() {
-        // Icon contrast is managed cleanly and reliably via CSS rules in style.css
+        if (!this._headerContrastListenersAttached) {
+            this._headerContrastListenersAttached = true;
+            window.addEventListener('resize', () => this.updateHeaderButtonIconContrast());
+            window.addEventListener('scroll', () => this.updateHeaderButtonIconContrast());
+        }
+        this.updateHeaderButtonIconContrast();
     }
 
     updateHeaderButtonIconContrast() {
-        // Icon contrast is managed cleanly and reliably via CSS rules in style.css
+        const buttons = document.querySelectorAll('#authButtons .btn, #userButtons .btn');
+        if (!buttons.length) return;
+
+        const docEl = document.documentElement;
+        const width = docEl.clientWidth || window.innerWidth;
+        const height = docEl.clientHeight || window.innerHeight;
+        const widthSq = width * width;
+        const heightSq = height * height;
+        const denom = widthSq + heightSq;
+
+        buttons.forEach(btn => {
+            const icon = btn.querySelector('.btn-icon');
+            if (!icon) return;
+
+            const rect = btn.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            let t = 0;
+            if (denom > 0) {
+                t = (centerX * width + centerY * height) / denom;
+            }
+            t = Math.max(0, Math.min(1, t));
+
+            const r = 3 + t * (148 - 3);
+            const g = 29 + t * (166 - 29);
+            const b = 54 + t * (183 - 54);
+
+            const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+
+            if (brightness < 70) {
+                btn.classList.add('btn-icon-light');
+                btn.classList.remove('btn-icon-dark');
+            } else {
+                btn.classList.add('btn-icon-dark');
+                btn.classList.remove('btn-icon-light');
+            }
+        });
     }
 
     renderPlugins(plugins, authStatus, currentUser) {
