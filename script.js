@@ -737,23 +737,48 @@ document.addEventListener("DOMContentLoaded", function () {
             img.height = 32;
             li.appendChild(img);
 
+            const detailsContainer = document.createElement('div');
+            detailsContainer.className = 'category-details d-flex flex-column justify-content-center';
+
             const text = document.createElement('span');
             text.textContent = categoryName;
             text.className = 'category-text';
+            detailsContainer.appendChild(text);
+
+            const info = serverInfo[categoryName] || { software: '', version: '' };
+            if (info.software || info.version) {
+                const serverInfoEl = document.createElement('div');
+                serverInfoEl.className = 'server-info d-flex align-items-center gap-1 flex-wrap mt-1';
+
+                if (info.software) {
+                    const softBadge = document.createElement('span');
+                    softBadge.className = 'software-badge';
+                        const softIcon = document.createElement('i');
+                        softIcon.className = 'fas fa-server me-1';
+                        softBadge.appendChild(softIcon);
+                        softBadge.appendChild(document.createTextNode(info.software));
+                    serverInfoEl.appendChild(softBadge);
+                }
+
+                if (info.version) {
+                    const verBadge = document.createElement('span');
+                    verBadge.className = 'version-tag-badge';
+                        const verIcon = document.createElement('i');
+                        verIcon.className = 'fas fa-tag me-1';
+                        verBadge.appendChild(verIcon);
+                        const cleanVersion = info.version.replace(/^v/i, '');
+                        verBadge.appendChild(document.createTextNode(`v${cleanVersion}`));
+                    serverInfoEl.appendChild(verBadge);
+                }
+
+                detailsContainer.appendChild(serverInfoEl);
+            }
+
+            li.appendChild(detailsContainer);
 
             const badge = document.createElement('span');
             badge.className = 'badge bg-primary rounded-pill ms-auto';
             badge.textContent = '0';
-
-            li.appendChild(text);
-
-            const info = serverInfo[categoryName] || { software: '', version: '' };
-            if (info.software || info.version) {
-                const serverInfoEl = document.createElement('small');
-                serverInfoEl.className = 'server-info';
-                serverInfoEl.textContent = `${info.software} ${info.version}`.trim();
-                li.appendChild(serverInfoEl);
-            }
 
             li.appendChild(badge);
 
