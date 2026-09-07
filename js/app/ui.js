@@ -196,7 +196,15 @@ class UI {
 
         const sortedLoaders = Array.from(new Set(loaders)).sort((a, b) => a.localeCompare(b));
 
-        if (this.loaderFilters.children.length === 0) {
+        if (sortedLoaders.length === 0) {
+            this.loaderFilters.innerHTML = `<small class="text-muted d-block py-1" data-i18n="filters.no_loaders_available">${i18n.t('filters.no_loaders_available')}</small>`;
+            return;
+        }
+
+        const existingLoaders = Array.from(this.loaderFilters.querySelectorAll('.loader-filter')).map(cb => cb.value);
+        const isSame = existingLoaders.length === sortedLoaders.length && existingLoaders.every((v, i) => v === sortedLoaders[i]);
+
+        if (!isSame) {
             this.loaderFilters.innerHTML = '';
             sortedLoaders.forEach(loader => {
                 const div = document.createElement('div');
