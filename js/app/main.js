@@ -201,7 +201,12 @@ class App {
         }
 
         const fileInput = document.getElementById('importModalFileInput');
+        const fileNameSpan = document.getElementById('customFileNameText');
         if (fileInput) fileInput.value = '';
+        if (fileNameSpan) {
+            fileNameSpan.setAttribute('data-i18n', 'modal.no_file_chosen');
+            fileNameSpan.textContent = i18n.t('modal.no_file_chosen');
+        }
 
         const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
@@ -424,6 +429,22 @@ class App {
 
         const confirmImportBtn = document.getElementById('confirmImportBtn');
         if (confirmImportBtn) confirmImportBtn.addEventListener('click', () => this.handleImportSubmit());
+
+        const fileInput = document.getElementById('importModalFileInput');
+        if (fileInput) {
+            fileInput.addEventListener('change', (e) => {
+                const fileNameSpan = document.getElementById('customFileNameText');
+                if (fileNameSpan) {
+                    if (e.target.files && e.target.files.length > 0) {
+                        fileNameSpan.removeAttribute('data-i18n');
+                        fileNameSpan.textContent = e.target.files[0].name;
+                    } else {
+                        fileNameSpan.setAttribute('data-i18n', 'modal.no_file_chosen');
+                        fileNameSpan.textContent = i18n.t('modal.no_file_chosen');
+                    }
+                }
+            });
+        }
 
         const langNlBtn = document.getElementById('langSelectNl');
         const langEnBtn = document.getElementById('langSelectEn');
