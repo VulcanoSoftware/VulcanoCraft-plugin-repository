@@ -222,37 +222,71 @@ body {
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
 }
 
-/* Button icon brightness/invert styling exclusively for header navigation buttons */
+/* Enforce ALWAYS black icons for header navigation buttons in #authButtons and #userButtons */
 #authButtons .btn .btn-icon,
-#userButtons .btn .btn-icon {
-  filter: brightness(0) invert(1);
+#userButtons .btn .btn-icon,
+#authButtons .btn i,
+#userButtons .btn i,
+#authButtons .btn .fas,
+#userButtons .btn .fas,
+#authButtons .btn .far,
+#userButtons .btn .far,
+#authButtons .btn .fab,
+#userButtons .btn .fab {
+  filter: brightness(0) !important;
+  color: #000000 !important;
 }
 
-/* Explicit light/dark classes and hover states for header button icons based on background contrast */
-#authButtons .btn.btn-icon-dark .btn-icon,
-#userButtons .btn.btn-icon-dark .btn-icon,
-#authButtons .btn-outline-primary:hover .btn-icon,
-#authButtons .btn-outline-info:hover .btn-icon,
-#authButtons .btn-outline-warning:hover .btn-icon,
-#authButtons .btn-outline-success:hover .btn-icon,
-#authButtons .btn-outline-light:hover .btn-icon,
-#userButtons .btn-outline-primary:hover .btn-icon,
-#userButtons .btn-outline-info:hover .btn-icon,
-#userButtons .btn-outline-warning:hover .btn-icon,
-#userButtons .btn-outline-success:hover .btn-icon,
-#userButtons .btn-outline-light:hover .btn-icon,
-#exportTxtBtn:hover .btn-icon,
-#exportTxtUserBtn:hover .btn-icon,
-#replaceTxtBtn:hover .btn-icon,
-#appendTxtBtn:hover .btn-icon,
-#logoutBtn:hover .btn-icon,
-#adminBtn:hover .btn-icon {
-  filter: brightness(0);
+/* Header buttons design: beautiful background colors, bold readable text, and black icons */
+#authButtons .btn,
+#userButtons .btn {
+  font-weight: 600;
+  border: none !important;
+  border-radius: 12px;
+  padding: 0.55rem 1.1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
 }
 
-#authButtons .btn.btn-icon-light .btn-icon,
-#userButtons .btn.btn-icon-light .btn-icon {
-  filter: brightness(0) invert(1);
+#authButtons .btn,
+#userButtons .btn,
+#authButtons .btn span,
+#userButtons .btn span,
+#authButtons .btn a,
+#userButtons .btn a {
+  color: #0f172a !important;
+}
+
+/* Specific background styles for header navigation buttons */
+#authButtons .btn-light,
+#userButtons .btn-light {
+  background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%) !important;
+}
+
+#authButtons .btn-info,
+#userButtons .btn-info,
+#exportTxtBtn,
+#exportTxtUserBtn {
+  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%) !important;
+}
+
+#authButtons .btn-warning,
+#userButtons .btn-warning,
+#replaceTxtBtn,
+#adminBtn {
+  background: linear-gradient(135deg, #facc15 0%, #eab308 100%) !important;
+}
+
+#authButtons .btn-success,
+#userButtons .btn-success,
+#appendTxtBtn {
+  background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%) !important;
+}
+
+#authButtons .btn:hover,
+#userButtons .btn:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 
 /* Icons outside buttons keep margin for spacing */
