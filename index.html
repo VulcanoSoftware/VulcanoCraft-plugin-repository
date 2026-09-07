@@ -122,10 +122,22 @@
                     <button type="button" class="btn btn-outline-secondary" id="selectAllBtn"><i class="fas fa-check-square me-1"></i> <span data-i18n="modal.select_all">Alles selecteren</span></button>
                     <button type="button" class="btn btn-outline-secondary" id="deselectAllBtn"><i class="far fa-square me-1"></i> <span data-i18n="modal.deselect_all">Alles deselecteren</span></button>
                   </div>
-                  <small class="text-muted text-truncate min-w-0" id="bulkSummaryText"></small>
+                  <div class="d-flex align-items-center gap-2">
+                    <label for="bulkPerPageSelect" class="form-label mb-0 small text-muted" data-i18n="pagination.per_page_label">Aantal per pagina:</label>
+                    <select id="bulkPerPageSelect" class="form-select form-select-sm per-page-dropdown w-auto">
+                      <option value="5" selected>5</option>
+                      <option value="10">10</option>
+                      <option value="20">20</option>
+                      <option value="0" data-i18n="pagination.all">Alle</option>
+                    </select>
+                  </div>
                 </div>
+                <small class="text-muted text-truncate min-w-0 mb-2 d-block" id="bulkSummaryText"></small>
                 <div id="bulkPreviewList" class="bulk-preview-scroll-container">
                   <!-- Bulk review cards dynamically rendered here -->
+                </div>
+                <div class="d-flex justify-content-center mt-3" id="bulkPaginationNav">
+                  <ul class="pagination pagination-sm mb-0" id="bulkPaginationControls"></ul>
                 </div>
               </div>
 

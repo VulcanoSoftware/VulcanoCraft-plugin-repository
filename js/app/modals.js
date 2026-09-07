@@ -148,6 +148,11 @@ class Modals {
         this.currentDeleteUrl = null;
         this.addSuccess = false;
 
+        this.bulkCurrentPage = 1;
+        this.bulkPerPage = 5;
+        this.bulkPerPageSelect = document.getElementById('bulkPerPageSelect');
+        this.bulkPaginationControls = document.getElementById('bulkPaginationControls');
+
         this._addEventListeners();
     }
 
@@ -176,6 +181,14 @@ class Modals {
         }
         if (this.deselectAllBtn) {
             this.deselectAllBtn.addEventListener('click', () => this._toggleAllBulkCheckboxes(false));
+        }
+
+        if (this.bulkPerPageSelect) {
+            this.bulkPerPageSelect.addEventListener('change', (e) => {
+                this.bulkPerPage = parseInt(e.target.value, 10);
+                this.bulkCurrentPage = 1;
+                this._renderBulkPreviewList();
+            });
         }
 
         if (this.pluginUrlInput) {
@@ -341,8 +354,18 @@ class Modals {
         const bulkListEl = document.getElementById('bulkPreviewList');
         if (!bulkListEl) return;
 
+        const totalItems = this.cachedBulkPlugins.length;
+        const perPage = this.bulkPerPage === 0 ? totalItems : this.bulkPerPage;
+        const totalPages = perPage > 0 ? Math.ceil(totalItems / perPage) : 1;
+
+        if (this.bulkCurrentPage > totalPages) this.bulkCurrentPage = totalPages || 1;
+
+        const startIndex = (this.bulkCurrentPage - 1) * perPage;
+        const pageItems = this.bulkPerPage === 0 ? this.cachedBulkPlugins : this.cachedBulkPlugins.slice(startIndex, startIndex + perPage);
+
         let html = '';
-        this.cachedBulkPlugins.forEach((item, index) => {
+        pageItems.forEach((item, pageIdx) => {
+            const realIndex = this.bulkPerPage === 0 ? pageIdx : startIndex + pageIdx;
             if (item.status === 'success') {
                 const plugin = item.plugin;
                 const versionsStr = plugin.versions ? plugin.versions.split(' ').slice(0, 3).join(', ') : i18n.t('common.no_versions');
@@ -355,7 +378,7 @@ class Modals {
                     <div class="bulk-review-item">
                         <div class="d-flex align-items-center min-w-0">
                             <div class="form-check me-3 flex-shrink-0">
-                                <input class="form-check-input bulk-item-checkbox" type="checkbox" data-index="${index}" id="bulkCheck_${index}" ${item.selected ? 'checked' : ''}>
+                                <input class="form-check-input bulk-item-checkbox" type="checkbox" data-index="${realIndex}" id="bulkCheck_${realIndex}" ${item.selected ? 'checked' : ''}>
                             </div>
                             ${iconHtml}
                             <div class="flex-grow-1 min-w-0">
@@ -377,7 +400,7 @@ class Modals {
                     <div class="bulk-review-item border-danger">
                         <div class="d-flex align-items-center min-w-0">
                             <div class="form-check me-3 flex-shrink-0">
-                                <input class="form-check-input bulk-item-checkbox" type="checkbox" data-index="${index}" id="bulkCheck_${index}" disabled>
+                                <input class="form-check-input bulk-item-checkbox" type="checkbox" data-index="${realIndex}" id="bulkCheck_${realIndex}" disabled>
                             </div>
                             <div class="flex-grow-1 min-w-0">
                                 <h6 class="mb-0 text-danger"><i class="fas fa-exclamation-circle me-1"></i> Fout bij ophalen</h6>
@@ -390,7 +413,43 @@ class Modals {
         });
 
         bulkListEl.innerHTML = html;
+        this._renderBulkPaginationControls(this.bulkPaginationControls, this.bulkCurrentPage, totalPages, (newPage) => {
+            this.bulkCurrentPage = newPage;
+            this._renderBulkPreviewList();
+        });
         this._updateBulkSelectedCount();
+    }
+
+    _renderBulkPaginationControls(container, currentPage, totalPages, onPageClick) {
+        if (!container) return;
+        if (totalPages <= 1) {
+            container.innerHTML = `<li class="page-item active"><span class="page-link">1</span></li>`;
+            return;
+        }
+
+        let html = '';
+        const prevDisabled = currentPage <= 1 ? 'disabled' : '';
+        html += `<li class="page-item ${prevDisabled}"><button class="page-link" data-page="${currentPage - 1}">&laquo;</button></li>`;
+
+        for (let p = 1; p <= totalPages; p++) {
+            const active = p === currentPage ? 'active' : '';
+            html += `<li class="page-item ${active}"><button class="page-link" data-page="${p}">${p}</button></li>`;
+        }
+
+        const nextDisabled = currentPage >= totalPages ? 'disabled' : '';
+        html += `<li class="page-item ${nextDisabled}"><button class="page-link" data-page="${currentPage + 1}">&raquo;</button></li>`;
+
+        container.innerHTML = html;
+
+        container.querySelectorAll('button.page-link').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const page = parseInt(btn.dataset.page, 10);
+                if (page && page !== currentPage && page >= 1 && page <= totalPages) {
+                    onPageClick(page);
+                }
+            });
+        });
     }
 
     _toggleAllBulkCheckboxes(selectAll) {
