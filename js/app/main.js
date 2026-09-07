@@ -3,6 +3,7 @@ import UI from './ui.js';
 import Modals, { showAlertModal, showConfirmModal } from './modals.js';
 import Filters from './filters.js';
 import Auth from './auth.js';
+import i18n from './i18n.js';
 
 class App {
     constructor() {
@@ -15,6 +16,12 @@ class App {
         document.getElementById('currentYear').textContent = new Date().getFullYear();
 
         this.authStatus = await Auth.checkStatus();
+
+        if (this.authStatus.logged_in && this.authStatus.language) {
+            i18n.setLanguage(this.authStatus.language, false);
+        } else {
+            i18n.applyTranslations();
+        }
 
         this.filters = new Filters((filterParams, resetPage) => {
             if (resetPage) this.currentPage = 1;
@@ -67,7 +74,7 @@ class App {
             });
         } catch (error) {
             console.error('Failed to load plugin data:', error);
-            UI.showEmptyMessage('Fout bij het laden van plugins.');
+            UI.showEmptyMessage(i18n.t('error.load_plugins'));
         }
     }
 
@@ -77,7 +84,7 @@ class App {
 
         const select = document.getElementById('exportCategorySelect');
         if (select) {
-            let html = '<option value="ALL">Alle categorieën</option>';
+            let html = `<option value="ALL">${i18n.t('modal.all_categories')}</option>`;
             this.serverCategories.forEach(cat => {
                 const name = typeof cat === 'object' ? cat.name : cat;
                 if (name) {
@@ -109,7 +116,7 @@ class App {
                 const data = await API.getPlugins({ perPage: 0 });
                 const plugins = data.plugins || [];
                 if (plugins.length === 0) {
-                    UI.showEmptyMessage('Geen plugins om te exporteren.');
+                    UI.showEmptyMessage(i18n.t('error.no_plugins_export'));
                     return;
                 }
 
@@ -135,24 +142,24 @@ class App {
                 }
 
                 this.triggerDownload(textContent, 'plugin-list-all.txt');
-                UI.showSuccessMessage('Alle categorieën succesvol geëxporteerd als TXT-bestand!');
+                UI.showSuccessMessage(i18n.t('success.export_all'));
             } else {
                 const data = await API.getPlugins({ perPage: 0, category: selectedCategory });
                 const plugins = data.plugins || [];
                 const urls = Array.from(new Set(plugins.map(p => p.url).filter(Boolean)));
 
                 if (urls.length === 0) {
-                    UI.showEmptyMessage(`Geen plugins te exporteren voor categorie "${selectedCategory}".`);
+                    UI.showEmptyMessage(i18n.t('error.no_plugins_export'));
                     return;
                 }
 
                 const textContent = `[${selectedCategory}]\n` + urls.join('\n');
                 this.triggerDownload(textContent, `plugin-list-${selectedCategory}.txt`);
-                UI.showSuccessMessage(`Categorie "${selectedCategory}" succesvol geëxporteerd als TXT-bestand!`);
+                UI.showSuccessMessage(i18n.t('success.export_category', { category: selectedCategory }));
             }
         } catch (error) {
             console.error('Export failed:', error);
-            UI.showEmptyMessage('Fout bij het exporteren van plugins.');
+            UI.showEmptyMessage(i18n.t('error.export_failed'));
         }
     }
 
@@ -175,12 +182,12 @@ class App {
 
         const titleText = document.getElementById('importModalTitleText');
         if (titleText) {
-            titleText.textContent = isReplace ? 'Lijst Vervangen (TXT)' : 'TXT Bijvoegen';
+            titleText.textContent = isReplace ? i18n.t('nav.replace_txt') : i18n.t('nav.append_txt');
         }
 
         const select = document.getElementById('importCategorySelect');
         if (select) {
-            let html = '<option value="ALL">Alle categorieën</option>';
+            let html = `<option value="ALL">${i18n.t('modal.all_categories')}</option>`;
             this.serverCategories.forEach(cat => {
                 const name = typeof cat === 'object' ? cat.name : cat;
                 if (name) {
@@ -194,7 +201,12 @@ class App {
         }
 
         const fileInput = document.getElementById('importModalFileInput');
+        const fileNameSpan = document.getElementById('customFileNameText');
         if (fileInput) fileInput.value = '';
+        if (fileNameSpan) {
+            fileNameSpan.setAttribute('data-i18n', 'modal.no_file_chosen');
+            fileNameSpan.textContent = i18n.t('modal.no_file_chosen');
+        }
 
         const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
@@ -210,9 +222,9 @@ class App {
 
         if (selectedCategory && selectedCategory !== '') {
             container.style.display = 'block';
-            if (titleEl) titleEl.textContent = `Categorie: ${selectedCategory}`;
+            if (titleEl) titleEl.textContent = `${i18n.t('counter.category')}: ${selectedCategory}`;
             const count = (categoryCounts && categoryCounts[selectedCategory]) || 0;
-            if (badgeEl) badgeEl.textContent = `${count} ${count === 1 ? 'plugin' : 'plugins'}`;
+            if (badgeEl) badgeEl.textContent = `${count} ${count === 1 ? i18n.t('common.plugin') : i18n.t('common.plugins')}`;
 
             if (clearBtn) {
                 clearBtn.style.display = this.authStatus.logged_in ? 'inline-block' : 'none';
@@ -230,9 +242,9 @@ class App {
         const isUserAdmin = this.authStatus.role === 'admin' || this.authStatus.role === 'co-admin';
 
         const confirmed = await showConfirmModal({
-            title: 'Categorie Plugins Verwijderen',
-            message: `<div class="alert alert-warning mb-3"><i class="fas fa-exclamation-triangle me-2"></i>Weet je zeker dat je alle plugins in de categorie "<strong>${category}</strong>" wilt verwijderen?</div><p class="mb-0 text-muted">Aantal plugins in deze categorie: <strong>${count}</strong>. Deze actie kan niet ongedaan worden gemaakt.</p>`,
-            confirmText: 'Ja, alle plugins verwijderen',
+            title: i18n.t('clear_category.title'),
+            message: i18n.t('clear_category.confirm', { category }),
+            confirmText: i18n.t('modal.yes_delete_all'),
             confirmClass: 'btn-danger',
             iconClass: 'fas fa-trash-alt text-danger'
         });
@@ -242,13 +254,13 @@ class App {
         try {
             const data = await API.clearPlugins(isUserAdmin, category);
             if (data.success) {
-                UI.showSuccessMessage(`Alle plugins in de categorie "${category}" zijn succesvol verwijderd!`);
+                UI.showSuccessMessage(i18n.t('success.clear_category', { category }));
                 await this.loadAndRenderPlugins(this.filters.getFilterParams());
             } else {
-                await showAlertModal(`Fout bij verwijderen: ${data.error}`, 'Fout', 'fas fa-exclamation-triangle text-danger');
+                await showAlertModal(data.error, i18n.t('warning.title'), 'fas fa-exclamation-triangle text-danger');
             }
         } catch (err) {
-            await showAlertModal(`Fout bij verwijderen: ${err.message}`, 'Fout', 'fas fa-exclamation-triangle text-danger');
+            await showAlertModal(err.message, i18n.t('warning.title'), 'fas fa-exclamation-triangle text-danger');
         }
     }
 
@@ -259,7 +271,7 @@ class App {
         const file = fileInput ? fileInput.files[0] : null;
 
         if (!file) {
-            await showAlertModal('Selecteer a.u.b. een TXT bestand.', 'Waarschuwing', 'fas fa-exclamation-circle text-warning');
+            await showAlertModal(i18n.t('warning.select_txt'), i18n.t('warning.title'), 'fas fa-exclamation-circle text-warning');
             return;
         }
 
@@ -272,7 +284,7 @@ class App {
             const items = this.parseTxtContent(text, selectedCategory);
 
             if (items.length === 0) {
-                await showAlertModal('Geen geldige plugin URL\'s gevonden in het TXT bestand.', 'Waarschuwing', 'fas fa-exclamation-circle text-warning');
+                await showAlertModal(i18n.t('warning.no_valid_urls_txt'), i18n.t('warning.title'), 'fas fa-exclamation-circle text-warning');
                 return;
             }
 
@@ -380,9 +392,9 @@ class App {
         }
 
         const confirmed = await showConfirmModal({
-            title: isReplaceMode ? 'Lijst Vervangen' : 'TXT Bijvoegen',
+            title: isReplaceMode ? i18n.t('nav.replace_txt') : i18n.t('nav.append_txt'),
             message: confirmMsg,
-            confirmText: isReplaceMode ? 'Ja, Vervangen' : 'Ja, Bijvoegen',
+            confirmText: isReplaceMode ? i18n.t('modal.yes_replace') : i18n.t('modal.yes_append'),
             confirmClass: isReplaceMode ? 'btn-warning' : 'btn-primary',
             iconClass: 'fas fa-file-import text-info'
         });
@@ -417,6 +429,41 @@ class App {
 
         const confirmImportBtn = document.getElementById('confirmImportBtn');
         if (confirmImportBtn) confirmImportBtn.addEventListener('click', () => this.handleImportSubmit());
+
+        const fileInput = document.getElementById('importModalFileInput');
+        if (fileInput) {
+            fileInput.addEventListener('change', (e) => {
+                const fileNameSpan = document.getElementById('customFileNameText');
+                if (fileNameSpan) {
+                    if (e.target.files && e.target.files.length > 0) {
+                        fileNameSpan.removeAttribute('data-i18n');
+                        fileNameSpan.textContent = e.target.files[0].name;
+                    } else {
+                        fileNameSpan.setAttribute('data-i18n', 'modal.no_file_chosen');
+                        fileNameSpan.textContent = i18n.t('modal.no_file_chosen');
+                    }
+                }
+            });
+        }
+
+        const langNlBtn = document.getElementById('langSelectNl');
+        const langEnBtn = document.getElementById('langSelectEn');
+
+        if (langNlBtn) {
+            langNlBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                i18n.setLanguage('nl', this.authStatus.logged_in);
+                this.loadAndRenderPlugins(this.filters.getFilterParams());
+            });
+        }
+
+        if (langEnBtn) {
+            langEnBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                i18n.setLanguage('en', this.authStatus.logged_in);
+                this.loadAndRenderPlugins(this.filters.getFilterParams());
+            });
+        }
 
         const clearCategoryHomeBtn = document.getElementById('clearCategoryPluginsHomeBtn');
         if (clearCategoryHomeBtn) {

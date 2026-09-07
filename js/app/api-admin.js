@@ -41,8 +41,9 @@ class ApiAdmin {
         });
     }
 
-    getUsers() {
-        return this._fetch('/admin/users');
+    getUsers(params = {}) {
+        const query = new URLSearchParams(params).toString();
+        return this._fetch(query ? `/admin/users?${query}` : '/admin/users');
     }
 
     updateUserRole(username, role) {
@@ -81,8 +82,9 @@ class ApiAdmin {
         return this._fetch(`/admin/categories/${name}`, { method: 'DELETE' });
     }
 
-    getPlugins() {
-        return this._fetch('/admin/plugins');
+    getPlugins(params = {}) {
+        const query = new URLSearchParams(params).toString();
+        return this._fetch(query ? `/admin/plugins?${query}` : '/admin/plugins');
     }
 
     updatePlugin(url, pluginData) {
