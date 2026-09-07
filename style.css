@@ -222,36 +222,37 @@ body {
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
 }
 
-/* Button icon brightness/invert styling for dark & light backgrounds */
+/* Button icon brightness/invert styling exclusively for header navigation buttons */
 #authButtons .btn .btn-icon,
-#userButtons .btn .btn-icon,
-.btn-primary .btn-icon,
-.btn-danger .btn-icon,
-.btn-success .btn-icon,
-.btn-delete .btn-icon,
-.btn-yes .btn-icon,
-.btn-no .btn-icon {
+#userButtons .btn .btn-icon {
   filter: brightness(0) invert(1);
 }
 
-/* On hover/focus for outline buttons with light filled backgrounds, ensure icon turns dark */
+/* Explicit light/dark classes and hover states for header button icons based on background contrast */
+#authButtons .btn.btn-icon-dark .btn-icon,
+#userButtons .btn.btn-icon-dark .btn-icon,
 #authButtons .btn-outline-primary:hover .btn-icon,
 #authButtons .btn-outline-info:hover .btn-icon,
 #authButtons .btn-outline-warning:hover .btn-icon,
+#authButtons .btn-outline-success:hover .btn-icon,
 #authButtons .btn-outline-light:hover .btn-icon,
 #userButtons .btn-outline-primary:hover .btn-icon,
 #userButtons .btn-outline-info:hover .btn-icon,
 #userButtons .btn-outline-warning:hover .btn-icon,
+#userButtons .btn-outline-success:hover .btn-icon,
 #userButtons .btn-outline-light:hover .btn-icon,
 #exportTxtBtn:hover .btn-icon,
 #exportTxtUserBtn:hover .btn-icon,
 #replaceTxtBtn:hover .btn-icon,
 #appendTxtBtn:hover .btn-icon,
 #logoutBtn:hover .btn-icon,
-.btn-secondary .btn-icon,
-.btn-light .btn-icon,
-.btn-outline-secondary .btn-icon {
+#adminBtn:hover .btn-icon {
   filter: brightness(0);
+}
+
+#authButtons .btn.btn-icon-light .btn-icon,
+#userButtons .btn.btn-icon-light .btn-icon {
+  filter: brightness(0) invert(1);
 }
 
 /* Icons outside buttons keep margin for spacing */
