@@ -370,29 +370,36 @@
 
     <div class="container-fluid my-5">
       <header class="text-center mb-5 position-relative">
-        <!-- Scalable Language Selector Dropdown (Top Right) -->
+        <!-- Cyber-Glass Language Dropdown (Top Right) -->
         <div class="dropdown position-absolute top-0 end-0 me-3 mt-2 z-3" id="languageDropdownContainer">
-          <button class="btn btn-outline-light dropdown-toggle d-inline-flex align-items-center gap-2 rounded-pill shadow-sm" type="button" id="languageDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
-            <img src="images/flags/netherlands.png" id="currentLanguageFlag" alt="NL" width="22" height="16" class="rounded-1 shadow-sm">
-            <span id="currentLanguageText">Nederlands</span>
+          <button class="btn cyber-lang-btn d-inline-flex align-items-center gap-2" type="button" id="languageDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="flag-emblem">
+              <img src="images/flags/netherlands.png" id="currentLanguageFlag" alt="NL" width="20" height="14">
+            </span>
+            <span class="cyber-lang-text" id="currentLanguageText">Nederlands</span>
+            <i class="fas fa-chevron-down cyber-chevron"></i>
           </button>
-          <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="languageDropdownBtn" id="languageDropdownMenu">
+          <ul class="dropdown-menu dropdown-menu-end cyber-lang-menu shadow-lg border-0" aria-labelledby="languageDropdownBtn" id="languageDropdownMenu">
             <li>
-              <a class="dropdown-item d-flex align-items-center justify-content-between text-light py-2 px-3 active" href="#" id="langSelectNl" data-lang="nl">
+              <a class="dropdown-item cyber-lang-item d-flex align-items-center justify-content-between active" href="#" id="langSelectNl" data-lang="nl">
                 <div class="d-flex align-items-center gap-2">
-                  <img src="images/flags/netherlands.png" alt="NL" width="22" height="16" class="rounded-1 shadow-sm">
-                  <span>Nederlands</span>
+                  <span class="flag-emblem-sm">
+                    <img src="images/flags/netherlands.png" alt="NL" width="20" height="14">
+                  </span>
+                  <span class="lang-title">Nederlands</span>
                 </div>
-                <i class="fas fa-check text-info lang-check-icon"></i>
+                <span class="active-pulse-dot"></span>
               </a>
             </li>
             <li>
-              <a class="dropdown-item d-flex align-items-center justify-content-between text-light py-2 px-3" href="#" id="langSelectEn" data-lang="en">
+              <a class="dropdown-item cyber-lang-item d-flex align-items-center justify-content-between" href="#" id="langSelectEn" data-lang="en">
                 <div class="d-flex align-items-center gap-2">
-                  <img src="images/flags/uk.png" alt="EN" width="22" height="16" class="rounded-1 shadow-sm">
-                  <span>English</span>
+                  <span class="flag-emblem-sm">
+                    <img src="images/flags/uk.png" alt="EN" width="20" height="14">
+                  </span>
+                  <span class="lang-title">English</span>
                 </div>
-                <i class="fas fa-check text-info lang-check-icon" style="display: none;"></i>
+                <span class="active-pulse-dot" style="display: none;"></span>
               </a>
             </li>
           </ul>

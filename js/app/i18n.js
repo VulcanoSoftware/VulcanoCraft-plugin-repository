@@ -508,15 +508,15 @@ class I18n {
             currentText.textContent = this.currentLang === 'en' ? 'English' : 'Nederlands';
         }
 
-        document.querySelectorAll('#languageDropdownMenu .dropdown-item').forEach(item => {
+        document.querySelectorAll('#languageDropdownMenu .cyber-lang-item').forEach(item => {
             const isSelected = item.getAttribute('data-lang') === this.currentLang;
-            const checkIcon = item.querySelector('.lang-check-icon');
+            const dot = item.querySelector('.active-pulse-dot');
             if (isSelected) {
                 item.classList.add('active');
-                if (checkIcon) checkIcon.style.display = 'inline-block';
+                if (dot) dot.style.display = 'inline-block';
             } else {
                 item.classList.remove('active');
-                if (checkIcon) checkIcon.style.display = 'none';
+                if (dot) dot.style.display = 'none';
             }
         });
     }
