@@ -382,14 +382,13 @@ class App {
     }
 
     async proceedToBulkImport(items, isReplaceMode, selectedCategory, fileName) {
-        let confirmMsg = '';
-        const catText = selectedCategory === 'ALL' ? 'ALLE categorieën' : `categorie "${selectedCategory}"`;
+        const catText = selectedCategory === 'ALL'
+            ? i18n.t('modal.all_categories_text')
+            : i18n.t('modal.category_text', { category: selectedCategory });
 
-        if (isReplaceMode) {
-            confirmMsg = `Weet je zeker dat je de huidige plugin lijst van ${catText} wilt <strong>VERVANGEN</strong> door de ${items.length} URL's uit "<strong>${fileName}</strong>"?`;
-        } else {
-            confirmMsg = `Weet je zeker dat je de ${items.length} URL's uit "<strong>${fileName}</strong>" wilt bijvoegen bij ${catText}?`;
-        }
+        const confirmMsg = isReplaceMode
+            ? i18n.t('modal.confirm_replace_msg', { catText, count: items.length, fileName })
+            : i18n.t('modal.confirm_append_msg', { catText, count: items.length, fileName });
 
         const confirmed = await showConfirmModal({
             title: isReplaceMode ? i18n.t('nav.replace_txt') : i18n.t('nav.append_txt'),
