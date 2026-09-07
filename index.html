@@ -471,11 +471,17 @@
           <aside class="col-lg-3 ">
             <div class="card shadow-sm border-0 sidebar-card">
               <div class="card-body">
-                <h5 class="card-title">
+                <h5 class="card-title mb-3">
                   <img class="section-icon" src="images/categories-icon.svg" alt="Categorieën">
                   <span data-i18n="sidebar.title">Server Categorieën</span>
                 </h5>
-                <ul id="categorySidebar" class="list-unstyled category-list mt-3">
+                <div class="d-flex justify-content-center align-items-center mb-3 pb-2 border-bottom">
+                  <div class="form-check form-switch fs-6 mb-0">
+                    <input class="form-check-input" type="checkbox" id="categoryIncludeExcludeSwitch" checked>
+                    <label class="form-check-label fw-semibold text-light ms-1" for="categoryIncludeExcludeSwitch" data-i18n="filters.include">Include</label>
+                  </div>
+                </div>
+                <ul id="categorySidebar" class="list-unstyled category-list">
                   <li class="category-item active" data-category=""><span data-i18n="sidebar.all">Alles</span> <span class="badge bg-primary rounded-pill ms-auto">0</span></li>
                 </ul>
               </div>
