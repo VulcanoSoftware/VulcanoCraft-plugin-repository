@@ -498,17 +498,27 @@ class I18n {
             el.title = this.t(key);
         });
 
-        const nlBtn = document.getElementById('langSelectNl');
-        const enBtn = document.getElementById('langSelectEn');
-        if (nlBtn && enBtn) {
-            if (this.currentLang === 'en') {
-                nlBtn.classList.remove('active');
-                enBtn.classList.add('active');
-            } else {
-                nlBtn.classList.add('active');
-                enBtn.classList.remove('active');
-            }
+        const currentFlag = document.getElementById('currentLanguageFlag');
+        const currentText = document.getElementById('currentLanguageText');
+        if (currentFlag) {
+            currentFlag.src = this.currentLang === 'en' ? 'images/flags/uk.png' : 'images/flags/netherlands.png';
+            currentFlag.alt = this.currentLang.toUpperCase();
         }
+        if (currentText) {
+            currentText.textContent = this.currentLang === 'en' ? 'English' : 'Nederlands';
+        }
+
+        document.querySelectorAll('#languageDropdownMenu .dropdown-item').forEach(item => {
+            const isSelected = item.getAttribute('data-lang') === this.currentLang;
+            const checkIcon = item.querySelector('.lang-check-icon');
+            if (isSelected) {
+                item.classList.add('active');
+                if (checkIcon) checkIcon.style.display = 'inline-block';
+            } else {
+                item.classList.remove('active');
+                if (checkIcon) checkIcon.style.display = 'none';
+            }
+        });
     }
 }
 

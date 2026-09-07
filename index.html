@@ -370,16 +370,32 @@
 
     <div class="container-fluid my-5">
       <header class="text-center mb-5 position-relative">
-        <!-- Language Switcher Pill (Top Right) -->
-        <div class="lang-pill-switch position-absolute top-0 end-0 me-3 mt-2 z-3 d-inline-flex align-items-center p-1 rounded-pill shadow-lg" id="languageDropdownContainer">
-          <button class="lang-pill-btn btn btn-sm rounded-pill d-flex align-items-center gap-2 active" id="langSelectNl" type="button">
-            <img src="images/flags/netherlands.png" alt="NL" width="20" height="15" class="rounded-1 shadow-sm">
-            <span>Nederlands</span>
+        <!-- Scalable Language Selector Dropdown (Top Right) -->
+        <div class="dropdown position-absolute top-0 end-0 me-3 mt-2 z-3" id="languageDropdownContainer">
+          <button class="btn btn-outline-light dropdown-toggle d-inline-flex align-items-center gap-2 rounded-pill shadow-sm" type="button" id="languageDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+            <img src="images/flags/netherlands.png" id="currentLanguageFlag" alt="NL" width="22" height="16" class="rounded-1 shadow-sm">
+            <span id="currentLanguageText">Nederlands</span>
           </button>
-          <button class="lang-pill-btn btn btn-sm rounded-pill d-flex align-items-center gap-2" id="langSelectEn" type="button">
-            <img src="images/flags/uk.png" alt="EN" width="20" height="15" class="rounded-1 shadow-sm">
-            <span>English</span>
-          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="languageDropdownBtn" id="languageDropdownMenu">
+            <li>
+              <a class="dropdown-item d-flex align-items-center justify-content-between text-light py-2 px-3 active" href="#" id="langSelectNl" data-lang="nl">
+                <div class="d-flex align-items-center gap-2">
+                  <img src="images/flags/netherlands.png" alt="NL" width="22" height="16" class="rounded-1 shadow-sm">
+                  <span>Nederlands</span>
+                </div>
+                <i class="fas fa-check text-info lang-check-icon"></i>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item d-flex align-items-center justify-content-between text-light py-2 px-3" href="#" id="langSelectEn" data-lang="en">
+                <div class="d-flex align-items-center gap-2">
+                  <img src="images/flags/uk.png" alt="EN" width="22" height="16" class="rounded-1 shadow-sm">
+                  <span>English</span>
+                </div>
+                <i class="fas fa-check text-info lang-check-icon" style="display: none;"></i>
+              </a>
+            </li>
+          </ul>
         </div>
 
         <h1 class="ml9 text-center position-relative">
