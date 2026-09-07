@@ -224,7 +224,13 @@
               <label for="importModalFileInput" class="form-label fw-bold">
                 <i class="fas fa-file-alt me-1"></i> <span data-i18n="modal.choose_txt">Kies TXT Bestand</span>
               </label>
-              <input class="form-control" type="file" id="importModalFileInput" accept=".txt">
+              <div class="input-group">
+                <label class="btn btn-outline-info flex-shrink-0" for="importModalFileInput">
+                  <i class="fas fa-folder-open me-1"></i> <span id="customFileBtnText" data-i18n="modal.choose_file_btn">Bestand kiezen</span>
+                </label>
+                <span class="form-control text-truncate text-light min-w-0" id="customFileNameText" data-i18n="modal.no_file_chosen" style="background: rgba(15, 23, 42, 0.6); border-color: rgba(255, 255, 255, 0.15);">Geen bestand gekozen</span>
+              </div>
+              <input class="d-none" type="file" id="importModalFileInput" accept=".txt">
             </div>
           </div>
           <div class="modal-footer">
