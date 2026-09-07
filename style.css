@@ -904,12 +904,18 @@ body {
   padding: 0.5rem !important;
 }
 
+.pagination {
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 4px 2px !important;
+}
+
 .pagination .page-link {
   background-color: rgba(15, 23, 42, 0.7) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
   color: #e2e8f0 !important;
   border-radius: 10px !important;
-  margin: 0 3px !important;
+  margin: 0 2px !important;
   font-weight: 600 !important;
   transition: all 0.25s ease !important;
   padding: 0.45rem 0.85rem !important;
@@ -935,6 +941,12 @@ body {
   border-color: rgba(255, 255, 255, 0.05) !important;
   color: #64748b !important;
   opacity: 0.6;
+}
+
+.pagination-sm .page-link {
+  padding: 0.25rem 0.6rem !important;
+  font-size: 0.825rem !important;
+  border-radius: 8px !important;
 }
 
 /* Utility helper */

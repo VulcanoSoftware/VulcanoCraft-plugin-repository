@@ -430,15 +430,37 @@ class Modals {
 
         let html = '';
         const prevDisabled = currentPage <= 1 ? 'disabled' : '';
-        html += `<li class="page-item ${prevDisabled}"><button class="page-link" data-page="${currentPage - 1}">&laquo;</button></li>`;
+        html += `<li class="page-item ${prevDisabled}"><button class="page-link" data-page="${currentPage - 1}" aria-label="Previous">&laquo;</button></li>`;
 
-        for (let p = 1; p <= totalPages; p++) {
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+
+        if (startPage > 1) {
+            html += `<li class="page-item"><button class="page-link" data-page="1">1</button></li>`;
+            if (startPage > 2) {
+                html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+            }
+        }
+
+        for (let p = startPage; p <= endPage; p++) {
             const active = p === currentPage ? 'active' : '';
             html += `<li class="page-item ${active}"><button class="page-link" data-page="${p}">${p}</button></li>`;
         }
 
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+            }
+            html += `<li class="page-item"><button class="page-link" data-page="${totalPages}">${totalPages}</button></li>`;
+        }
+
         const nextDisabled = currentPage >= totalPages ? 'disabled' : '';
-        html += `<li class="page-item ${nextDisabled}"><button class="page-link" data-page="${currentPage + 1}">&raquo;</button></li>`;
+        html += `<li class="page-item ${nextDisabled}"><button class="page-link" data-page="${currentPage + 1}" aria-label="Next">&raquo;</button></li>`;
 
         container.innerHTML = html;
 
