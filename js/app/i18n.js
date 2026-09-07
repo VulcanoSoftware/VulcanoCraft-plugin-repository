@@ -498,14 +498,16 @@ class I18n {
             el.title = this.t(key);
         });
 
-        const currentFlag = document.getElementById('currentLanguageFlag');
-        const currentText = document.getElementById('currentLanguageText');
-        if (currentFlag) {
-            currentFlag.src = this.currentLang === 'en' ? 'images/flags/uk.png' : 'images/flags/netherlands.png';
-            currentFlag.alt = this.currentLang.toUpperCase();
-        }
-        if (currentText) {
-            currentText.textContent = this.currentLang === 'en' ? 'English' : 'Nederlands';
+        const nlBtn = document.getElementById('langSelectNl');
+        const enBtn = document.getElementById('langSelectEn');
+        if (nlBtn && enBtn) {
+            if (this.currentLang === 'en') {
+                nlBtn.classList.remove('active');
+                enBtn.classList.add('active');
+            } else {
+                nlBtn.classList.add('active');
+                enBtn.classList.remove('active');
+            }
         }
     }
 }
