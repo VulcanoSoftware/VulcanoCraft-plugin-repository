@@ -222,37 +222,63 @@ body {
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
 }
 
-/* Button icon brightness/invert styling exclusively for header navigation buttons */
-#authButtons .btn .btn-icon,
-#userButtons .btn .btn-icon {
+/* General contrast helpers for button icons */
+.btn-icon-dark .btn-icon,
+.btn-icon-dark.btn-icon,
+.btn.btn-icon-dark .btn-icon,
+.btn.btn-icon-dark .btn-icon-lg {
+  filter: brightness(0) !important;
+}
+
+.btn-icon-light .btn-icon,
+.btn-icon-light.btn-icon,
+.btn.btn-icon-light .btn-icon,
+.btn.btn-icon-light .btn-icon-lg {
+  filter: brightness(0) invert(1) !important;
+}
+
+/* Default resting state for header outline navigation buttons on dark background */
+#authButtons .btn:not(:hover):not(:focus) .btn-icon,
+#userButtons .btn:not(:hover):not(:focus) .btn-icon {
   filter: brightness(0) invert(1);
 }
 
-/* Explicit light/dark classes and hover states for header button icons based on background contrast */
-#authButtons .btn.btn-icon-dark .btn-icon,
-#userButtons .btn.btn-icon-dark .btn-icon,
-#authButtons .btn-outline-primary:hover .btn-icon,
-#authButtons .btn-outline-info:hover .btn-icon,
-#authButtons .btn-outline-warning:hover .btn-icon,
-#authButtons .btn-outline-success:hover .btn-icon,
-#authButtons .btn-outline-light:hover .btn-icon,
-#userButtons .btn-outline-primary:hover .btn-icon,
-#userButtons .btn-outline-info:hover .btn-icon,
-#userButtons .btn-outline-warning:hover .btn-icon,
-#userButtons .btn-outline-success:hover .btn-icon,
-#userButtons .btn-outline-light:hover .btn-icon,
+/* Hover/Focus states: Light hover backgrounds -> Black icon */
+.btn-outline-info:hover .btn-icon,
+.btn-outline-info:focus .btn-icon,
+.btn-outline-warning:hover .btn-icon,
+.btn-outline-warning:focus .btn-icon,
+.btn-outline-light:hover .btn-icon,
+.btn-outline-light:focus .btn-icon,
+.btn-light:hover .btn-icon,
+.btn-light:focus .btn-icon,
+.btn-yes:hover .btn-icon,
+.btn-yes:focus .btn-icon,
 #exportTxtBtn:hover .btn-icon,
 #exportTxtUserBtn:hover .btn-icon,
 #replaceTxtBtn:hover .btn-icon,
-#appendTxtBtn:hover .btn-icon,
 #logoutBtn:hover .btn-icon,
 #adminBtn:hover .btn-icon {
-  filter: brightness(0);
+  filter: brightness(0) !important;
 }
 
-#authButtons .btn.btn-icon-light .btn-icon,
-#userButtons .btn.btn-icon-light .btn-icon {
-  filter: brightness(0) invert(1);
+/* Hover/Focus states: Dark hover backgrounds -> White icon */
+.btn-outline-success:hover .btn-icon,
+.btn-outline-success:focus .btn-icon,
+.btn-outline-primary:hover .btn-icon,
+.btn-outline-primary:focus .btn-icon,
+.btn-outline-danger:hover .btn-icon,
+.btn-outline-danger:focus .btn-icon,
+.btn-primary:hover .btn-icon,
+.btn-primary:focus .btn-icon,
+.btn-danger:hover .btn-icon,
+.btn-danger:focus .btn-icon,
+.btn-delete:hover .btn-icon,
+.btn-delete:focus .btn-icon,
+.btn-no:hover .btn-icon,
+.btn-no:focus .btn-icon,
+#appendTxtBtn:hover .btn-icon {
+  filter: brightness(0) invert(1) !important;
 }
 
 /* Icons outside buttons keep margin for spacing */

@@ -29,13 +29,20 @@ class UI {
     initHeaderButtonContrastListeners() {
         const buttons = document.querySelectorAll('#authButtons .btn, #userButtons .btn');
         buttons.forEach(btn => {
-            ['mouseenter', 'mouseleave', 'focus', 'blur'].forEach(evt => {
+            if (btn.dataset.contrastBound === 'true') return;
+            btn.dataset.contrastBound = 'true';
+            ['mouseenter', 'mouseleave', 'focus', 'blur', 'transitionend'].forEach(evt => {
                 btn.addEventListener(evt, () => {
-                    setTimeout(() => this.updateHeaderButtonIconContrast(), 10);
+                    this.updateHeaderButtonIconContrast();
+                    setTimeout(() => this.updateHeaderButtonIconContrast(), 50);
+                    setTimeout(() => this.updateHeaderButtonIconContrast(), 150);
                 });
             });
         });
-        window.addEventListener('resize', () => this.updateHeaderButtonIconContrast());
+        if (!this._resizeContrastBound) {
+            this._resizeContrastBound = true;
+            window.addEventListener('resize', () => this.updateHeaderButtonIconContrast());
+        }
     }
 
     updateHeaderButtonIconContrast() {
@@ -43,6 +50,7 @@ class UI {
         buttons.forEach(btn => {
             const getEffectiveBg = (el) => {
                 let current = el;
+                let layers = [];
                 while (current && current !== document.body) {
                     const style = window.getComputedStyle(current);
                     const bg = style.backgroundColor;
@@ -50,18 +58,34 @@ class UI {
                         const match = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
                         if (match) {
                             const alpha = match[4] !== undefined ? parseFloat(match[4]) : 1;
-                            if (alpha > 0.1) {
-                                return {
+                            if (alpha > 0) {
+                                layers.push({
                                     r: parseInt(match[1], 10),
                                     g: parseInt(match[2], 10),
-                                    b: parseInt(match[3], 10)
-                                };
+                                    b: parseInt(match[3], 10),
+                                    a: alpha
+                                });
+                                if (alpha >= 0.95) break;
                             }
                         }
                     }
                     current = current.parentElement;
                 }
-                return { r: 1, g: 17, b: 32 };
+
+                // Default dark header/body background fallback
+                layers.push({ r: 3, g: 29, b: 54, a: 1 });
+
+                let blended = layers[layers.length - 1];
+                for (let i = layers.length - 2; i >= 0; i--) {
+                    const layer = layers[i];
+                    blended = {
+                        r: Math.round(layer.r * layer.a + blended.r * (1 - layer.a)),
+                        g: Math.round(layer.g * layer.a + blended.g * (1 - layer.a)),
+                        b: Math.round(layer.b * layer.a + blended.b * (1 - layer.a)),
+                        a: 1
+                    };
+                }
+                return blended;
             };
 
             const bgRgb = getEffectiveBg(btn);
