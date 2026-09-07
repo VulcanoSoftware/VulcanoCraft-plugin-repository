@@ -31,49 +31,85 @@ class UI {
             this._headerContrastListenersAttached = true;
             window.addEventListener('resize', () => this.updateHeaderButtonIconContrast());
             window.addEventListener('scroll', () => this.updateHeaderButtonIconContrast());
+
+            const handleEvent = (e) => {
+                const btn = e.target.closest('.btn');
+                if (btn) {
+                    setTimeout(() => this.updateSingleButtonContrast(btn), 0);
+                }
+            };
+
+            document.addEventListener('mouseover', handleEvent);
+            document.addEventListener('mouseout', handleEvent);
+            document.addEventListener('focusin', handleEvent);
+            document.addEventListener('focusout', handleEvent);
         }
         this.updateHeaderButtonIconContrast();
     }
 
+    getEffectiveBackgroundColor(el) {
+        let current = el;
+        while (current && current !== document.documentElement) {
+            const style = window.getComputedStyle(current);
+            const bg = style.backgroundColor;
+            if (bg && bg !== 'transparent' && bg !== 'rgba(0, 0, 0, 0)') {
+                const match = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+                if (match) {
+                    const r = parseInt(match[1], 10);
+                    const g = parseInt(match[2], 10);
+                    const b = parseInt(match[3], 10);
+                    const a = match[4] !== undefined ? parseFloat(match[4]) : 1;
+                    if (a > 0.1) {
+                        return { r, g, b };
+                    }
+                }
+            }
+            current = current.parentElement;
+        }
+
+        const rect = el.getBoundingClientRect();
+        const pageX = rect.left + window.scrollX + rect.width / 2;
+        const pageY = rect.top + window.scrollY + rect.height / 2;
+
+        const scrollWidth = Math.max(document.documentElement.scrollWidth, window.innerWidth || 1);
+        const scrollHeight = Math.max(document.documentElement.scrollHeight, window.innerHeight || 1);
+
+        const denom = scrollWidth * scrollWidth + scrollHeight * scrollHeight;
+        let t = 0;
+        if (denom > 0) {
+            t = (pageX * scrollWidth + pageY * scrollHeight) / denom;
+        }
+        t = Math.max(0, Math.min(1, t));
+
+        const r = Math.round(3 + t * (148 - 3));
+        const g = Math.round(29 + t * (166 - 29));
+        const b = Math.round(54 + t * (183 - 54));
+
+        return { r, g, b };
+    }
+
+    updateSingleButtonContrast(btn) {
+        if (!btn) return;
+        const icon = btn.querySelector('.btn-icon, .btn-icon-lg, i, img');
+        if (!icon) return;
+
+        const { r, g, b } = this.getEffectiveBackgroundColor(btn);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+
+        if (brightness >= 128) {
+            btn.classList.add('btn-icon-dark');
+            btn.classList.remove('btn-icon-light');
+        } else {
+            btn.classList.add('btn-icon-light');
+            btn.classList.remove('btn-icon-dark');
+        }
+    }
+
     updateHeaderButtonIconContrast() {
-        const buttons = document.querySelectorAll('#authButtons .btn, #userButtons .btn');
+        const buttons = document.querySelectorAll('#authButtons .btn, #userButtons .btn, .btn');
         if (!buttons.length) return;
 
-        const docEl = document.documentElement;
-        const width = docEl.clientWidth || window.innerWidth;
-        const height = docEl.clientHeight || window.innerHeight;
-        const widthSq = width * width;
-        const heightSq = height * height;
-        const denom = widthSq + heightSq;
-
-        buttons.forEach(btn => {
-            const icon = btn.querySelector('.btn-icon, .btn-icon-lg, i, img');
-            if (!icon) return;
-
-            const rect = btn.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-
-            let t = 0;
-            if (denom > 0) {
-                t = (centerX * width + centerY * height) / denom;
-            }
-            t = Math.max(0, Math.min(1, t));
-
-            const r = 3 + t * (148 - 3);
-            const g = 29 + t * (166 - 29);
-            const b = 54 + t * (183 - 54);
-
-            const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-
-            if (brightness < 130) {
-                btn.classList.add('btn-icon-light');
-                btn.classList.remove('btn-icon-dark');
-            } else {
-                btn.classList.add('btn-icon-dark');
-                btn.classList.remove('btn-icon-light');
-            }
-        });
+        buttons.forEach(btn => this.updateSingleButtonContrast(btn));
     }
 
     renderPlugins(plugins, authStatus, currentUser) {
