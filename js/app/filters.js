@@ -13,6 +13,7 @@ class Filters {
         this.categorySidebar = document.getElementById('categorySidebar');
         this.resetButton = document.getElementById('resetFilters');
         this.includeExcludeSwitch = document.getElementById('includeExcludeSwitch');
+        this.categoryIncludeExcludeSwitch = document.getElementById('categoryIncludeExcludeSwitch');
 
         this._addEventListeners();
         this._setupPlatformLoadersCheckboxes();
@@ -36,13 +37,31 @@ class Filters {
             }
         });
         this.resetButton.addEventListener('click', () => this.reset());
-        this.includeExcludeSwitch.addEventListener('change', () => {
-            const label = document.querySelector(`label[for=${this.includeExcludeSwitch.id}]`);
-            if (label) {
-                label.textContent = this.includeExcludeSwitch.checked ? i18n.t('filters.include') : i18n.t('filters.exclude');
+        const handleSwitchChange = (activeSwitch, otherSwitch) => {
+            if (otherSwitch) {
+                otherSwitch.checked = activeSwitch.checked;
             }
+            [this.includeExcludeSwitch, this.categoryIncludeExcludeSwitch].forEach(sw => {
+                if (sw) {
+                    const label = document.querySelector(`label[for=${sw.id}]`);
+                    if (label) {
+                        label.textContent = sw.checked ? i18n.t('filters.include') : i18n.t('filters.exclude');
+                    }
+                }
+            });
             this.applyFilters();
-        });
+        };
+
+        if (this.includeExcludeSwitch) {
+            this.includeExcludeSwitch.addEventListener('change', () => {
+                handleSwitchChange(this.includeExcludeSwitch, this.categoryIncludeExcludeSwitch);
+            });
+        }
+        if (this.categoryIncludeExcludeSwitch) {
+            this.categoryIncludeExcludeSwitch.addEventListener('change', () => {
+                handleSwitchChange(this.categoryIncludeExcludeSwitch, this.includeExcludeSwitch);
+            });
+        }
     }
 
     _setupPlatformLoadersCheckboxes() {
@@ -93,12 +112,17 @@ class Filters {
         if (activeItem) activeItem.classList.remove('active');
         const defaultCatItem = this.categorySidebar.querySelector('[data-category=""]');
         if (defaultCatItem) defaultCatItem.classList.add('active');
-        this.includeExcludeSwitch.checked = true;
+        if (this.includeExcludeSwitch) this.includeExcludeSwitch.checked = true;
+        if (this.categoryIncludeExcludeSwitch) this.categoryIncludeExcludeSwitch.checked = true;
 
-        const switchLabel = document.querySelector(`label[for=${this.includeExcludeSwitch.id}]`);
-        if (switchLabel) {
-            switchLabel.textContent = i18n.t('filters.include');
-        }
+        [this.includeExcludeSwitch, this.categoryIncludeExcludeSwitch].forEach(sw => {
+            if (sw) {
+                const switchLabel = document.querySelector(`label[for=${sw.id}]`);
+                if (switchLabel) {
+                    switchLabel.textContent = i18n.t('filters.include');
+                }
+            }
+        });
 
         this.applyFilters();
 
