@@ -140,7 +140,6 @@ class AdminPage {
     }
 
     _setupDynamicEventListeners() {
-        // Use event delegation for dynamically created elements
         document.body.addEventListener('change', (e) => {
             if (e.target.matches('.user-role-select')) {
                 this._handleRoleChange(e.target);
@@ -186,13 +185,13 @@ class AdminPage {
                 this._showAdminPanel();
             } else {
                 if (errorDiv) {
-                    errorDiv.textContent = data.error || 'Ongeldige inloggegevens';
+                    errorDiv.textContent = data.error || i18n.t('admin.invalid_credentials');
                     errorDiv.style.display = 'block';
                 }
             }
         } catch (error) {
             if (errorDiv) {
-                errorDiv.textContent = error.message || 'Fout bij inloggen';
+                errorDiv.textContent = error.message || i18n.t('admin.login_failed');
                 errorDiv.style.display = 'block';
             }
         }
@@ -221,8 +220,10 @@ class AdminPage {
         if (this.adminPanel) this.adminPanel.style.display = 'none';
         if (this.loginForm) this.loginForm.style.display = 'none';
         if (this.accessDenied) {
-            const unEl = document.getElementById('loggedInUsername');
-            if (unEl) unEl.textContent = username || 'gebruiker';
+            const msgEl = document.getElementById('accessDeniedMsg');
+            if (msgEl) {
+                msgEl.innerHTML = i18n.t('admin.no_rights_msg', { username: username || i18n.t('admin.role_user') });
+            }
             this.accessDenied.style.display = 'block';
         }
     }
@@ -232,7 +233,7 @@ class AdminPage {
         try {
             await ApiAdmin.updateSettings({ registration_enabled: enabled });
         } catch (error) {
-            await showAlertModal('Fout bij opslaan instellingen', 'Fout', 'fas fa-exclamation-triangle text-danger');
+            await showAlertModal(i18n.t('admin.save_settings_error'), i18n.t('common.error'), 'fas fa-exclamation-triangle text-danger');
             e.target.checked = !enabled;
         }
     }
@@ -247,7 +248,7 @@ class AdminPage {
             this._loadCategories();
             this._loadPlugins(); // Refresh plugin category dropdowns
         } catch (error) {
-            await showAlertModal(`Fout bij toevoegen categorie: ${error.message}`, 'Fout', 'fas fa-exclamation-triangle text-danger');
+            await showAlertModal(i18n.t('admin.add_cat_error', { error: error.message }), i18n.t('common.error'), 'fas fa-exclamation-triangle text-danger');
         }
     }
 
@@ -258,7 +259,7 @@ class AdminPage {
             await ApiAdmin.updateUserRole(username, newRole);
             this._loadUsers();
         } catch (error) {
-            await showAlertModal('Fout bij wijzigen rol', 'Fout', 'fas fa-exclamation-triangle text-danger');
+            await showAlertModal(i18n.t('error.change_role'), i18n.t('common.error'), 'fas fa-exclamation-triangle text-danger');
         }
     }
 
@@ -277,7 +278,7 @@ class AdminPage {
                 await ApiAdmin.deleteUser(username);
                 this._loadUsers();
             } catch (error) {
-                await showAlertModal('Fout bij verwijderen gebruiker', 'Fout', 'fas fa-exclamation-triangle text-danger');
+                await showAlertModal(i18n.t('error.delete_user'), i18n.t('common.error'), 'fas fa-exclamation-triangle text-danger');
             }
         }
     }
@@ -287,7 +288,7 @@ class AdminPage {
         const card = inputElement.closest('.card-body');
         const newName = card.querySelector(`.cat-name`).value.trim();
         if (!newName) {
-            await showAlertModal("Categorie naam mag niet leeg zijn.", "Waarschuwing", "fas fa-exclamation-circle text-warning");
+            await showAlertModal(i18n.t('warning.cat_name_empty'), i18n.t('warning.title'), "fas fa-exclamation-circle text-warning");
             this._loadCategories();
             return;
         }
@@ -307,7 +308,7 @@ class AdminPage {
                 this._loadPlugins();
             }
         } catch (error) {
-            await showAlertModal(`Fout bij bijwerken categorie: ${error.message}`, "Fout", "fas fa-exclamation-triangle text-danger");
+            await showAlertModal(i18n.t('admin.update_cat_error', { error: error.message }), i18n.t('common.error'), "fas fa-exclamation-triangle text-danger");
             this._loadCategories();
         }
     }
@@ -338,10 +339,11 @@ class AdminPage {
                 this._loadCategories();
                 this._loadPlugins();
                 if (res && res.deleted_plugins_count !== undefined) {
-                    await showAlertModal(`Categorie "${name}" ${res.deleted_plugins_count > 0 ? `en ${res.deleted_plugins_count} bijbehorende plugin(s)` : ''} succesvol verwijderd.`, 'Succes', 'fas fa-check-circle text-success');
+                    const extra = res.deleted_plugins_count > 0 ? i18n.t('admin.cat_deleted_extra_plugins', { count: res.deleted_plugins_count }) : '';
+                    await showAlertModal(i18n.t('admin.cat_deleted_success', { name, extra }), i18n.t('common.success'), 'fas fa-check-circle text-success');
                 }
             } catch (error) {
-                await showAlertModal(`Fout bij verwijderen categorie: ${error.message}`, 'Fout', 'fas fa-exclamation-triangle text-danger');
+                await showAlertModal(i18n.t('error.delete_cat') + `: ${error.message}`, i18n.t('common.error'), 'fas fa-exclamation-triangle text-danger');
             }
         }
     }
@@ -357,7 +359,7 @@ class AdminPage {
         try {
             await ApiAdmin.updatePlugin(url, pluginData);
         } catch (error) {
-            await showAlertModal(`Fout bij bijwerken plugin: ${error.message}`, 'Fout', 'fas fa-exclamation-triangle text-danger');
+            await showAlertModal(i18n.t('admin.update_plugin_error', { error: error.message }), i18n.t('common.error'), 'fas fa-exclamation-triangle text-danger');
             this._loadPlugins();
         }
     }
@@ -378,7 +380,7 @@ class AdminPage {
                 await ApiAdmin.deletePlugin(url);
                 this._loadPlugins();
             } catch (error) {
-                await showAlertModal('Fout bij verwijderen plugin', 'Fout', 'fas fa-exclamation-triangle text-danger');
+                await showAlertModal(i18n.t('error.delete_plugin'), i18n.t('common.error'), 'fas fa-exclamation-triangle text-danger');
             }
         }
     }
@@ -386,8 +388,10 @@ class AdminPage {
     async _handleCheckUpdate() {
         if (!this.checkUpdateBtn) return;
         this.checkUpdateBtn.disabled = true;
-        this.checkUpdateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Controleren...';
+        this.checkUpdateBtn.innerHTML = `<i class="fas fa-spinner fa-spin me-1"></i>${i18n.t('admin.checking')}`;
         this.updateAlert.style.display = 'none';
+
+        const langLocale = i18n.lang === 'en' ? 'en-US' : 'nl-NL';
 
         try {
             const data = await ApiAdmin.checkUpdate();
@@ -395,7 +399,7 @@ class AdminPage {
             document.getElementById('currentCommit').textContent = data.current_commit || '-';
             document.getElementById('latestCommit').textContent = data.latest_commit || '-';
             document.getElementById('commitMessage').textContent = data.commit_message || '-';
-            document.getElementById('commitDate').textContent = data.commit_date ? new Date(data.commit_date).toLocaleString('nl-NL') : '-';
+            document.getElementById('commitDate').textContent = data.commit_date ? new Date(data.commit_date).toLocaleString(langLocale) : '-';
 
             if (data.update_available) {
                 this.updateStatusBadge.className = 'badge bg-warning text-dark';
@@ -414,9 +418,9 @@ class AdminPage {
             this._populateRollbackHistory(data);
         } catch (error) {
             this.updateStatusBadge.className = 'badge bg-danger';
-            this.updateStatusBadge.textContent = 'Fout bij controleren';
+            this.updateStatusBadge.textContent = i18n.t('admin.check_failed');
             this.updateAlert.className = 'alert alert-danger mt-3 mb-0';
-            this.updateAlert.textContent = `Fout bij controleren van updates: ${error.message}`;
+            this.updateAlert.textContent = `${i18n.t('admin.check_failed')}: ${error.message}`;
             this.updateAlert.style.display = 'block';
         } finally {
             this.checkUpdateBtn.disabled = false;
@@ -459,7 +463,6 @@ class AdminPage {
             }
         });
 
-        // If previous commit SHA not matched directly, select second item in history (if current is first)
         if (defaultSelectedIndex === -1 && this.commitHistory.length > 1) {
             if (this.commitHistory[0].is_current) {
                 defaultSelectedIndex = 1;
@@ -478,12 +481,13 @@ class AdminPage {
         if (!this.rollbackCommitSelect) return;
         const selectedSha = this.rollbackCommitSelect.value;
         const item = this.commitHistory.find(c => c.sha === selectedSha);
+        const langLocale = i18n.lang === 'en' ? 'en-US' : 'nl-NL';
 
         if (item) {
             this.selectedCommitDetails.style.display = 'block';
             this.rollbackSelectedSha.textContent = item.sha;
             this.rollbackSelectedAuthor.textContent = item.author || '-';
-            this.rollbackSelectedDate.textContent = item.date ? new Date(item.date).toLocaleString('nl-NL') : '-';
+            this.rollbackSelectedDate.textContent = item.date ? new Date(item.date).toLocaleString(langLocale) : '-';
             this.rollbackSelectedMsg.textContent = item.message || '-';
 
             if (this.rollbackUpdateBtn) {
@@ -515,12 +519,12 @@ class AdminPage {
         this.applyUpdateBtn.disabled = true;
         this.checkUpdateBtn.disabled = true;
         if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.disabled = true;
-        this.applyUpdateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Updaten...';
+        this.applyUpdateBtn.innerHTML = `<i class="fas fa-spinner fa-spin me-1"></i>${i18n.t('admin.updating')}`;
 
         try {
             const data = await ApiAdmin.applyUpdate(syncToHost);
             this.updateAlert.className = 'alert alert-success mt-3 mb-0';
-            this.updateAlert.textContent = `${data.message || 'Update succesvol toegepast!'} Pagina wordt over 5 seconden herladen...`;
+            this.updateAlert.textContent = `${data.message || i18n.t('admin.update_success')} ${i18n.t('admin.reloading_in_5s')}`;
             this.updateAlert.style.display = 'block';
             this.applyUpdateBtn.style.display = 'none';
 
@@ -529,7 +533,7 @@ class AdminPage {
             }, 5000);
         } catch (error) {
             this.updateAlert.className = 'alert alert-danger mt-3 mb-0';
-            this.updateAlert.textContent = `Fout bij toepassen van update: ${error.message}`;
+            this.updateAlert.textContent = `${i18n.t('admin.update_failed')}: ${error.message}`;
             this.updateAlert.style.display = 'block';
             this.applyUpdateBtn.disabled = false;
             this.checkUpdateBtn.disabled = false;
@@ -541,7 +545,7 @@ class AdminPage {
     async _handleRollbackUpdate() {
         const selectedCommit = this.rollbackCommitSelect ? this.rollbackCommitSelect.value : '';
         if (!selectedCommit) {
-            await showAlertModal('Selecteer eerst een commit om naar terug te rollen.', 'Waarschuwing', 'fas fa-exclamation-circle text-warning');
+            await showAlertModal(i18n.t('warning.select_commit'), i18n.t('warning.title'), 'fas fa-exclamation-circle text-warning');
             return;
         }
 
@@ -562,13 +566,13 @@ class AdminPage {
         if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.disabled = true;
         if (this.checkUpdateBtn) this.checkUpdateBtn.disabled = true;
         if (this.applyUpdateBtn) this.applyUpdateBtn.disabled = true;
-        if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Terugrollen...';
+        if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.innerHTML = `<i class="fas fa-spinner fa-spin me-1"></i>${i18n.t('admin.rolling_back')}`;
         this.rollbackAlert.style.display = 'none';
 
         try {
             const data = await ApiAdmin.rollbackUpdate(selectedCommit, syncToHost);
             this.rollbackAlert.className = 'alert alert-success mt-3 mb-0';
-            this.rollbackAlert.textContent = `${data.message || 'Succesvol teruggerold!'} Pagina wordt over 5 seconden herladen...`;
+            this.rollbackAlert.textContent = `${data.message || i18n.t('admin.rollback_success')} ${i18n.t('admin.reloading_in_5s')}`;
             this.rollbackAlert.style.display = 'block';
 
             setTimeout(() => {
@@ -576,7 +580,7 @@ class AdminPage {
             }, 5000);
         } catch (error) {
             this.rollbackAlert.className = 'alert alert-danger mt-3 mb-0';
-            this.rollbackAlert.textContent = `Fout bij terugrollen van update: ${error.message}`;
+            this.rollbackAlert.textContent = `${i18n.t('admin.rollback_failed')}: ${error.message}`;
             this.rollbackAlert.style.display = 'block';
             if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.disabled = false;
             if (this.checkUpdateBtn) this.checkUpdateBtn.disabled = false;
@@ -630,7 +634,7 @@ class AdminPage {
             this.usersGrid.innerHTML = `
                 <div class="col-12 text-center my-3">
                     <div class="alert alert-info d-flex align-items-center justify-content-center" role="alert">
-                        <img src="images/add-icon.png" class="warning-icon me-2" alt="Geen gebruikers" style="width: 24px; height: 24px;">
+                        <img src="images/add-icon.png" class="warning-icon me-2" alt="" style="width: 24px; height: 24px;">
                         ${i18n.t('common.no_users')}
                     </div>
                 </div>`;
@@ -651,7 +655,7 @@ class AdminPage {
             this.categoriesGrid.innerHTML = `
                 <div class="col-12 text-center my-3">
                     <div class="alert alert-info d-flex align-items-center justify-content-center" role="alert">
-                        <img src="images/add-icon.png" class="warning-icon me-2" alt="Geen categorieën" style="width: 24px; height: 24px;">
+                        <img src="images/add-icon.png" class="warning-icon me-2" alt="" style="width: 24px; height: 24px;">
                         ${i18n.t('common.no_categories')}
                     </div>
                 </div>`;
@@ -681,7 +685,7 @@ class AdminPage {
             this.categoriesGrid.innerHTML = `
                 <div class="col-12 text-center my-3">
                     <div class="alert alert-info d-flex align-items-center justify-content-center" role="alert">
-                        <img src="images/add-icon.png" class="warning-icon me-2" alt="Geen categorieën" style="width: 24px; height: 24px;">
+                        <img src="images/add-icon.png" class="warning-icon me-2" alt="" style="width: 24px; height: 24px;">
                         ${i18n.t('common.no_categories')}
                     </div>
                 </div>`;
@@ -693,7 +697,7 @@ class AdminPage {
             this.pluginsGrid.innerHTML = `
                 <div class="col-12 text-center my-3">
                     <div class="alert alert-info d-flex align-items-center justify-content-center" role="alert">
-                        <img src="images/add-icon.png" class="warning-icon me-2" alt="Geen plugins" style="width: 24px; height: 24px;">
+                        <img src="images/add-icon.png" class="warning-icon me-2" alt="" style="width: 24px; height: 24px;">
                         ${i18n.t('common.no_plugins')}
                     </div>
                 </div>`;
@@ -738,7 +742,7 @@ class AdminPage {
     _renderUser(user) {
         const canEdit = this.currentRole === 'admin' && user.username !== 'admin';
         const roleOptions = ['user', 'co-admin', 'admin']
-            .map(r => `<option value="${r}" ${user.role === r ? 'selected' : ''}>${r.charAt(0).toUpperCase() + r.slice(1)}</option>`)
+            .map(r => `<option value="${r}" ${user.role === r ? 'selected' : ''}>${r === 'user' ? i18n.t('admin.role_user') : (r === 'co-admin' ? i18n.t('admin.role_co-admin') : i18n.t('admin.role_admin'))}</option>`)
             .join('');
 
         const pluginWord = user.plugin_count === 1 ? i18n.t('common.plugin') : i18n.t('common.plugins');

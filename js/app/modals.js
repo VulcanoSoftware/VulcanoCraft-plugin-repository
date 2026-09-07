@@ -15,13 +15,13 @@ function ensureAlertModalExists() {
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="genericAlertModalTitle">
-                            <i class="fas fa-info-circle me-2 text-primary" id="genericAlertModalIcon"></i><span id="genericAlertModalTitleText">${i18n.t('common.confirm')}</span>
+                            <i class="fas fa-info-circle me-2 text-primary" id="genericAlertModalIcon"></i><span id="genericAlertModalTitleText" data-i18n="common.notice">${i18n.t('common.notice')}</span>
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body" id="genericAlertModalBody"></div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="genericAlertOkBtn">${i18n.t('common.ok')}</button>
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="genericAlertOkBtn" data-i18n="common.ok">${i18n.t('common.ok')}</button>
                     </div>
                 </div>
             </div>`;
@@ -43,14 +43,14 @@ function ensureConfirmModalExists() {
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="genericConfirmModalTitle">
-                            <i class="fas fa-question-circle me-2 text-warning" id="genericConfirmModalIcon"></i><span id="genericConfirmModalTitleText">${i18n.t('common.confirm')}</span>
+                            <i class="fas fa-question-circle me-2 text-warning" id="genericConfirmModalIcon"></i><span id="genericConfirmModalTitleText" data-i18n="common.confirm_title">${i18n.t('common.confirm_title')}</span>
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body" id="genericConfirmModalBody"></div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="genericConfirmCancelBtn">${i18n.t('common.cancel')}</button>
-                        <button type="button" class="btn btn-danger" id="genericConfirmOkBtn">${i18n.t('common.confirm')}</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="genericConfirmCancelBtn" data-i18n="common.cancel">${i18n.t('common.cancel')}</button>
+                        <button type="button" class="btn btn-danger" id="genericConfirmOkBtn" data-i18n="common.confirm">${i18n.t('common.confirm')}</button>
                     </div>
                 </div>
             </div>`;
@@ -59,14 +59,14 @@ function ensureConfirmModalExists() {
     return modalEl;
 }
 
-export function showAlertModal(message, title = 'Melding', iconClass = 'fas fa-info-circle text-primary') {
+export function showAlertModal(message, title = null, iconClass = 'fas fa-info-circle text-primary') {
     return new Promise((resolve) => {
         const modalEl = ensureAlertModalExists();
         const titleTextEl = document.getElementById('genericAlertModalTitleText');
         const bodyEl = document.getElementById('genericAlertModalBody');
         const iconEl = document.getElementById('genericAlertModalIcon');
 
-        if (titleTextEl) titleTextEl.textContent = title;
+        if (titleTextEl) titleTextEl.textContent = title || i18n.t('common.notice');
         if (bodyEl) bodyEl.innerHTML = message;
         if (iconEl) iconEl.className = `${iconClass} me-2`;
 
@@ -81,7 +81,7 @@ export function showAlertModal(message, title = 'Melding', iconClass = 'fas fa-i
     });
 }
 
-export function showConfirmModal({ title = 'Bevestiging', message, confirmText = 'Bevestigen', confirmClass = 'btn-danger', iconClass = 'fas fa-question-circle text-warning' }) {
+export function showConfirmModal({ title = null, message, confirmText = null, confirmClass = 'btn-danger', iconClass = 'fas fa-question-circle text-warning' }) {
     return new Promise((resolve) => {
         const modalEl = ensureConfirmModalExists();
         const titleTextEl = document.getElementById('genericConfirmModalTitleText');
@@ -89,11 +89,11 @@ export function showConfirmModal({ title = 'Bevestiging', message, confirmText =
         const iconEl = document.getElementById('genericConfirmModalIcon');
         const okBtn = document.getElementById('genericConfirmOkBtn');
 
-        if (titleTextEl) titleTextEl.textContent = title;
+        if (titleTextEl) titleTextEl.textContent = title || i18n.t('common.confirm_title');
         if (bodyEl) bodyEl.innerHTML = message;
         if (iconEl) iconEl.className = `${iconClass} me-2`;
         if (okBtn) {
-            okBtn.textContent = confirmText;
+            okBtn.textContent = confirmText || i18n.t('common.confirm');
             okBtn.className = `btn ${confirmClass}`;
         }
 
@@ -146,6 +146,7 @@ class Modals {
         this.isReplaceMode = false;
         this.targetCategory = null;
         this.currentDeleteUrl = null;
+        this.currentDeleteCategory = null;
         this.addSuccess = false;
 
         this.bulkCurrentPage = 1;
@@ -403,7 +404,7 @@ class Modals {
                                 <input class="form-check-input bulk-item-checkbox" type="checkbox" data-index="${realIndex}" id="bulkCheck_${realIndex}" disabled>
                             </div>
                             <div class="flex-grow-1 min-w-0">
-                                <h6 class="mb-0 text-danger"><i class="fas fa-exclamation-circle me-1"></i> Fout bij ophalen</h6>
+                                <h6 class="mb-0 text-danger"><i class="fas fa-exclamation-circle me-1"></i> ${i18n.t('modal.fetch_error')}</h6>
                                 <div class="small text-muted text-truncate min-w-0" title="${item.url}">${item.url}</div>
                                 <div class="small text-danger text-truncate min-w-0" title="${item.error}">${item.error}</div>
                             </div>
@@ -595,7 +596,7 @@ class Modals {
             UI.showSuccessMessage(`${addedCount} ${i18n.t('success.bulk_plugins_added')}`);
             this.addModal.hide();
         } else {
-            this.showError(`Fout bij toevoegen van plugins (${failCount} mislukt)`);
+            this.showError(i18n.t('error.bulk_add_failed', { count: failCount }));
         }
     }
 
@@ -613,7 +614,8 @@ class Modals {
     }
 
     async handleDeleteConfirm() {
-        const pluginTitle = document.getElementById('pluginToDeleteTitle').textContent;
+        const questionEl = document.getElementById('deleteConfirmModalQuestion');
+        const pluginTitle = questionEl ? questionEl.textContent.trim() : '';
         const categoryContext = this.currentDeleteCategory || '';
         try {
             const data = await API.deletePlugin(this.currentDeleteUrl, categoryContext || undefined);
@@ -629,17 +631,20 @@ class Modals {
     }
 
     showDeleteModal(url, title, categoryContext = '') {
-        document.getElementById('pluginToDeleteTitle').textContent = title;
+        const questionEl = document.getElementById('deleteConfirmModalQuestion');
+        if (questionEl) {
+            questionEl.innerHTML = i18n.t('modal.delete_confirm_question', { title });
+        }
         this.currentDeleteUrl = url;
         this.currentDeleteCategory = categoryContext;
         this.deleteModal.show();
     }
 
     updateAddModalPreview(plugin) {
-        document.getElementById('previewTitle').textContent = plugin.title || 'Geen titel';
-        document.getElementById('previewDescription').textContent = plugin.description || 'Geen beschrijving beschikbaar';
+        document.getElementById('previewTitle').textContent = plugin.title || i18n.t('common.no_title');
+        document.getElementById('previewDescription').textContent = plugin.description || i18n.t('common.no_description');
 
-        let authorsHtml = 'Onbekend';
+        let authorsHtml = i18n.t('common.unknown');
         if (plugin.author) {
             let authors = [];
             if (Array.isArray(plugin.author)) {
@@ -659,7 +664,7 @@ class Modals {
         const versionsContainer = document.getElementById('previewVersions');
         versionsContainer.innerHTML = (plugin.versions)
             ? plugin.versions.split(' ').map((v, i) => `<span class="version-badge" style="animation-delay: ${i*100}ms">${v}</span>`).join('')
-            : '<span class="badge bg-secondary">Geen versies</span>';
+            : `<span class="badge bg-secondary">${i18n.t('common.no_versions')}</span>`;
     }
 
     resetAddModal() {

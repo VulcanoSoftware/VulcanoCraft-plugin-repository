@@ -23,7 +23,7 @@ class ChangePasswordPage {
         const confirmNewPassword = document.getElementById('confirmNewPassword').value;
 
         if (newPassword !== confirmNewPassword) {
-            this._showMessage('Nieuwe wachtwoorden komen niet overeen.', 'danger');
+            this._showMessage(i18n.t('auth.passwords_do_not_match'), 'danger');
             return;
         }
 
@@ -32,7 +32,7 @@ class ChangePasswordPage {
             this._showMessage(data.message, 'success');
             this.changePasswordForm.reset();
         } catch (error) {
-            this._showMessage(error.message, 'danger');
+            this._showMessage(error.message || i18n.t('auth.change_password_error'), 'danger');
         }
     }
 
