@@ -410,10 +410,30 @@ def serve_image(filename):
 @app.route('/api/plugins')
 @require_login
 def api_plugins():
-    """API endpoint voor plugins data van ingelogde gebruiker"""
+    """API endpoint voor plugins data van ingelogde gebruiker met optionele server-side paginering"""
     username = session['user']
-    plugins = get_user_plugins(username)
-    return jsonify(plugins)
+    page = sanitize_int(request.args.get('page', 1), default=1)
+    per_page = sanitize_int(request.args.get('per_page', 0), default=0)
+
+    query = {"owner": username}
+    total = db.plugins.count_documents(query)
+
+    if per_page <= 0:
+        plugins = list(db.plugins.find(query, {"_id": 0}))
+        return jsonify(plugins)
+
+    total_pages = math.ceil(total / per_page) if per_page > 0 else 1
+    skip = (page - 1) * per_page
+
+    plugins = list(db.plugins.find(query, {"_id": 0}).skip(skip).limit(per_page))
+
+    return jsonify({
+        'plugins': plugins,
+        'total': total,
+        'page': page,
+        'per_page': per_page,
+        'total_pages': total_pages
+    })
 
 def get_platform_from_url(url):
     if not url:
