@@ -579,11 +579,11 @@ def sort_plugins(plugins, sort_by):
         return sorted(plugins, key=lambda p: (str(p.get('created_at') or p.get('added_at') or ''), (p.get('title') or '').lower()), reverse=True)
     return plugins
 
-def expand_plugin_categories(per_plugin_filtered, selected_category):
+def expand_plugin_categories(per_plugin_filtered, selected_category, category_include=True):
     filtered_expanded = []
-    if not selected_category:
+    if not selected_category or not category_include:
         for plugin in per_plugin_filtered:
-            plugin_cats = list(extract_plugin_categories(plugin))
+            plugin_cats = [c for c in extract_plugin_categories(plugin) if c != selected_category]
             if not plugin_cats:
                 p_copy = dict(plugin)
                 p_copy['_categoryContext'] = ''
@@ -663,7 +663,7 @@ def api_plugins_public():
     ]
 
     per_plugin_filtered = sort_plugins(per_plugin_filtered, params['sort_by'])
-    filtered_expanded = expand_plugin_categories(per_plugin_filtered, params['selected_category'])
+    filtered_expanded = expand_plugin_categories(per_plugin_filtered, params['selected_category'], params['category_include'])
     paginated_plugins, total_items, current_page, total_pages = paginate_items(
         filtered_expanded, params['page'], params['per_page']
     )
