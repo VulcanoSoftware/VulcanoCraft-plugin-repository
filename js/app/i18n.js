@@ -501,7 +501,7 @@ class I18n {
         const currentFlag = document.getElementById('currentLanguageFlag');
         const currentText = document.getElementById('currentLanguageText');
         if (currentFlag) {
-            currentFlag.src = this.currentLang === 'en' ? 'images/flags/gb.svg' : 'images/flags/nl.svg';
+            currentFlag.src = this.currentLang === 'en' ? 'images/flags/gb.png' : 'images/flags/nl.png';
             currentFlag.alt = this.currentLang.toUpperCase();
         }
         if (currentText) {
