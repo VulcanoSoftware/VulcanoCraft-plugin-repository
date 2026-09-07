@@ -2285,19 +2285,52 @@ body {
   box-shadow: 0 8px 18px rgba(67,233,123,0.12);
 }
 
-.server-info {
-    display: block;
-    font-size: 0.8rem;
-    color: #495057;
-    margin-left: calc(36px + 0.75rem); /* Align with text, considering icon width and gap */
-    margin-top: -0.4rem;
-    margin-bottom: 0.4rem;
-    font-weight: 500;
+.category-details {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
-.category-item:hover .server-info,
-.category-item.active .server-info {
-    color: #fff;
+.server-info {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.software-badge,
+.version-tag-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.2;
+  transition: all 0.2s ease;
+}
+
+.software-badge {
+  background-color: rgba(59, 130, 246, 0.12);
+  color: #2563eb;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.version-tag-badge {
+  background-color: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.category-item:hover .software-badge,
+.category-item:hover .version-tag-badge {
+  background-color: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.category-item.active .software-badge,
+.category-item.active .version-tag-badge {
+  background-color: rgba(4, 20, 24, 0.12);
+  color: #041418;
+  border-color: rgba(4, 20, 24, 0.25);
 }
 
 .results-count-badge {
