@@ -51,7 +51,30 @@ class UI {
         let current = el;
         while (current && current !== document.documentElement) {
             const style = window.getComputedStyle(current);
+            const bgImg = style.backgroundImage;
             const bg = style.backgroundColor;
+
+            // 1. Check background-image (linear-gradient) first
+            if (bgImg && bgImg !== 'none') {
+                const matches = [...bgImg.matchAll(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/g)];
+                if (matches.length > 0) {
+                    let totalR = 0, totalG = 0, totalB = 0, count = 0;
+                    for (const m of matches) {
+                        const a = m[4] !== undefined ? parseFloat(m[4]) : 1;
+                        if (a > 0.1) {
+                            totalR += parseInt(m[1], 10);
+                            totalG += parseInt(m[2], 10);
+                            totalB += parseInt(m[3], 10);
+                            count++;
+                        }
+                    }
+                    if (count > 0) {
+                        return { r: Math.round(totalR / count), g: Math.round(totalG / count), b: Math.round(totalB / count) };
+                    }
+                }
+            }
+
+            // 2. Check solid backgroundColor
             if (bg && bg !== 'transparent' && bg !== 'rgba(0, 0, 0, 0)') {
                 const match = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
                 if (match) {
