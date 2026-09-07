@@ -682,57 +682,79 @@ body {
   margin-top: 1rem;
 }
 
-/* Language Dropdown Custom Polish */
+/* Language Dropdown Premium Polish & Elastic Animation */
 #languageDropdownBtn {
-  background: rgba(30, 41, 59, 0.85) !important;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.92) 0%, rgba(30, 41, 59, 0.92) 100%) !important;
   backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  color: #f8fafc !important;
-  font-weight: 600;
-  padding: 0.45rem 0.9rem;
-  border-radius: 20px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.3px;
+  padding: 0.5rem 1rem !important;
+  border-radius: 25px !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.15) !important;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+#languageDropdownBtn #currentLanguageFlag {
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+#languageDropdownBtn:hover #currentLanguageFlag,
+#languageDropdownBtn:focus #currentLanguageFlag {
+  transform: scale(1.2) rotate(4deg);
 }
 
 #languageDropdownBtn:hover,
 #languageDropdownBtn:focus {
-  background: rgba(51, 65, 85, 0.95) !important;
-  border-color: rgba(56, 189, 248, 0.5) !important;
-  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.2);
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.98) 0%, rgba(51, 65, 85, 0.98) 100%) !important;
+  border-color: rgba(56, 189, 248, 0.7) !important;
+  box-shadow: 0 8px 25px rgba(56, 189, 248, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
+  transform: translateY(-2px) scale(1.02);
 }
 
 #languageDropdownContainer .dropdown-menu {
-  background: rgba(15, 23, 42, 0.95) !important;
-  backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  border-radius: 12px;
-  padding: 0.5rem;
-  margin-top: 0.5rem !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(56, 189, 248, 0.4) !important;
+  border-radius: 14px !important;
+  padding: 0.5rem !important;
+  margin-top: 0.6rem !important;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 15px rgba(56, 189, 248, 0.2) !important;
   transform-origin: top right;
-  animation: dropdownFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: dropdownElasticIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  overflow: hidden;
 }
 
 #languageDropdownContainer .dropdown-item {
-  color: #e2e8f0 !important;
-  font-weight: 500;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  color: #f1f5f9 !important;
+  font-weight: 600 !important;
+  padding: 0.6rem 0.9rem !important;
+  border-radius: 8px !important;
+  border-left: 3px solid transparent;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+#languageDropdownContainer .dropdown-item img {
+  transition: transform 0.25s ease;
 }
 
 #languageDropdownContainer .dropdown-item:hover,
 #languageDropdownContainer .dropdown-item:focus {
-  background: rgba(56, 189, 248, 0.2) !important;
-  color: #ffffff !important;
-  padding-left: 1rem;
+  background: linear-gradient(90deg, rgba(56, 189, 248, 0.25) 0%, rgba(99, 102, 241, 0.25) 100%) !important;
+  color: #38bdf8 !important;
+  border-left-color: #38bdf8;
+  transform: translateX(4px);
 }
 
-@keyframes dropdownFadeIn {
+#languageDropdownContainer .dropdown-item:hover img {
+  transform: scale(1.15) rotate(3deg);
+}
+
+@keyframes dropdownElasticIn {
   from {
     opacity: 0;
-    transform: scale(0.95) translateY(-8px);
+    transform: scale(0.85) translateY(-12px);
   }
   to {
     opacity: 1;
