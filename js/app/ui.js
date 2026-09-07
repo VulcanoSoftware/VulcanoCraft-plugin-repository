@@ -30,7 +30,7 @@ class UI {
         this.pluginsContainer.innerHTML = `
             <div class="col-12 text-center">
                 <div class="alert alert-info d-flex align-items-center justify-content-center" role="alert">
-                    <img src="images/add-icon.png" class="warning-icon me-2" alt="Geen plugins">
+                    <img src="images/add-icon.png" class="warning-icon me-2" alt="">
                     ${message}
                 </div>
             </div>`;
@@ -196,7 +196,15 @@ class UI {
 
         const sortedLoaders = Array.from(new Set(loaders)).sort((a, b) => a.localeCompare(b));
 
-        if (this.loaderFilters.children.length === 0) {
+        if (sortedLoaders.length === 0) {
+            this.loaderFilters.innerHTML = `<small class="text-muted d-block py-1" data-i18n="filters.no_loaders_available">${i18n.t('filters.no_loaders_available')}</small>`;
+            return;
+        }
+
+        const existingLoaders = Array.from(this.loaderFilters.querySelectorAll('.loader-filter')).map(cb => cb.value);
+        const isSame = existingLoaders.length === sortedLoaders.length && existingLoaders.every((v, i) => v === sortedLoaders[i]);
+
+        if (!isSame) {
             this.loaderFilters.innerHTML = '';
             sortedLoaders.forEach(loader => {
                 const div = document.createElement('div');
@@ -248,7 +256,7 @@ class UI {
         const allText = i18n.t('sidebar.all');
         const pluginsWord = i18n.t('common.plugins');
         const totalPluginsTooltip = i18n.t('sidebar.total_plugins_tooltip');
-        list.innerHTML = `<li class="category-item ${activeCategory === '' ? 'active' : ''}" data-category="">${allText} <span class="badge bg-primary rounded-pill ms-auto" title="${totalPluginsTooltip}">0 ${pluginsWord}</span></li>`;
+        list.innerHTML = `<li class="category-item ${activeCategory === '' ? 'active' : ''}" data-category=""><span data-i18n="sidebar.all">${allText}</span> <span class="badge bg-primary rounded-pill ms-auto" title="${totalPluginsTooltip}">0 ${pluginsWord}</span></li>`;
 
         sortedCategories.forEach(cat => {
             const categoryName = cat.name;

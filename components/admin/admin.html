@@ -110,8 +110,8 @@
                   <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                       <div>
-                        <h6 class="card-subtitle text-muted mb-1">VulcanoCraft Repository Software</h6>
-                        <span id="updateStatusBadge" class="badge bg-secondary">Status niet gecontroleerd</span>
+                        <h6 class="card-subtitle text-muted mb-1" data-i18n="admin.repo_software">VulcanoCraft Repository Software</h6>
+                        <span id="updateStatusBadge" class="badge bg-secondary" data-i18n="admin.status_not_checked">Status niet gecontroleerd</span>
                       </div>
                       <div>
                         <button class="btn btn-outline-primary me-2" id="checkUpdateBtn">
@@ -192,7 +192,7 @@
                   </div>
                 </div>
                 <div class="row" id="usersGrid">
-                  <div class="col-12 text-center"><p>Laden...</p></div>
+                  <div class="col-12 text-center"><p data-i18n="common.loading">Laden...</p></div>
                 </div>
                 <div class="d-flex justify-content-center mt-3" id="usersPaginationNav">
                   <ul class="pagination pagination-sm mb-0" id="usersPaginationControls"></ul>
@@ -213,7 +213,7 @@
                   </div>
                 </div>
                 <div class="row" id="categoriesGrid">
-                  <div class="col-12 text-center"><p>Laden...</p></div>
+                  <div class="col-12 text-center"><p data-i18n="common.loading">Laden...</p></div>
                 </div>
               </div>
 
@@ -234,7 +234,7 @@
                   </div>
                 </div>
                 <div class="row" id="pluginsGrid">
-                  <div class="col-12 text-center"><p>Laden...</p></div>
+                  <div class="col-12 text-center"><p data-i18n="common.loading">Laden...</p></div>
                 </div>
                 <div class="d-flex justify-content-center mt-3" id="pluginsPaginationNav">
                   <ul class="pagination pagination-sm mb-0" id="pluginsPaginationControls"></ul>
@@ -252,14 +252,14 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="genericAlertModalTitle">
-              <i class="fas fa-info-circle me-2 text-primary" id="genericAlertModalIcon"></i><span id="genericAlertModalTitleText">Melding</span>
+              <i class="fas fa-info-circle me-2 text-primary" id="genericAlertModalIcon"></i><span id="genericAlertModalTitleText" data-i18n="common.notice">Melding</span>
             </h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body" id="genericAlertModalBody">
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="genericAlertOkBtn">OK</button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="genericAlertOkBtn" data-i18n="common.ok">OK</button>
           </div>
         </div>
       </div>
@@ -271,15 +271,15 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="genericConfirmModalTitle">
-              <i class="fas fa-question-circle me-2 text-warning" id="genericConfirmModalIcon"></i><span id="genericConfirmModalTitleText">Bevestiging</span>
+              <i class="fas fa-question-circle me-2 text-warning" id="genericConfirmModalIcon"></i><span id="genericConfirmModalTitleText" data-i18n="common.confirm_title">Bevestiging</span>
             </h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body" id="genericConfirmModalBody">
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="genericConfirmCancelBtn">Annuleren</button>
-            <button type="button" class="btn btn-danger" id="genericConfirmOkBtn">Bevestigen</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="genericConfirmCancelBtn" data-i18n="common.cancel">Annuleren</button>
+            <button type="button" class="btn btn-danger" id="genericConfirmOkBtn" data-i18n="common.confirm">Bevestigen</button>
           </div>
         </div>
       </div>
