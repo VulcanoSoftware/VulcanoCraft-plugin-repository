@@ -222,42 +222,36 @@ body {
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
 }
 
-/* Colorize header buttons icons (in #authButtons and #userButtons) to inherit button text color */
+/* Button icon brightness/invert styling for dark & light backgrounds */
 #authButtons .btn .btn-icon,
-#userButtons .btn .btn-icon {
-  background-color: currentColor;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-size: contain;
-  mask-size: contain;
+#userButtons .btn .btn-icon,
+.btn-primary .btn-icon,
+.btn-danger .btn-icon,
+.btn-success .btn-icon,
+.btn-delete .btn-icon,
+.btn-yes .btn-icon,
+.btn-no .btn-icon {
+  filter: brightness(0) invert(1);
 }
 
-#exportTxtBtn .btn-icon,
-#exportTxtUserBtn .btn-icon {
-  -webkit-mask-image: url("images/export.png");
-  mask-image: url("images/export.png");
-}
-
-#replaceTxtBtn .btn-icon {
-  -webkit-mask-image: url("images/replace.png");
-  mask-image: url("images/replace.png");
-}
-
-#appendTxtBtn .btn-icon {
-  -webkit-mask-image: url("images/append.png");
-  mask-image: url("images/append.png");
-}
-
-#adminBtn .btn-icon {
-  -webkit-mask-image: url("images/admin.png");
-  mask-image: url("images/admin.png");
-}
-
-#logoutBtn .btn-icon {
-  -webkit-mask-image: url("images/logout.png");
-  mask-image: url("images/logout.png");
+/* On hover/focus for outline buttons with light filled backgrounds, ensure icon turns dark */
+#authButtons .btn-outline-primary:hover .btn-icon,
+#authButtons .btn-outline-info:hover .btn-icon,
+#authButtons .btn-outline-warning:hover .btn-icon,
+#authButtons .btn-outline-light:hover .btn-icon,
+#userButtons .btn-outline-primary:hover .btn-icon,
+#userButtons .btn-outline-info:hover .btn-icon,
+#userButtons .btn-outline-warning:hover .btn-icon,
+#userButtons .btn-outline-light:hover .btn-icon,
+#exportTxtBtn:hover .btn-icon,
+#exportTxtUserBtn:hover .btn-icon,
+#replaceTxtBtn:hover .btn-icon,
+#appendTxtBtn:hover .btn-icon,
+#logoutBtn:hover .btn-icon,
+.btn-secondary .btn-icon,
+.btn-light .btn-icon,
+.btn-outline-secondary .btn-icon {
+  filter: brightness(0);
 }
 
 /* Icons outside buttons keep margin for spacing */
