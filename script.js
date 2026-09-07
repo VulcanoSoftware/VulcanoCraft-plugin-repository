@@ -353,7 +353,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (un) un.textContent = data.username;
                     const adm = document.getElementById("adminBtn");
                     if (adm) {
-                        adm.style.display = (data.role === "admin" || data.role === "co-admin") ? "inline-block" : "none";
+                        adm.style.display = (data.role === "admin" || data.role === "co-admin") ? "inline-flex" : "none";
                     }
                 } else {
                     if (ab) ab.style.setProperty('display', 'flex', 'important');
