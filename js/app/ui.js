@@ -14,6 +14,67 @@ class UI {
         this.paginationControls = document.getElementById('paginationControls');
         this.perPageSelect = document.getElementById('perPageSelect');
         this.resultsCounter = null;
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                this.initHeaderButtonContrastListeners();
+                this.updateHeaderButtonIconContrast();
+            });
+        } else {
+            this.initHeaderButtonContrastListeners();
+            this.updateHeaderButtonIconContrast();
+        }
+    }
+
+    initHeaderButtonContrastListeners() {
+        const buttons = document.querySelectorAll('#authButtons .btn, #userButtons .btn');
+        buttons.forEach(btn => {
+            ['mouseenter', 'mouseleave', 'focus', 'blur'].forEach(evt => {
+                btn.addEventListener(evt, () => {
+                    setTimeout(() => this.updateHeaderButtonIconContrast(), 10);
+                });
+            });
+        });
+        window.addEventListener('resize', () => this.updateHeaderButtonIconContrast());
+    }
+
+    updateHeaderButtonIconContrast() {
+        const buttons = document.querySelectorAll('#authButtons .btn, #userButtons .btn');
+        buttons.forEach(btn => {
+            const getEffectiveBg = (el) => {
+                let current = el;
+                while (current && current !== document.body) {
+                    const style = window.getComputedStyle(current);
+                    const bg = style.backgroundColor;
+                    if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') {
+                        const match = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+                        if (match) {
+                            const alpha = match[4] !== undefined ? parseFloat(match[4]) : 1;
+                            if (alpha > 0.1) {
+                                return {
+                                    r: parseInt(match[1], 10),
+                                    g: parseInt(match[2], 10),
+                                    b: parseInt(match[3], 10)
+                                };
+                            }
+                        }
+                    }
+                    current = current.parentElement;
+                }
+                return { r: 1, g: 17, b: 32 };
+            };
+
+            const bgRgb = getEffectiveBg(btn);
+            const luminance = 0.299 * bgRgb.r + 0.587 * bgRgb.g + 0.114 * bgRgb.b;
+
+            if (luminance >= 125) {
+                btn.classList.add('btn-icon-dark');
+                btn.classList.remove('btn-icon-light');
+            } else {
+                btn.classList.add('btn-icon-light');
+                btn.classList.remove('btn-icon-dark');
+            }
+        });
     }
 
     renderPlugins(plugins, authStatus, currentUser) {
@@ -421,6 +482,8 @@ class UI {
             this.authButtons.style.setProperty('display', 'flex', 'important');
             this.userButtons.style.setProperty('display', 'none', 'important');
         }
+        this.initHeaderButtonContrastListeners();
+        this.updateHeaderButtonIconContrast();
     }
 
     updateResultsCount(pluginsOnCurrentPageCount, totalFilteredCount, totalAllPluginsCount, activeCategory = '') {
