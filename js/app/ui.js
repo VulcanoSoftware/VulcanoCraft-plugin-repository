@@ -91,7 +91,7 @@ class UI {
             const bgRgb = getEffectiveBg(btn);
             const luminance = 0.299 * bgRgb.r + 0.587 * bgRgb.g + 0.114 * bgRgb.b;
 
-            if (luminance >= 25) {
+            if (luminance >= 65) {
                 btn.classList.add('btn-icon-dark');
                 btn.classList.remove('btn-icon-light');
             } else {
