@@ -668,10 +668,12 @@ def api_plugins_public():
         filtered_expanded, params['page'], params['per_page']
     )
 
+    total_all_expanded = sum(category_counts.values()) if category_counts else len(all_plugins)
+
     return jsonify({
         'plugins': paginated_plugins,
         'total': total_items,
-        'total_all': len(all_plugins),
+        'total_all': total_all_expanded,
         'page': current_page,
         'per_page': params['per_page'],
         'total_pages': total_pages,
