@@ -1301,6 +1301,14 @@ body {
   will-change: transform, box-shadow, background-color, color;
 }
 
+/* Force consistent icon/text spacing on the Admin link, regardless of
+   any inline display style set by JS (e.g. adminBtn.style.display = "...") */
+#adminBtn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
 /* Ensure all button content is properly aligned */
 .btn>* {
   display: inline-flex;
