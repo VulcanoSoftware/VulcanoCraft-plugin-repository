@@ -505,7 +505,7 @@ class I18n {
             currentFlag.alt = this.currentLang.toUpperCase();
         }
         if (currentText) {
-            currentText.textContent = this.currentLang === 'en' ? 'English' : 'Nederlands';
+            currentText.textContent = this.currentLang === 'en' ? 'Language / English' : 'Language / Nederlands';
         }
 
         document.querySelectorAll('#languageDropdownMenu .cyber-lang-item').forEach(item => {
