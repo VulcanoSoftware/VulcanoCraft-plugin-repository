@@ -682,6 +682,64 @@ body {
   margin-top: 1rem;
 }
 
+/* Language Dropdown Custom Polish */
+#languageDropdownBtn {
+  background: rgba(30, 41, 59, 0.85) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #f8fafc !important;
+  font-weight: 600;
+  padding: 0.45rem 0.9rem;
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+#languageDropdownBtn:hover,
+#languageDropdownBtn:focus {
+  background: rgba(51, 65, 85, 0.95) !important;
+  border-color: rgba(56, 189, 248, 0.5) !important;
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.2);
+  transform: translateY(-2px);
+}
+
+#languageDropdownContainer .dropdown-menu {
+  background: rgba(15, 23, 42, 0.95) !important;
+  backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 12px;
+  padding: 0.5rem;
+  margin-top: 0.5rem !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+  transform-origin: top right;
+  animation: dropdownFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+#languageDropdownContainer .dropdown-item {
+  color: #e2e8f0 !important;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+#languageDropdownContainer .dropdown-item:hover,
+#languageDropdownContainer .dropdown-item:focus {
+  background: rgba(56, 189, 248, 0.2) !important;
+  color: #ffffff !important;
+  padding-left: 1rem;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
 /* Styled Pagination Bar & Dropdowns */
 .pagination-bar-card {
   background: rgba(30, 41, 59, 0.75) !important;
