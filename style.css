@@ -243,11 +243,15 @@ body {
   filter: brightness(0) invert(1);
 }
 
-/* Hover/Focus states: Light hover backgrounds -> Black icon */
+/* Hover/Focus states: Light/Medium hover backgrounds -> Black icon */
 .btn-outline-info:hover .btn-icon,
 .btn-outline-info:focus .btn-icon,
 .btn-outline-warning:hover .btn-icon,
 .btn-outline-warning:focus .btn-icon,
+.btn-outline-success:hover .btn-icon,
+.btn-outline-success:focus .btn-icon,
+.btn-outline-primary:hover .btn-icon,
+.btn-outline-primary:focus .btn-icon,
 .btn-outline-light:hover .btn-icon,
 .btn-outline-light:focus .btn-icon,
 .btn-light:hover .btn-icon,
@@ -257,16 +261,13 @@ body {
 #exportTxtBtn:hover .btn-icon,
 #exportTxtUserBtn:hover .btn-icon,
 #replaceTxtBtn:hover .btn-icon,
+#appendTxtBtn:hover .btn-icon,
 #logoutBtn:hover .btn-icon,
 #adminBtn:hover .btn-icon {
   filter: brightness(0) !important;
 }
 
-/* Hover/Focus states: Dark hover backgrounds -> White icon */
-.btn-outline-success:hover .btn-icon,
-.btn-outline-success:focus .btn-icon,
-.btn-outline-primary:hover .btn-icon,
-.btn-outline-primary:focus .btn-icon,
+/* Hover/Focus states: Very dark hover backgrounds -> White icon */
 .btn-outline-danger:hover .btn-icon,
 .btn-outline-danger:focus .btn-icon,
 .btn-primary:hover .btn-icon,
@@ -276,8 +277,7 @@ body {
 .btn-delete:hover .btn-icon,
 .btn-delete:focus .btn-icon,
 .btn-no:hover .btn-icon,
-.btn-no:focus .btn-icon,
-#appendTxtBtn:hover .btn-icon {
+.btn-no:focus .btn-icon {
   filter: brightness(0) invert(1) !important;
 }
 
