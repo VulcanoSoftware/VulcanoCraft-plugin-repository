@@ -27,88 +27,100 @@ class UI {
     }
 
     initHeaderButtonContrastListeners() {
-        if (!this._headerContrastListenersAttached) {
-            this._headerContrastListenersAttached = true;
-            window.addEventListener('resize', () => this.updateHeaderButtonIconContrast());
-            window.addEventListener('scroll', () => this.updateHeaderButtonIconContrast());
+        if (this._headerContrastListenersAttached) {
+            this.updateHeaderButtonIconContrast();
+            return;
+        }
+        this._headerContrastListenersAttached = true;
 
-            const handleEvent = (e) => {
-                const btn = e.target.closest('.btn');
+        let scheduled = false;
+        const requestUpdate = () => {
+            if (!scheduled) {
+                scheduled = true;
+                requestAnimationFrame(() => {
+                    scheduled = false;
+                    this.updateHeaderButtonIconContrast();
+                });
+            }
+        };
+
+        window.addEventListener('resize', requestUpdate);
+        window.addEventListener('scroll', requestUpdate);
+
+        const handleEvent = (e) => {
+            const target = e && e.target;
+            if (target && typeof target.closest === 'function') {
+                const btn = target.closest('.btn');
                 if (btn) {
                     setTimeout(() => this.updateSingleButtonContrast(btn), 0);
                 }
-            };
+            }
+        };
 
-            document.addEventListener('mouseover', handleEvent);
-            document.addEventListener('mouseout', handleEvent);
-            document.addEventListener('focusin', handleEvent);
-            document.addEventListener('focusout', handleEvent);
-        }
+        ['mouseover', 'mouseout', 'focusin', 'focusout'].forEach(evt => {
+            document.addEventListener(evt, handleEvent);
+        });
+
         this.updateHeaderButtonIconContrast();
+    }
+
+    _parseRgb(str) {
+        if (!str || str === 'transparent' || str === 'rgba(0, 0, 0, 0)') return null;
+        const m = str.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+        if (!m || (m[4] !== undefined && parseFloat(m[4]) <= 0.1)) return null;
+        return { r: parseInt(m[1], 10), g: parseInt(m[2], 10), b: parseInt(m[3], 10) };
+    }
+
+    _getGradientBg(bgImg) {
+        if (!bgImg || bgImg === 'none') return null;
+        const matches = [...bgImg.matchAll(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/g)];
+        if (!matches.length) return null;
+
+        let r = 0, g = 0, b = 0, count = 0;
+        matches.forEach(m => {
+            const parsed = this._parseRgb(m[0]);
+            if (parsed) {
+                r += parsed.r;
+                g += parsed.g;
+                b += parsed.b;
+                count++;
+            }
+        });
+        return count ? { r: Math.round(r / count), g: Math.round(g / count), b: Math.round(b / count) } : null;
+    }
+
+    _getFallbackBg(el) {
+        if (!el || typeof el.getBoundingClientRect !== 'function') return { r: 100, g: 100, b: 100 };
+        const rect = el.getBoundingClientRect();
+        const pageX = rect.left + window.scrollX + rect.width / 2;
+        const pageY = rect.top + window.scrollY + rect.height / 2;
+        const scrollWidth = Math.max(document.documentElement.scrollWidth, window.innerWidth || 1);
+        const scrollHeight = Math.max(document.documentElement.scrollHeight, window.innerHeight || 1);
+        const denom = scrollWidth * scrollWidth + scrollHeight * scrollHeight;
+        const t = denom > 0 ? Math.max(0, Math.min(1, (pageX * scrollWidth + pageY * scrollHeight) / denom)) : 0;
+        return { r: Math.round(3 + t * 145), g: Math.round(29 + t * 137), b: Math.round(54 + t * 129) };
     }
 
     getEffectiveBackgroundColor(el) {
         let current = el;
-        while (current && current !== document.documentElement) {
-            const style = window.getComputedStyle(current);
-            const bgImg = style.backgroundImage;
-            const bg = style.backgroundColor;
-
-            // 1. Check background-image (linear-gradient) first
-            if (bgImg && bgImg !== 'none') {
-                const matches = [...bgImg.matchAll(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/g)];
-                if (matches.length > 0) {
-                    let totalR = 0, totalG = 0, totalB = 0, count = 0;
-                    for (const m of matches) {
-                        const a = m[4] !== undefined ? parseFloat(m[4]) : 1;
-                        if (a > 0.1) {
-                            totalR += parseInt(m[1], 10);
-                            totalG += parseInt(m[2], 10);
-                            totalB += parseInt(m[3], 10);
-                            count++;
-                        }
-                    }
-                    if (count > 0) {
-                        return { r: Math.round(totalR / count), g: Math.round(totalG / count), b: Math.round(totalB / count) };
-                    }
-                }
-            }
-
-            // 2. Check solid backgroundColor
-            if (bg && bg !== 'transparent' && bg !== 'rgba(0, 0, 0, 0)') {
-                const match = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
-                if (match) {
-                    const r = parseInt(match[1], 10);
-                    const g = parseInt(match[2], 10);
-                    const b = parseInt(match[3], 10);
-                    const a = match[4] !== undefined ? parseFloat(match[4]) : 1;
-                    if (a > 0.1) {
-                        return { r, g, b };
-                    }
-                }
+        while (current && current !== document.body && current !== document.documentElement) {
+            const style = window.getComputedStyle ? window.getComputedStyle(current) : null;
+            if (style) {
+                const grad = this._getGradientBg(style.backgroundImage);
+                if (grad) return grad;
+                const solid = this._parseRgb(style.backgroundColor);
+                if (solid) return solid;
             }
             current = current.parentElement;
         }
-
-        const rect = el.getBoundingClientRect();
-        const pageX = rect.left + window.scrollX + rect.width / 2;
-        const pageY = rect.top + window.scrollY + rect.height / 2;
-
-        const scrollWidth = Math.max(document.documentElement.scrollWidth, window.innerWidth || 1);
-        const scrollHeight = Math.max(document.documentElement.scrollHeight, window.innerHeight || 1);
-
-        const denom = scrollWidth * scrollWidth + scrollHeight * scrollHeight;
-        let t = 0;
-        if (denom > 0) {
-            t = (pageX * scrollWidth + pageY * scrollHeight) / denom;
+        if (document.body && window.getComputedStyle) {
+            const bodyStyle = window.getComputedStyle(document.body);
+            if (bodyStyle) {
+                const solidBody = this._parseRgb(bodyStyle.backgroundColor);
+                if (solidBody) return solidBody;
+            }
         }
-        t = Math.max(0, Math.min(1, t));
-
-        const r = Math.round(3 + t * (148 - 3));
-        const g = Math.round(29 + t * (166 - 29));
-        const b = Math.round(54 + t * (183 - 54));
-
-        return { r, g, b };
+        return this._getFallbackBg(el);
     }
 
     updateSingleButtonContrast(btn) {
@@ -119,19 +131,13 @@ class UI {
         const { r, g, b } = this.getEffectiveBackgroundColor(btn);
         const brightness = (r * 299 + g * 587 + b * 114) / 1000;
 
-        if (brightness >= 128) {
-            btn.classList.add('btn-icon-dark');
-            btn.classList.remove('btn-icon-light');
-        } else {
-            btn.classList.add('btn-icon-light');
-            btn.classList.remove('btn-icon-dark');
-        }
+        const isLight = brightness >= 128;
+        btn.classList.toggle('btn-icon-dark', isLight);
+        btn.classList.toggle('btn-icon-light', !isLight);
     }
 
     updateHeaderButtonIconContrast() {
-        const buttons = document.querySelectorAll('#authButtons .btn, #userButtons .btn, .btn');
-        if (!buttons.length) return;
-
+        const buttons = document.querySelectorAll('.btn');
         buttons.forEach(btn => this.updateSingleButtonContrast(btn));
     }
 
