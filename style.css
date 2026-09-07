@@ -767,12 +767,16 @@ body {
   border-radius: 18px !important;
   padding: 0.6rem !important;
   margin-top: 0.6rem !important;
-  min-width: 180px !important;
+  top: 100% !important;
+  right: 0 !important;
+  left: auto !important;
+  min-width: 190px !important;
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6), 0 0 20px rgba(56, 189, 248, 0.2) !important;
   perspective: 1000px;
   transform-origin: top right;
   animation: cyberMenuFlip 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   overflow: hidden;
+  z-index: 1060 !important;
 }
 
 .cyber-lang-menu::before {
