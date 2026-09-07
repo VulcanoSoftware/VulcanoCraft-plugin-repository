@@ -313,7 +313,6 @@ body {
 .btn:hover .btn-icon,
 .btn:focus .btn-icon {
   transform: scale(1.2) rotate(5deg);
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5)) brightness(1.1);
 }
 
 .loading-icon {

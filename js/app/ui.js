@@ -27,78 +27,11 @@ class UI {
     }
 
     initHeaderButtonContrastListeners() {
-        const buttons = document.querySelectorAll('#authButtons .btn, #userButtons .btn');
-        buttons.forEach(btn => {
-            if (btn.dataset.contrastBound === 'true') return;
-            btn.dataset.contrastBound = 'true';
-            ['mouseenter', 'mouseleave', 'focus', 'blur', 'transitionend'].forEach(evt => {
-                btn.addEventListener(evt, () => {
-                    this.updateHeaderButtonIconContrast();
-                    setTimeout(() => this.updateHeaderButtonIconContrast(), 50);
-                    setTimeout(() => this.updateHeaderButtonIconContrast(), 150);
-                });
-            });
-        });
-        if (!this._resizeContrastBound) {
-            this._resizeContrastBound = true;
-            window.addEventListener('resize', () => this.updateHeaderButtonIconContrast());
-        }
+        // Icon contrast is managed cleanly and reliably via CSS rules in style.css
     }
 
     updateHeaderButtonIconContrast() {
-        const buttons = document.querySelectorAll('#authButtons .btn, #userButtons .btn');
-        buttons.forEach(btn => {
-            const getEffectiveBg = (el) => {
-                let current = el;
-                let layers = [];
-                while (current && current !== document.body) {
-                    const style = window.getComputedStyle(current);
-                    const bg = style.backgroundColor;
-                    if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') {
-                        const match = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
-                        if (match) {
-                            const alpha = match[4] !== undefined ? parseFloat(match[4]) : 1;
-                            if (alpha > 0) {
-                                layers.push({
-                                    r: parseInt(match[1], 10),
-                                    g: parseInt(match[2], 10),
-                                    b: parseInt(match[3], 10),
-                                    a: alpha
-                                });
-                                if (alpha >= 0.95) break;
-                            }
-                        }
-                    }
-                    current = current.parentElement;
-                }
-
-                // Default dark header/body background fallback
-                layers.push({ r: 3, g: 29, b: 54, a: 1 });
-
-                let blended = layers[layers.length - 1];
-                for (let i = layers.length - 2; i >= 0; i--) {
-                    const layer = layers[i];
-                    blended = {
-                        r: Math.round(layer.r * layer.a + blended.r * (1 - layer.a)),
-                        g: Math.round(layer.g * layer.a + blended.g * (1 - layer.a)),
-                        b: Math.round(layer.b * layer.a + blended.b * (1 - layer.a)),
-                        a: 1
-                    };
-                }
-                return blended;
-            };
-
-            const bgRgb = getEffectiveBg(btn);
-            const luminance = 0.299 * bgRgb.r + 0.587 * bgRgb.g + 0.114 * bgRgb.b;
-
-            if (luminance >= 65) {
-                btn.classList.add('btn-icon-dark');
-                btn.classList.remove('btn-icon-light');
-            } else {
-                btn.classList.add('btn-icon-light');
-                btn.classList.remove('btn-icon-dark');
-            }
-        });
+        // Icon contrast is managed cleanly and reliably via CSS rules in style.css
     }
 
     renderPlugins(plugins, authStatus, currentUser) {
