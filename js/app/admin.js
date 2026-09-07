@@ -1,12 +1,16 @@
 import ApiAdmin from './api-admin.js';
 import { showAlertModal, showConfirmModal } from './modals.js';
+import i18n from './i18n.js';
 
 class AdminPage {
     constructor() {
+        this.adminLoadingState = document.getElementById('adminLoadingState');
         this.loginForm = document.getElementById('loginForm');
+        this.accessDenied = document.getElementById('accessDenied');
         this.adminPanel = document.getElementById('adminPanel');
         this.adminLoginForm = document.getElementById('adminLoginForm');
-        this.logoutBtn = this.adminPanel.querySelector('button');
+        this.logoutBtn = this.adminPanel ? this.adminPanel.querySelector('button') : null;
+        this.adminLogoutBtn = document.getElementById('adminLogoutBtn');
         this.registrationToggle = document.getElementById('registrationToggle');
         this.usersGrid = document.getElementById('usersGrid');
         this.categoriesGrid = document.getElementById('categoriesGrid');
@@ -32,6 +36,16 @@ class AdminPage {
         this.rollbackSyncToHostToggle = document.getElementById('rollbackSyncToHostToggle');
         this.rollbackAlert = document.getElementById('rollbackAlert');
 
+        this.usersPerPageSelect = document.getElementById('usersPerPageSelect');
+        this.pluginsPerPageSelect = document.getElementById('pluginsPerPageSelect');
+        this.usersPaginationControls = document.getElementById('usersPaginationControls');
+        this.pluginsPaginationControls = document.getElementById('pluginsPaginationControls');
+
+        this.usersCurrentPage = 1;
+        this.usersPerPage = 12;
+        this.pluginsCurrentPage = 1;
+        this.pluginsPerPage = 20;
+
         this.commitHistory = [];
         this.currentRole = null;
         this.pluginsCache = [];
@@ -42,20 +56,51 @@ class AdminPage {
         this._setupEventListeners();
         try {
             const data = await ApiAdmin.checkSession();
-            if (data.logged_in) {
+            if (data.logged_in && data.language) {
+                i18n.setLanguage(data.language, false);
+            } else {
+                const savedLang = localStorage.getItem('user_language') || 'nl';
+                i18n.setLanguage(savedLang, false);
+            }
+
+            if (this.adminLoadingState) this.adminLoadingState.style.display = 'none';
+
+            if (data.logged_in && data.authorized) {
                 this.currentRole = data.role;
                 this._showAdminPanel();
+            } else if (data.logged_in && !data.authorized) {
+                this._showAccessDenied(data.username);
+            } else {
+                this._showLoginForm();
             }
         } catch (error) {
-            // Not logged in
+            if (this.adminLoadingState) this.adminLoadingState.style.display = 'none';
+            const savedLang = localStorage.getItem('user_language') || 'nl';
+            i18n.setLanguage(savedLang, false);
+            this._showLoginForm();
         }
     }
 
     _setupEventListeners() {
-        this.adminLoginForm.addEventListener('submit', (e) => this._handleLogin(e));
-        this.logoutBtn.addEventListener('click', () => this._handleLogout());
-        this.registrationToggle.addEventListener('change', (e) => this._handleRegistrationToggle(e));
-        this.addCategoryBtn.addEventListener('click', () => this._handleAddCategory());
+        if (this.adminLoginForm) {
+            this.adminLoginForm.addEventListener('submit', (e) => this._handleLogin(e));
+        }
+        if (this.logoutBtn) {
+            this.logoutBtn.addEventListener('click', () => this._handleLogout());
+        }
+        if (this.adminLogoutBtn) {
+            this.adminLogoutBtn.addEventListener('click', () => this._handleLogout());
+        }
+        const dashboardLogoutBtn = document.getElementById('adminDashboardLogoutBtn');
+        if (dashboardLogoutBtn) {
+            dashboardLogoutBtn.addEventListener('click', () => this._handleLogout());
+        }
+        if (this.registrationToggle) {
+            this.registrationToggle.addEventListener('change', (e) => this._handleRegistrationToggle(e));
+        }
+        if (this.addCategoryBtn) {
+            this.addCategoryBtn.addEventListener('click', () => this._handleAddCategory());
+        }
         if (this.newCategoryName) {
             this.newCategoryName.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
@@ -75,6 +120,20 @@ class AdminPage {
         }
         if (this.rollbackCommitSelect) {
             this.rollbackCommitSelect.addEventListener('change', () => this._handleRollbackSelectChange());
+        }
+        if (this.usersPerPageSelect) {
+            this.usersPerPageSelect.addEventListener('change', (e) => {
+                this.usersPerPage = parseInt(e.target.value, 10);
+                this.usersCurrentPage = 1;
+                this._loadUsers();
+            });
+        }
+        if (this.pluginsPerPageSelect) {
+            this.pluginsPerPageSelect.addEventListener('change', (e) => {
+                this.pluginsPerPage = parseInt(e.target.value, 10);
+                this.pluginsCurrentPage = 1;
+                this._loadPlugins();
+            });
         }
 
         this._setupDynamicEventListeners();
@@ -112,9 +171,13 @@ class AdminPage {
 
     async _handleLogin(e) {
         e.preventDefault();
-        const username = document.getElementById('adminUsername').value;
-        const password = document.getElementById('adminPassword').value;
+        const usernameInput = document.getElementById('adminUsername');
+        const passwordInput = document.getElementById('adminPassword');
+        const username = usernameInput ? usernameInput.value : '';
+        const password = passwordInput ? passwordInput.value : '';
         const errorDiv = document.getElementById('loginError');
+
+        if (errorDiv) errorDiv.style.display = 'none';
 
         try {
             const data = await ApiAdmin.login(username, password);
@@ -122,21 +185,46 @@ class AdminPage {
                 this.currentRole = data.role;
                 this._showAdminPanel();
             } else {
-                errorDiv.textContent = data.error;
-                errorDiv.style.display = 'block';
+                if (errorDiv) {
+                    errorDiv.textContent = data.error || 'Ongeldige inloggegevens';
+                    errorDiv.style.display = 'block';
+                }
             }
         } catch (error) {
-            errorDiv.textContent = 'Login failed';
-            errorDiv.style.display = 'block';
+            if (errorDiv) {
+                errorDiv.textContent = error.message || 'Fout bij inloggen';
+                errorDiv.style.display = 'block';
+            }
         }
     }
 
     async _handleLogout() {
         await ApiAdmin.logout();
-        this.loginForm.style.display = 'block';
-        this.adminPanel.style.display = 'none';
-        document.getElementById('adminUsername').value = '';
-        document.getElementById('adminPassword').value = '';
+        if (this.adminPanel) this.adminPanel.style.display = 'none';
+        if (this.accessDenied) this.accessDenied.style.display = 'none';
+        this._showLoginForm();
+        const u = document.getElementById('adminUsername');
+        const p = document.getElementById('adminPassword');
+        if (u) u.value = '';
+        if (p) p.value = '';
+    }
+
+    _showLoginForm() {
+        if (this.adminLoadingState) this.adminLoadingState.style.display = 'none';
+        if (this.adminPanel) this.adminPanel.style.display = 'none';
+        if (this.accessDenied) this.accessDenied.style.display = 'none';
+        if (this.loginForm) this.loginForm.style.display = 'block';
+    }
+
+    _showAccessDenied(username) {
+        if (this.adminLoadingState) this.adminLoadingState.style.display = 'none';
+        if (this.adminPanel) this.adminPanel.style.display = 'none';
+        if (this.loginForm) this.loginForm.style.display = 'none';
+        if (this.accessDenied) {
+            const unEl = document.getElementById('loggedInUsername');
+            if (unEl) unEl.textContent = username || 'gebruiker';
+            this.accessDenied.style.display = 'block';
+        }
     }
 
     async _handleRegistrationToggle(e) {
@@ -177,9 +265,9 @@ class AdminPage {
     async _handleDeleteUser(button) {
         const username = button.dataset.username;
         const confirmed = await showConfirmModal({
-            title: 'Gebruiker Verwijderen',
-            message: `Weet je zeker dat je gebruiker "<strong>${username}</strong>" wilt verwijderen?`,
-            confirmText: 'Verwijderen',
+            title: i18n.t('admin.delete_user_title'),
+            message: i18n.t('admin.delete_user_confirm', { username }),
+            confirmText: i18n.t('common.delete'),
             confirmClass: 'btn-danger',
             iconClass: 'fas fa-user-times text-danger'
         });
@@ -231,15 +319,15 @@ class AdminPage {
 
         let message = '';
         if (pluginCount > 0) {
-            message = `<div class="alert alert-warning mb-3"><i class="fas fa-exclamation-triangle me-2"></i>Deze categorie bevat <strong>${pluginCount} plugin(s)</strong>!</div>Weet je zeker dat je de categorie "<strong>${name}</strong>" wilt verwijderen?<br><br><span class="text-danger"><strong>Belangrijk:</strong> De categorie inclusief alle ${pluginCount} bijbehorende plugins/inhoud worden definitief verwijderd.</span>`;
+            message = `<div class="alert alert-warning mb-3"><i class="fas fa-exclamation-triangle me-2"></i>${i18n.t('admin.delete_cat_warn', { count: pluginCount })}</div>${i18n.t('admin.delete_cat_confirm', { name })}`;
         } else {
-            message = `Weet je zeker dat je de categorie "<strong>${name}</strong>" wilt verwijderen?`;
+            message = i18n.t('admin.delete_cat_confirm', { name });
         }
 
         const confirmed = await showConfirmModal({
-            title: 'Categorie Verwijderen',
+            title: i18n.t('admin.delete_category_title'),
             message: message,
-            confirmText: pluginCount > 0 ? 'Verwijderen inclusief plugins' : 'Verwijderen',
+            confirmText: pluginCount > 0 ? i18n.t('admin.delete_inc_plugins') : i18n.t('common.delete'),
             confirmClass: 'btn-danger',
             iconClass: 'fas fa-trash-alt text-danger'
         });
@@ -278,9 +366,9 @@ class AdminPage {
         const url = button.dataset.url;
         const title = button.dataset.title;
         const confirmed = await showConfirmModal({
-            title: 'Plugin Verwijderen',
-            message: `Weet je zeker dat je plugin "<strong>${title}</strong>" wilt verwijderen?`,
-            confirmText: 'Verwijderen',
+            title: i18n.t('admin.delete_plugin_title'),
+            message: i18n.t('admin.delete_plugin_confirm', { title }),
+            confirmText: i18n.t('common.delete'),
             confirmClass: 'btn-danger',
             iconClass: 'fas fa-trash-alt text-danger'
         });
@@ -311,7 +399,7 @@ class AdminPage {
 
             if (data.update_available) {
                 this.updateStatusBadge.className = 'badge bg-warning text-dark';
-                this.updateStatusBadge.textContent = 'Update beschikbaar!';
+                this.updateStatusBadge.textContent = i18n.t('admin.update_available');
                 if (this.currentRole === 'admin') {
                     this.applyUpdateBtn.style.display = 'inline-block';
                 } else {
@@ -319,7 +407,7 @@ class AdminPage {
                 }
             } else {
                 this.updateStatusBadge.className = 'badge bg-success';
-                this.updateStatusBadge.textContent = 'Up-to-date';
+                this.updateStatusBadge.textContent = i18n.t('admin.up_to_date');
                 this.applyUpdateBtn.style.display = 'none';
             }
 
@@ -332,7 +420,7 @@ class AdminPage {
             this.updateAlert.style.display = 'block';
         } finally {
             this.checkUpdateBtn.disabled = false;
-            this.checkUpdateBtn.innerHTML = '<i class="fas fa-search me-1"></i>Check op Updates';
+            this.checkUpdateBtn.innerHTML = `<i class="fas fa-search me-1"></i>${i18n.t('admin.check_updates')}`;
         }
     }
 
@@ -344,7 +432,7 @@ class AdminPage {
         if (this.commitHistory.length === 0) {
             const opt = document.createElement('option');
             opt.value = '';
-            opt.textContent = 'Geen commit historie beschikbaar';
+            opt.textContent = i18n.t('admin.loading_commit_history');
             this.rollbackCommitSelect.appendChild(opt);
             if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.disabled = true;
             return;
@@ -353,14 +441,15 @@ class AdminPage {
         const defaultTargetSha = data.full_previous_commit || '';
         let defaultSelectedIndex = -1;
 
+        const langLocale = i18n.lang === 'en' ? 'en-US' : 'nl-NL';
         this.commitHistory.forEach((item, index) => {
             const opt = document.createElement('option');
             opt.value = item.sha;
-            let label = `[${item.short_sha}] ${item.message} (${item.author}, ${new Date(item.date).toLocaleDateString('nl-NL')})`;
+            let label = `[${item.short_sha}] ${item.message} (${item.author}, ${new Date(item.date).toLocaleDateString(langLocale)})`;
             if (item.is_current) {
-                label += ' - (HUIDIGE VERSIE)';
+                label += ` - (${i18n.t('admin.current_version')})`;
             } else if (item.sha === defaultTargetSha) {
-                label += ' - (VORIGE RELEASE)';
+                label += ` - (${i18n.t('admin.previous_release')})`;
             }
             opt.textContent = label;
             this.rollbackCommitSelect.appendChild(opt);
@@ -410,9 +499,9 @@ class AdminPage {
 
     async _handleApplyUpdate() {
         const confirmed = await showConfirmModal({
-            title: 'Software Update Toepassen',
-            message: 'Weet je zeker dat je de update wilt downloaden en toepassen? De server herstart automatisch na het updaten.',
-            confirmText: 'Update Toepassen',
+            title: i18n.t('admin.apply_update_title'),
+            message: i18n.t('admin.apply_update_confirm'),
+            confirmText: i18n.t('admin.apply_update'),
             confirmClass: 'btn-success',
             iconClass: 'fas fa-download text-success'
         });
@@ -445,7 +534,7 @@ class AdminPage {
             this.applyUpdateBtn.disabled = false;
             this.checkUpdateBtn.disabled = false;
             if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.disabled = false;
-            this.applyUpdateBtn.innerHTML = '<i class="fas fa-download me-1"></i>Update Toepassen';
+            this.applyUpdateBtn.innerHTML = `<i class="fas fa-download me-1"></i>${i18n.t('admin.apply_update')}`;
         }
     }
 
@@ -457,9 +546,9 @@ class AdminPage {
         }
 
         const confirmed = await showConfirmModal({
-            title: 'Versie Terugrollen',
-            message: `Weet je zeker dat je wilt terugrollen naar commit <code>${selectedCommit.slice(0, 7)}</code>? De server herstart automatisch na het terugrollen.`,
-            confirmText: 'Terugrollen',
+            title: i18n.t('admin.rollback_title'),
+            message: i18n.t('admin.rollback_confirm', { commit: selectedCommit.slice(0, 7) }),
+            confirmText: i18n.t('admin.rollback_btn'),
             confirmClass: 'btn-warning',
             iconClass: 'fas fa-undo text-warning'
         });
@@ -492,7 +581,7 @@ class AdminPage {
             if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.disabled = false;
             if (this.checkUpdateBtn) this.checkUpdateBtn.disabled = false;
             if (this.applyUpdateBtn) this.applyUpdateBtn.disabled = false;
-            if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.innerHTML = '<i class="fas fa-undo me-1"></i>Geselecteerde Versie Terugrollen';
+            if (this.rollbackUpdateBtn) this.rollbackUpdateBtn.innerHTML = `<i class="fas fa-undo me-1"></i>${i18n.t('admin.rollback_btn')}`;
         }
     }
 
@@ -526,13 +615,29 @@ class AdminPage {
         this.registrationToggle.checked = data.registration_enabled;
     }
 
-    async _loadUsers() {
-        const users = await ApiAdmin.getUsers();
+    async _loadUsers(page) {
+        if (page !== undefined) this.usersCurrentPage = page;
+        const res = await ApiAdmin.getUsers({ page: this.usersCurrentPage, per_page: this.usersPerPage });
+        const users = Array.isArray(res) ? res : (res.users || []);
+        const total = Array.isArray(res) ? users.length : (res.total || 0);
+        const totalPages = Array.isArray(res) ? 1 : (res.total_pages || 1);
+
         const userBadge = document.getElementById('userCountBadge');
         if (userBadge) {
-            userBadge.innerHTML = `<i class="fas fa-users me-1"></i>Totaal: ${users.length} ${users.length === 1 ? 'gebruiker' : 'gebruikers'}`;
+            userBadge.innerHTML = `<i class="fas fa-users me-1"></i>${i18n.t('admin.total_label')}: ${total} ${total === 1 ? i18n.t('admin.user_singular') : i18n.t('admin.user_plural')}`;
         }
-        this.usersGrid.innerHTML = users.map(user => this._renderUser(user)).join('');
+        if (users.length === 0) {
+            this.usersGrid.innerHTML = `
+                <div class="col-12 text-center my-3">
+                    <div class="alert alert-info d-flex align-items-center justify-content-center" role="alert">
+                        <img src="images/add-icon.png" class="warning-icon me-2" alt="Geen gebruikers" style="width: 24px; height: 24px;">
+                        ${i18n.t('common.no_users')}
+                    </div>
+                </div>`;
+        } else {
+            this.usersGrid.innerHTML = users.map(user => this._renderUser(user)).join('');
+        }
+        this._renderPaginationControls(this.usersPaginationControls, this.usersCurrentPage, totalPages, (p) => this._loadUsers(p));
     }
 
     async _loadCategories() {
@@ -540,21 +645,94 @@ class AdminPage {
         this.categoriesCache = categories || [];
         const catBadge = document.getElementById('categoryCountBadge');
         if (catBadge) {
-            catBadge.innerHTML = `<i class="fas fa-tags me-1"></i>Totaal: ${categories.length} ${categories.length === 1 ? 'categorie' : 'categorieën'}`;
+            catBadge.innerHTML = `<i class="fas fa-tags me-1"></i>${i18n.t('admin.total_label')}: ${categories.length} ${categories.length === 1 ? i18n.t('admin.category_singular') : i18n.t('admin.category_plural')}`;
         }
-        this.categoriesGrid.innerHTML = categories.map(cat => this._renderCategory(cat)).join('');
+        if (categories.length === 0) {
+            this.categoriesGrid.innerHTML = `
+                <div class="col-12 text-center my-3">
+                    <div class="alert alert-info d-flex align-items-center justify-content-center" role="alert">
+                        <img src="images/add-icon.png" class="warning-icon me-2" alt="Geen categorieën" style="width: 24px; height: 24px;">
+                        ${i18n.t('common.no_categories')}
+                    </div>
+                </div>`;
+        } else {
+            this.categoriesGrid.innerHTML = categories.map(cat => this._renderCategory(cat)).join('');
+        }
     }
 
-    async _loadPlugins() {
-        const [plugins, categories] = await Promise.all([ApiAdmin.getPlugins(), ApiAdmin.getCategories()]);
+    async _loadPlugins(page) {
+        if (page !== undefined) this.pluginsCurrentPage = page;
+        const [resPlugins, categories] = await Promise.all([
+            ApiAdmin.getPlugins({ page: this.pluginsCurrentPage, per_page: this.pluginsPerPage }),
+            ApiAdmin.getCategories()
+        ]);
+        const plugins = Array.isArray(resPlugins) ? resPlugins : (resPlugins.plugins || []);
+        const total = Array.isArray(resPlugins) ? plugins.length : (resPlugins.total || 0);
+        const totalPages = Array.isArray(resPlugins) ? 1 : (resPlugins.total_pages || 1);
+
         this.pluginsCache = plugins || [];
         this.categoriesCache = categories || [];
         const pluginBadge = document.getElementById('pluginCountBadge');
         if (pluginBadge) {
-            pluginBadge.innerHTML = `<i class="fas fa-puzzle-piece me-1"></i>Totaal: ${plugins.length} ${plugins.length === 1 ? 'plugin' : 'plugins'}`;
+            pluginBadge.innerHTML = `<i class="fas fa-puzzle-piece me-1"></i>${i18n.t('admin.total_label')}: ${total} ${total === 1 ? i18n.t('common.plugin') : i18n.t('common.plugins')}`;
         }
-        this.categoriesGrid.innerHTML = categories.map(cat => this._renderCategory(cat)).join('');
-        this.pluginsGrid.innerHTML = plugins.map(plugin => this._renderPlugin(plugin, categories)).join('');
+
+        if (categories.length === 0) {
+            this.categoriesGrid.innerHTML = `
+                <div class="col-12 text-center my-3">
+                    <div class="alert alert-info d-flex align-items-center justify-content-center" role="alert">
+                        <img src="images/add-icon.png" class="warning-icon me-2" alt="Geen categorieën" style="width: 24px; height: 24px;">
+                        ${i18n.t('common.no_categories')}
+                    </div>
+                </div>`;
+        } else {
+            this.categoriesGrid.innerHTML = categories.map(cat => this._renderCategory(cat)).join('');
+        }
+
+        if (plugins.length === 0) {
+            this.pluginsGrid.innerHTML = `
+                <div class="col-12 text-center my-3">
+                    <div class="alert alert-info d-flex align-items-center justify-content-center" role="alert">
+                        <img src="images/add-icon.png" class="warning-icon me-2" alt="Geen plugins" style="width: 24px; height: 24px;">
+                        ${i18n.t('common.no_plugins')}
+                    </div>
+                </div>`;
+        } else {
+            this.pluginsGrid.innerHTML = plugins.map(plugin => this._renderPlugin(plugin, categories)).join('');
+        }
+        this._renderPaginationControls(this.pluginsPaginationControls, this.pluginsCurrentPage, totalPages, (p) => this._loadPlugins(p));
+    }
+
+    _renderPaginationControls(container, currentPage, totalPages, onPageClick) {
+        if (!container) return;
+        if (totalPages <= 1) {
+            container.innerHTML = `<li class="page-item active"><span class="page-link">1</span></li>`;
+            return;
+        }
+
+        let html = '';
+        const prevDisabled = currentPage <= 1 ? 'disabled' : '';
+        html += `<li class="page-item ${prevDisabled}"><button class="page-link" data-page="${currentPage - 1}">&laquo;</button></li>`;
+
+        for (let p = 1; p <= totalPages; p++) {
+            const active = p === currentPage ? 'active' : '';
+            html += `<li class="page-item ${active}"><button class="page-link" data-page="${p}">${p}</button></li>`;
+        }
+
+        const nextDisabled = currentPage >= totalPages ? 'disabled' : '';
+        html += `<li class="page-item ${nextDisabled}"><button class="page-link" data-page="${currentPage + 1}">&raquo;</button></li>`;
+
+        container.innerHTML = html;
+
+        container.querySelectorAll('button.page-link').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const page = parseInt(btn.dataset.page, 10);
+                if (page && page !== currentPage && page >= 1 && page <= totalPages) {
+                    onPageClick(page);
+                }
+            });
+        });
     }
 
     _renderUser(user) {
@@ -563,6 +741,8 @@ class AdminPage {
             .map(r => `<option value="${r}" ${user.role === r ? 'selected' : ''}>${r.charAt(0).toUpperCase() + r.slice(1)}</option>`)
             .join('');
 
+        const pluginWord = user.plugin_count === 1 ? i18n.t('common.plugin') : i18n.t('common.plugins');
+
         return `
             <div class="col-md-4 col-lg-3 mb-3">
                 <div class="card h-100">
@@ -570,10 +750,10 @@ class AdminPage {
                         <i class="fas fa-user-circle" style="font-size: 3rem; color: #6c757d;"></i>
                         <h6 class="card-title">${user.username}</h6>
                         <span class="badge ${this._getRoleBadgeClass(user.role)}">${user.role}</span>
-                        <span class="badge bg-primary"><i class="fas fa-puzzle-piece me-1"></i>${user.plugin_count} plugins</span>
+                        <span class="badge bg-primary"><i class="fas fa-puzzle-piece me-1"></i>${user.plugin_count} ${pluginWord}</span>
                         ${canEdit ? `
                             <select class="form-select form-select-sm mb-2 user-role-select" data-username="${user.username}">${roleOptions}</select>
-                            <button class="btn btn-danger btn-sm delete-user-btn" data-username="${user.username}"><i class="fas fa-trash me-1"></i>Verwijderen</button>
+                            <button class="btn btn-danger btn-sm delete-user-btn" data-username="${user.username}"><i class="fas fa-trash me-1"></i>${i18n.t('common.delete')}</button>
                         ` : ''}
                     </div>
                 </div>
@@ -583,6 +763,7 @@ class AdminPage {
     _renderCategory(category) {
         const safeCatName = category.name.replace(/'/g, "\\'");
         const catPluginsCount = (this.pluginsCache || []).filter(p => p.category === category.name || (Array.isArray(p.categories) && p.categories.includes(category.name))).length;
+        const pluginWord = catPluginsCount === 1 ? i18n.t('common.plugin') : i18n.t('common.plugins');
         return `
             <div class="col-lg-6 mb-4">
                 <div class="card h-100">
@@ -590,19 +771,19 @@ class AdminPage {
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div class="d-flex align-items-center gap-2">
                                 <h5 class="card-title mb-0">${category.name}</h5>
-                                <span class="badge bg-info text-dark" title="Aantal plugins in deze categorie"><i class="fas fa-puzzle-piece me-1"></i>${catPluginsCount} ${catPluginsCount === 1 ? 'plugin' : 'plugins'}</span>
+                                <span class="badge bg-info text-dark" title="${i18n.t('admin.category_plugins_count')}"><i class="fas fa-puzzle-piece me-1"></i>${catPluginsCount} ${pluginWord}</span>
                             </div>
                             <button class="btn btn-danger btn-sm delete-category-btn" data-name="${safeCatName}"><i class="fas fa-trash"></i></button>
                         </div>
                         <input type="text" class="form-control form-control-sm mb-2 category-field cat-name" value="${category.name}" data-name="${safeCatName}">
-                        <input type="text" class="form-control form-control-sm mb-2 category-field cat-image" value="${category.image_url || ''}" data-name="${safeCatName}" placeholder="Image URL">
+                        <input type="text" class="form-control form-control-sm mb-2 category-field cat-image" value="${category.image_url || ''}" data-name="${safeCatName}" placeholder="${i18n.t('admin.image_url')}">
                         <div class="form-check form-switch mb-2">
                             <input class="form-check-input category-field cat-show" type="checkbox" ${category.show_image ? 'checked' : ''} data-name="${safeCatName}">
-                            <label class="form-check-label">Afbeelding tonen</label>
+                            <label class="form-check-label">${i18n.t('admin.show_image')}</label>
                         </div>
                         <div class="row g-2">
-                            <div class="col"><input type="text" class="form-control form-control-sm category-field cat-software" value="${category.software || ''}" data-name="${safeCatName}" placeholder="Software"></div>
-                            <div class="col"><input type="text" class="form-control form-control-sm category-field cat-version" value="${category.version || ''}" data-name="${safeCatName}" placeholder="Versie"></div>
+                            <div class="col"><input type="text" class="form-control form-control-sm category-field cat-software" value="${category.software || ''}" data-name="${safeCatName}" placeholder="${i18n.t('admin.software')}"></div>
+                            <div class="col"><input type="text" class="form-control form-control-sm category-field cat-version" value="${category.version || ''}" data-name="${safeCatName}" placeholder="${i18n.t('admin.version')}"></div>
                         </div>
                     </div>
                 </div>
@@ -619,13 +800,13 @@ class AdminPage {
                             <img src="${plugin.icon || '/images/plugin-placeholder.png'}" style="width: 40px; height: 40px; margin-right: 10px;" alt="icon" loading="lazy">
                             <div style="flex-grow: 1;">
                                 <input type="text" class="form-control form-control-sm mb-1 plugin-field plugin-title" value="${plugin.title}" data-url="${plugin.url}">
-                                <input type="text" class="form-control form-control-sm mb-1 plugin-field plugin-author" value="${plugin.author || 'Onbekend'}" data-url="${plugin.url}">
+                                <input type="text" class="form-control form-control-sm mb-1 plugin-field plugin-author" value="${plugin.author || i18n.t('common.unknown')}" data-url="${plugin.url}">
                                 <select class="form-select form-select-sm plugin-field plugin-category" data-url="${plugin.url}">
-                                    <option value="">Geen categorie</option>${categoryOptions}
+                                    <option value="">${i18n.t('admin.no_category')}</option>${categoryOptions}
                                 </select>
                             </div>
                         </div>
-                        <button class="btn btn-danger btn-sm delete-plugin-btn" data-url="${plugin.url}" data-title="${plugin.title}"><i class="fas fa-trash me-1"></i>Verwijderen</button>
+                        <button class="btn btn-danger btn-sm delete-plugin-btn" data-url="${plugin.url}" data-title="${plugin.title}"><i class="fas fa-trash me-1"></i>${i18n.t('common.delete')}</button>
                     </div>
                 </div>
             </div>`;

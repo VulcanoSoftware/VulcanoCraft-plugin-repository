@@ -1,14 +1,67 @@
 import API from './api.js';
 import UI from './ui.js';
+import i18n from './i18n.js';
+
+function ensureAlertModalExists() {
+    let modalEl = document.getElementById('genericAlertModal');
+    if (!modalEl) {
+        modalEl = document.createElement('div');
+        modalEl.className = 'modal fade';
+        modalEl.id = 'genericAlertModal';
+        modalEl.tabIndex = -1;
+        modalEl.setAttribute('aria-hidden', 'true');
+        modalEl.innerHTML = `
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="genericAlertModalTitle">
+                            <i class="fas fa-info-circle me-2 text-primary" id="genericAlertModalIcon"></i><span id="genericAlertModalTitleText">${i18n.t('common.confirm')}</span>
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="genericAlertModalBody"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="genericAlertOkBtn">${i18n.t('common.ok')}</button>
+                    </div>
+                </div>
+            </div>`;
+        document.body.appendChild(modalEl);
+    }
+    return modalEl;
+}
+
+function ensureConfirmModalExists() {
+    let modalEl = document.getElementById('genericConfirmModal');
+    if (!modalEl) {
+        modalEl = document.createElement('div');
+        modalEl.className = 'modal fade';
+        modalEl.id = 'genericConfirmModal';
+        modalEl.tabIndex = -1;
+        modalEl.setAttribute('aria-hidden', 'true');
+        modalEl.innerHTML = `
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="genericConfirmModalTitle">
+                            <i class="fas fa-question-circle me-2 text-warning" id="genericConfirmModalIcon"></i><span id="genericConfirmModalTitleText">${i18n.t('common.confirm')}</span>
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="genericConfirmModalBody"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="genericConfirmCancelBtn">${i18n.t('common.cancel')}</button>
+                        <button type="button" class="btn btn-danger" id="genericConfirmOkBtn">${i18n.t('common.confirm')}</button>
+                    </div>
+                </div>
+            </div>`;
+        document.body.appendChild(modalEl);
+    }
+    return modalEl;
+}
 
 export function showAlertModal(message, title = 'Melding', iconClass = 'fas fa-info-circle text-primary') {
     return new Promise((resolve) => {
-        const modalEl = document.getElementById('genericAlertModal');
-        if (!modalEl) {
-            alert(message);
-            resolve();
-            return;
-        }
+        const modalEl = ensureAlertModalExists();
         const titleTextEl = document.getElementById('genericAlertModalTitleText');
         const bodyEl = document.getElementById('genericAlertModalBody');
         const iconEl = document.getElementById('genericAlertModalIcon');
@@ -30,11 +83,7 @@ export function showAlertModal(message, title = 'Melding', iconClass = 'fas fa-i
 
 export function showConfirmModal({ title = 'Bevestiging', message, confirmText = 'Bevestigen', confirmClass = 'btn-danger', iconClass = 'fas fa-question-circle text-warning' }) {
     return new Promise((resolve) => {
-        const modalEl = document.getElementById('genericConfirmModal');
-        if (!modalEl) {
-            resolve(confirm(message));
-            return;
-        }
+        const modalEl = ensureConfirmModalExists();
         const titleTextEl = document.getElementById('genericConfirmModalTitleText');
         const bodyEl = document.getElementById('genericConfirmModalBody');
         const iconEl = document.getElementById('genericConfirmModalIcon');
@@ -72,8 +121,8 @@ class Modals {
     constructor() {
         this.addModalEl = document.getElementById('addPluginModal');
         this.deleteModalEl = document.getElementById('deleteConfirmModal');
-        this.addModal = new bootstrap.Modal(this.addModalEl);
-        this.deleteModal = new bootstrap.Modal(this.deleteModalEl);
+        this._addModal = null;
+        this._deleteModal = null;
 
         this.pluginUrlInput = document.getElementById('pluginUrl');
         this.bulkPluginUrlsInput = document.getElementById('bulkPluginUrls');
@@ -99,20 +148,47 @@ class Modals {
         this.currentDeleteUrl = null;
         this.addSuccess = false;
 
+        this.bulkCurrentPage = 1;
+        this.bulkPerPage = 5;
+        this.bulkPerPageSelect = document.getElementById('bulkPerPageSelect');
+        this.bulkPaginationControls = document.getElementById('bulkPaginationControls');
+
         this._addEventListeners();
     }
 
+    get addModal() {
+        if (!this._addModal && this.addModalEl && window.bootstrap) {
+            this._addModal = bootstrap.Modal.getOrCreateInstance(this.addModalEl);
+        }
+        return this._addModal;
+    }
+
+    get deleteModal() {
+        if (!this._deleteModal && this.deleteModalEl && window.bootstrap) {
+            this._deleteModal = bootstrap.Modal.getOrCreateInstance(this.deleteModalEl);
+        }
+        return this._deleteModal;
+    }
+
     _addEventListeners() {
-        this.fetchButton.addEventListener('click', () => this.handleFetch());
-        this.confirmYes.addEventListener('click', () => this.handleAddConfirm());
-        this.confirmNo.addEventListener('click', () => this.handleAddCancel());
-        this.confirmDeleteButton.addEventListener('click', () => this.handleDeleteConfirm());
+        if (this.fetchButton) this.fetchButton.addEventListener('click', () => this.handleFetch());
+        if (this.confirmYes) this.confirmYes.addEventListener('click', () => this.handleAddConfirm());
+        if (this.confirmNo) this.confirmNo.addEventListener('click', () => this.handleAddCancel());
+        if (this.confirmDeleteButton) this.confirmDeleteButton.addEventListener('click', () => this.handleDeleteConfirm());
 
         if (this.selectAllBtn) {
             this.selectAllBtn.addEventListener('click', () => this._toggleAllBulkCheckboxes(true));
         }
         if (this.deselectAllBtn) {
             this.deselectAllBtn.addEventListener('click', () => this._toggleAllBulkCheckboxes(false));
+        }
+
+        if (this.bulkPerPageSelect) {
+            this.bulkPerPageSelect.addEventListener('change', (e) => {
+                this.bulkPerPage = parseInt(e.target.value, 10);
+                this.bulkCurrentPage = 1;
+                this._renderBulkPreviewList();
+            });
         }
 
         if (this.pluginUrlInput) {
@@ -147,7 +223,9 @@ class Modals {
             });
         }
 
-        this.deleteModalEl.addEventListener('shown.bs.modal', () => this.startDeleteAnimation());
+        if (this.deleteModalEl) {
+            this.deleteModalEl.addEventListener('shown.bs.modal', () => this.startDeleteAnimation());
+        }
     }
 
     async handleFetch() {
@@ -164,7 +242,7 @@ class Modals {
     async _handleSingleFetch() {
         const url = this.pluginUrlInput.value.trim();
         if (!url) {
-            this.showError('Vul een URL in');
+            this.showError(i18n.t('error.enter_url'));
             return;
         }
 
@@ -173,7 +251,7 @@ class Modals {
 
         const fetchProgressText = document.getElementById('fetchProgressText');
         const progressBarContainer = document.getElementById('fetchProgressBarContainer');
-        if (fetchProgressText) fetchProgressText.textContent = 'Plugin informatie wordt opgehaald...';
+        if (fetchProgressText) fetchProgressText.textContent = i18n.t('modal.fetch_info');
         if (progressBarContainer) progressBarContainer.style.display = 'none';
 
         try {
@@ -184,13 +262,13 @@ class Modals {
             document.getElementById('singlePreviewContainer').style.display = 'block';
             document.getElementById('bulkPreviewContainer').style.display = 'none';
             document.getElementById('selectedCountBadge').style.display = 'none';
-            document.getElementById('confirmationQuestionText').textContent = 'Is dit de correcte plugin?';
+            document.getElementById('confirmationQuestionText').textContent = i18n.t('modal.confirm_question');
 
             this.showStep(3);
             this._toggleAddModalButtons(false);
             this._setModalStatic(true);
         } catch (error) {
-            this.showError(`Fout bij ophalen plugin: ${error.message}`);
+            this.showError(`${error.message}`);
             this.showStep(1);
         }
     }
@@ -198,7 +276,7 @@ class Modals {
     async _handleBulkFetch() {
         const rawText = this.bulkPluginUrlsInput.value.trim();
         if (!rawText) {
-            this.showError('Vul ten minste één URL in');
+            this.showError(i18n.t('error.enter_url_bulk'));
             return;
         }
 
@@ -207,7 +285,7 @@ class Modals {
         ));
 
         if (urls.length === 0) {
-            this.showError('Geen geldige URL\'s gevonden');
+            this.showError(i18n.t('error.no_valid_urls'));
             return;
         }
 
@@ -229,7 +307,7 @@ class Modals {
             const percent = Math.round((currentNum / urls.length) * 100);
 
             if (fetchProgressText) {
-                fetchProgressText.textContent = `Plugin ${currentNum} van ${urls.length} ophalen... (${url})`;
+                fetchProgressText.textContent = `${i18n.t('common.plugin')} ${currentNum} / ${urls.length} (${url})`;
             }
             if (progressBar) {
                 progressBar.style.width = `${percent}%`;
@@ -265,7 +343,7 @@ class Modals {
         document.getElementById('singlePreviewContainer').style.display = 'none';
         document.getElementById('bulkPreviewContainer').style.display = 'block';
         document.getElementById('selectedCountBadge').style.display = 'inline-block';
-        document.getElementById('confirmationQuestionText').textContent = 'Wilt u de geselecteerde plugins toevoegen?';
+        document.getElementById('confirmationQuestionText').textContent = i18n.t('modal.add_selected_question');
 
         this.showStep(3);
         this._toggleAddModalButtons(false);
@@ -276,11 +354,21 @@ class Modals {
         const bulkListEl = document.getElementById('bulkPreviewList');
         if (!bulkListEl) return;
 
+        const totalItems = this.cachedBulkPlugins.length;
+        const perPage = this.bulkPerPage === 0 ? totalItems : this.bulkPerPage;
+        const totalPages = perPage > 0 ? Math.ceil(totalItems / perPage) : 1;
+
+        if (this.bulkCurrentPage > totalPages) this.bulkCurrentPage = totalPages || 1;
+
+        const startIndex = (this.bulkCurrentPage - 1) * perPage;
+        const pageItems = this.bulkPerPage === 0 ? this.cachedBulkPlugins : this.cachedBulkPlugins.slice(startIndex, startIndex + perPage);
+
         let html = '';
-        this.cachedBulkPlugins.forEach((item, index) => {
+        pageItems.forEach((item, pageIdx) => {
+            const realIndex = this.bulkPerPage === 0 ? pageIdx : startIndex + pageIdx;
             if (item.status === 'success') {
                 const plugin = item.plugin;
-                const versionsStr = plugin.versions ? plugin.versions.split(' ').slice(0, 3).join(', ') : 'Geen';
+                const versionsStr = plugin.versions ? plugin.versions.split(' ').slice(0, 3).join(', ') : i18n.t('common.no_versions');
                 const firstLetter = (plugin.title || 'P')[0].toUpperCase();
                 const iconHtml = plugin.icon
                     ? `<img src="${plugin.icon}" class="bulk-preview-icon flex-shrink-0 me-2" alt="icon" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="bulk-preview-icon-letter flex-shrink-0 me-2" style="display:none;">${firstLetter}</div>`
@@ -290,15 +378,15 @@ class Modals {
                     <div class="bulk-review-item">
                         <div class="d-flex align-items-center min-w-0">
                             <div class="form-check me-3 flex-shrink-0">
-                                <input class="form-check-input bulk-item-checkbox" type="checkbox" data-index="${index}" id="bulkCheck_${index}" ${item.selected ? 'checked' : ''}>
+                                <input class="form-check-input bulk-item-checkbox" type="checkbox" data-index="${realIndex}" id="bulkCheck_${realIndex}" ${item.selected ? 'checked' : ''}>
                             </div>
                             ${iconHtml}
                             <div class="flex-grow-1 min-w-0">
                                 <div class="d-flex justify-content-between align-items-center gap-2 min-w-0">
-                                    <h6 class="mb-0 text-truncate min-w-0" title="${plugin.title || 'Geen titel'}">${plugin.title || 'Geen titel'}</h6>
-                                    <small class="text-muted text-nowrap flex-shrink-0">${plugin.author || 'Onbekend'}</small>
+                                    <h6 class="mb-0 text-truncate min-w-0" title="${plugin.title || i18n.t('common.no_title')}">${plugin.title || i18n.t('common.no_title')}</h6>
+                                    <small class="text-muted text-nowrap flex-shrink-0">${plugin.author || i18n.t('common.unknown')}</small>
                                 </div>
-                                <div class="small text-muted text-truncate min-w-0" title="${plugin.description || 'Geen beschrijving'}">${plugin.description || 'Geen beschrijving'}</div>
+                                <div class="small text-muted text-truncate min-w-0" title="${plugin.description || i18n.t('common.no_description')}">${plugin.description || i18n.t('common.no_description')}</div>
                                 <div class="small mt-1 d-flex flex-wrap align-items-center gap-1 min-w-0">
                                     ${item.targetCategory ? `<span class="badge bg-primary text-truncate flex-shrink-0"><i class="fas fa-folder me-1"></i>${item.targetCategory}</span>` : ''}
                                     <span class="badge bg-info text-dark flex-shrink-0">v: ${versionsStr}</span>
@@ -312,7 +400,7 @@ class Modals {
                     <div class="bulk-review-item border-danger">
                         <div class="d-flex align-items-center min-w-0">
                             <div class="form-check me-3 flex-shrink-0">
-                                <input class="form-check-input bulk-item-checkbox" type="checkbox" data-index="${index}" id="bulkCheck_${index}" disabled>
+                                <input class="form-check-input bulk-item-checkbox" type="checkbox" data-index="${realIndex}" id="bulkCheck_${realIndex}" disabled>
                             </div>
                             <div class="flex-grow-1 min-w-0">
                                 <h6 class="mb-0 text-danger"><i class="fas fa-exclamation-circle me-1"></i> Fout bij ophalen</h6>
@@ -325,7 +413,43 @@ class Modals {
         });
 
         bulkListEl.innerHTML = html;
+        this._renderBulkPaginationControls(this.bulkPaginationControls, this.bulkCurrentPage, totalPages, (newPage) => {
+            this.bulkCurrentPage = newPage;
+            this._renderBulkPreviewList();
+        });
         this._updateBulkSelectedCount();
+    }
+
+    _renderBulkPaginationControls(container, currentPage, totalPages, onPageClick) {
+        if (!container) return;
+        if (totalPages <= 1) {
+            container.innerHTML = `<li class="page-item active"><span class="page-link">1</span></li>`;
+            return;
+        }
+
+        let html = '';
+        const prevDisabled = currentPage <= 1 ? 'disabled' : '';
+        html += `<li class="page-item ${prevDisabled}"><button class="page-link" data-page="${currentPage - 1}">&laquo;</button></li>`;
+
+        for (let p = 1; p <= totalPages; p++) {
+            const active = p === currentPage ? 'active' : '';
+            html += `<li class="page-item ${active}"><button class="page-link" data-page="${p}">${p}</button></li>`;
+        }
+
+        const nextDisabled = currentPage >= totalPages ? 'disabled' : '';
+        html += `<li class="page-item ${nextDisabled}"><button class="page-link" data-page="${currentPage + 1}">&raquo;</button></li>`;
+
+        container.innerHTML = html;
+
+        container.querySelectorAll('button.page-link').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const page = parseInt(btn.dataset.page, 10);
+                if (page && page !== currentPage && page >= 1 && page <= totalPages) {
+                    onPageClick(page);
+                }
+            });
+        });
     }
 
     _toggleAllBulkCheckboxes(selectAll) {
@@ -346,15 +470,15 @@ class Modals {
 
         const countBadge = document.getElementById('selectedCountBadge');
         if (countBadge) {
-            countBadge.innerHTML = `<i class="fas fa-check-square me-1"></i>Geselecteerd: ${selectedCount} / ${totalSuccess}`;
+            countBadge.innerHTML = `<i class="fas fa-check-square me-1"></i>${i18n.t('modal.selected')}: ${selectedCount} / ${totalSuccess}`;
         }
 
         const summaryText = document.getElementById('bulkSummaryText');
         if (summaryText) {
             summaryText.innerHTML = `
-                <span class="badge bg-primary me-1"><i class="fas fa-check-square me-1"></i>Geselecteerd voor import: ${selectedCount}</span>
-                <span class="badge bg-success me-1"><i class="fas fa-check-circle me-1"></i>Succesvol opgehaald: ${totalSuccess}</span>
-                <span class="badge bg-secondary"><i class="fas fa-list me-1"></i>Totaal URL's in bestand: ${totalTotal}</span>`;
+                <span class="badge bg-primary me-1"><i class="fas fa-check-square me-1"></i>${i18n.t('modal.selected_for_import')}: ${selectedCount}</span>
+                <span class="badge bg-success me-1"><i class="fas fa-check-circle me-1"></i>${i18n.t('modal.successful_fetched')}: ${totalSuccess}</span>
+                <span class="badge bg-secondary"><i class="fas fa-list me-1"></i>${i18n.t('modal.total_urls_file')}: ${totalTotal}</span>`;
         }
 
         if (this.confirmYes) {
@@ -366,7 +490,7 @@ class Modals {
         try {
             const authData = await API.getAuthStatus();
             if (!authData.logged_in) {
-                this.showError('Je moet ingelogd zijn om plugins toe te voegen.');
+                this.showError(i18n.t('error.login_required'));
                 return;
             }
 
@@ -386,7 +510,7 @@ class Modals {
                 await this._addBulkPlugins(targetCat);
             }
         } catch (error) {
-            this.showError(`Fout bij toevoegen: ${error.message}`);
+            this.showError(`${error.message}`);
         } finally {
             this._setConfirmYesLoading(false);
         }
@@ -432,17 +556,17 @@ class Modals {
         const data = await API.addPlugin(this.cachedPluginData);
         if (data.success) {
             this.addSuccess = true;
-            UI.showSuccessMessage('Plugin succesvol toegevoegd!');
+            UI.showSuccessMessage(i18n.t('success.plugin_added'));
             this.addModal.hide();
         } else {
-            this.showError(`Fout bij toevoegen: ${data.error}`);
+            this.showError(`${data.error}`);
         }
     }
 
     async _addBulkPlugins(activeCategory) {
         const selectedItems = this.cachedBulkPlugins.filter(i => i.selected && i.status === 'success');
         if (selectedItems.length === 0) {
-            this.showError('Selecteer ten minste één plugin om toe te voegen.');
+            this.showError(i18n.t('error.select_at_least_one'));
             return;
         }
 
@@ -468,7 +592,7 @@ class Modals {
 
         if (addedCount > 0) {
             this.addSuccess = true;
-            UI.showSuccessMessage(`${addedCount} plugin(s) succesvol toegevoegd!${failCount > 0 ? ` (${failCount} mislukt)` : ''}`);
+            UI.showSuccessMessage(`${addedCount} ${i18n.t('success.bulk_plugins_added')}`);
             this.addModal.hide();
         } else {
             this.showError(`Fout bij toevoegen van plugins (${failCount} mislukt)`);
@@ -494,13 +618,13 @@ class Modals {
         try {
             const data = await API.deletePlugin(this.currentDeleteUrl, categoryContext || undefined);
             if (data.success) {
-                UI.showSuccessMessage(`Plugin "${pluginTitle}" succesvol verwijderd!`);
+                UI.showSuccessMessage(i18n.t('success.plugin_deleted', { title: pluginTitle }));
                 this.deleteModal.hide();
             } else {
-                this.showError(`Fout bij verwijderen: ${data.error}`);
+                this.showError(`${data.error}`);
             }
         } catch (error) {
-            this.showError(`Fout bij verwijderen: ${error.message}`);
+            this.showError(`${error.message}`);
         }
     }
 
@@ -514,7 +638,22 @@ class Modals {
     updateAddModalPreview(plugin) {
         document.getElementById('previewTitle').textContent = plugin.title || 'Geen titel';
         document.getElementById('previewDescription').textContent = plugin.description || 'Geen beschrijving beschikbaar';
-        document.getElementById('previewAuthor').textContent = plugin.author || 'Onbekend';
+
+        let authorsHtml = 'Onbekend';
+        if (plugin.author) {
+            let authors = [];
+            if (Array.isArray(plugin.author)) {
+                authors = plugin.author.map(a => String(a).trim()).filter(Boolean);
+            } else if (typeof plugin.author === 'string') {
+                const str = plugin.author.trim();
+                authors = str.includes(',') ? str.split(',').map(a => a.trim()).filter(Boolean) : str.split(/\s+/).map(a => a.trim()).filter(Boolean);
+            }
+            authors = Array.from(new Set(authors));
+            if (authors.length > 0) {
+                authorsHtml = authors.map(a => `<span class="author-badge">${a}</span>`).join('');
+            }
+        }
+        document.getElementById('previewAuthor').innerHTML = authorsHtml;
         document.getElementById('previewIcon').src = plugin.icon || 'images/plugin-placeholder.png';
 
         const versionsContainer = document.getElementById('previewVersions');
@@ -571,10 +710,10 @@ class Modals {
     _setConfirmYesLoading(isLoading) {
         const btn = this.confirmYes;
         if (isLoading) {
-            btn.innerHTML = '<img src="images/loading-icon.gif" class="loading-icon me-2" alt="Laden"> Toevoegen...';
+            btn.innerHTML = `<img src="images/loading-icon.gif" class="loading-icon me-2" alt="Laden"> ${i18n.t('modal.adding')}`;
             btn.disabled = true;
         } else {
-            btn.innerHTML = '<img src="images/confirm-icon.png" class="btn-icon" alt="Ja"> Ja';
+            btn.innerHTML = `<img src="images/confirm-icon.png" class="btn-icon" alt="Ja"> <span data-i18n="modal.yes_add">${i18n.t('modal.yes_add')}</span>`;
             btn.disabled = false;
         }
     }

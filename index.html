@@ -27,7 +27,7 @@
           <div class="modal-header">
             <h5 class="modal-title" id="addPluginModalLabel">
               <img class="modal-icon" src="images/add-icon.png" alt="Toevoegen" loading="lazy">
-              Plugin toevoegen
+              <span data-i18n="modal.add_title">Plugin toevoegen</span>
             </h5>
             <button class="btn-close" data-bs-dismiss="modal" type="button" aria-label="Close"></button>
           </div>
@@ -36,12 +36,12 @@
               <ul class="nav nav-tabs mb-3" id="addPluginTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                   <button class="nav-link active" id="singleUrlTab" data-bs-toggle="tab" data-bs-target="#singleUrlPane" type="button" role="tab" aria-controls="singleUrlPane" aria-selected="true">
-                    <i class="fas fa-link me-1"></i> Enkele URL
+                    <i class="fas fa-link me-1"></i> <span data-i18n="modal.single_url">Enkele URL</span>
                   </button>
                 </li>
                 <li class="nav-item" role="presentation">
                   <button class="nav-link" id="bulkUrlTab" data-bs-toggle="tab" data-bs-target="#bulkUrlPane" type="button" role="tab" aria-controls="bulkUrlPane" aria-selected="false">
-                    <i class="fas fa-layer-group me-1"></i> Meerdere URL's (Bulk)
+                    <i class="fas fa-layer-group me-1"></i> <span data-i18n="modal.bulk_urls">Meerdere URL's (Bulk)</span>
                   </button>
                 </li>
               </ul>
@@ -51,7 +51,7 @@
                   <div class="mb-3">
                     <label class="form-label" for="pluginUrl">
                       <img class="input-icon" src="images/link-icon.png" alt="URL" loading="lazy">
-                      Plugin URL
+                      <span data-i18n="modal.plugin_url">Plugin URL</span>
                     </label>
                     <input class="form-control" id="pluginUrl" type="url" placeholder="https://modrinth.com/plugin/...">
                   </div>
@@ -60,10 +60,10 @@
                   <div class="mb-3">
                     <label class="form-label" for="bulkPluginUrls">
                       <img class="input-icon" src="images/link-icon.png" alt="URLs" loading="lazy">
-                      Plugin URL's (één per regel)
+                      <span data-i18n="modal.plugin_urls_bulk">Plugin URL's (één per regel)</span>
                     </label>
                     <textarea class="form-control" id="bulkPluginUrls" rows="6" placeholder="https://modrinth.com/plugin/1&#10;https://spigotmc.org/resources/2&#10;https://hangar.papermc.io/author/3"></textarea>
-                    <div class="form-text">Plak meerdere plugin URL's, gescheiden door een nieuwe regel. Druk op Ctrl+Enter om op te halen.</div>
+                    <div class="form-text" data-i18n="modal.bulk_help">Plak meerdere plugin URL's, gescheiden door een nieuwe regel. Druk op Ctrl+Enter om op te halen.</div>
                   </div>
                 </div>
               </div>
@@ -72,7 +72,7 @@
             <div id="step2" style="display: none">
               <div class="alert alert-info d-flex align-items-center mb-2">
                 <img class="loading-icon me-2" src="images/loading-icon.gif" alt="Laden" loading="lazy">
-                <span id="fetchProgressText">Plugin informatie wordt opgehaald...</span>
+                <span id="fetchProgressText" data-i18n="modal.fetch_info">Plugin informatie wordt opgehaald...</span>
               </div>
               <div class="progress" style="height: 10px; display: none;" id="fetchProgressBarContainer">
                 <div class="progress-bar progress-bar-striped progress-bar-animated" id="fetchProgressBar" role="progressbar" style="width: 0%"></div>
@@ -83,7 +83,7 @@
               <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <h5 class="mb-0 d-flex align-items-center">
                   <img class="modal-icon me-2" src="images/details-icon.png" alt="Info" loading="lazy">
-                  Plugin details &amp; Controle
+                  <span data-i18n="modal.details_check">Plugin details &amp; Controle</span>
                 </h5>
                 <span id="selectedCountBadge" class="badge bg-primary" style="display: none;">0 geselecteerd</span>
               </div>
@@ -100,14 +100,14 @@
                     <div class="mb-3">
                       <p class="me-4 mb-0">
                         <strong><img class="info-icon" src="images/author-icon.png" alt="Auteur" loading="lazy">
-                          Auteur:</strong>
+                          <span data-i18n="common.author">Auteur</span>:</strong>
                         <span id="previewAuthor"></span>
                       </p>
                     </div>
                     <div>
                       <p class="mb-1">
                         <strong><img class="info-icon" src="images/version-icon.png" alt="Versies" loading="lazy">
-                          Versies:</strong>
+                          <span data-i18n="common.supported_versions">Versies</span>:</strong>
                       </p>
                       <div class="versions-container" id="previewVersions"></div>
                     </div>
@@ -119,29 +119,41 @@
               <div id="bulkPreviewContainer" style="display: none;">
                 <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
                   <div class="btn-group btn-group-sm flex-shrink-0">
-                    <button type="button" class="btn btn-outline-secondary" id="selectAllBtn"><i class="fas fa-check-square me-1"></i> Alles selecteren</button>
-                    <button type="button" class="btn btn-outline-secondary" id="deselectAllBtn"><i class="far fa-square me-1"></i> Alles deselecteren</button>
+                    <button type="button" class="btn btn-outline-secondary" id="selectAllBtn"><i class="fas fa-check-square me-1"></i> <span data-i18n="modal.select_all">Alles selecteren</span></button>
+                    <button type="button" class="btn btn-outline-secondary" id="deselectAllBtn"><i class="far fa-square me-1"></i> <span data-i18n="modal.deselect_all">Alles deselecteren</span></button>
                   </div>
-                  <small class="text-muted text-truncate min-w-0" id="bulkSummaryText"></small>
+                  <div class="d-flex align-items-center gap-2">
+                    <label for="bulkPerPageSelect" class="form-label mb-0 small text-muted" data-i18n="pagination.per_page_label">Aantal per pagina:</label>
+                    <select id="bulkPerPageSelect" class="form-select form-select-sm per-page-dropdown w-auto">
+                      <option value="5" selected>5</option>
+                      <option value="10">10</option>
+                      <option value="20">20</option>
+                      <option value="0" data-i18n="pagination.all">Alle</option>
+                    </select>
+                  </div>
                 </div>
+                <small class="text-muted text-truncate min-w-0 mb-2 d-block" id="bulkSummaryText"></small>
                 <div id="bulkPreviewList" class="bulk-preview-scroll-container">
                   <!-- Bulk review cards dynamically rendered here -->
+                </div>
+                <div class="d-flex justify-content-center mt-3" id="bulkPaginationNav">
+                  <ul class="pagination pagination-sm mb-0" id="bulkPaginationControls"></ul>
                 </div>
               </div>
 
               <div class="confirmation-question">
                 <img class="info-icon" src="images/details-icon.png" alt="Vraag" loading="lazy">
-                <span id="confirmationQuestionText">Is dit de correcte plugin?</span>
+                <span id="confirmationQuestionText" data-i18n="modal.confirm_question">Is dit de correcte plugin?</span>
               </div>
 
               <div class="confirmation-buttons">
                 <button class="btn btn-yes" id="confirmYes" type="button">
                   <img class="btn-icon" src="images/confirm-icon.png" alt="Ja">
-                  Ja, toevoegen
+                  <span data-i18n="modal.yes_add">Ja, toevoegen</span>
                 </button>
                 <button class="btn btn-no" id="confirmNo" type="button">
                   <img class="btn-icon" src="images/cancel-icon.png" alt="Nee">
-                  Annuleren
+                  <span data-i18n="common.cancel">Annuleren</span>
                 </button>
               </div>
             </div>
@@ -154,11 +166,11 @@
           <div class="modal-footer">
             <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">
               <img class="btn-icon" src="images/cancel-icon.png" alt="Annuleren">
-              Annuleren
+              <span data-i18n="common.cancel">Annuleren</span>
             </button>
             <button class="btn btn-primary" id="fetchButton" type="button">
               <img class="btn-icon" src="images/fetch-icon.png" alt="Ophalen">
-              Ophalen
+              <span data-i18n="modal.fetch">Ophalen</span>
             </button>
           </div>
         </div>
@@ -171,27 +183,27 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="exportTxtModalLabel">
-              <i class="fas fa-file-download me-2"></i>Exporteer Plugins als TXT
+              <i class="fas fa-file-download me-2"></i><span data-i18n="nav.export_txt">Exporteer Plugins als TXT</span>
             </h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <div class="mb-3">
               <label for="exportCategorySelect" class="form-label fw-bold">
-                <i class="fas fa-list me-1"></i> Kies Categorie om te exporteren
+                <i class="fas fa-list me-1"></i> <span data-i18n="modal.select_category_export">Kies Categorie om te exporteren</span>
               </label>
               <select class="form-select" id="exportCategorySelect">
-                <option value="ALL">Alle categorieën</option>
+                <option value="ALL" data-i18n="modal.all_categories">Alle categorieën</option>
               </select>
             </div>
-            <div class="form-text text-muted">
+            <div class="form-text text-muted" data-i18n="modal.export_help">
               Selecteer de specifieke categorie die je wilt exporteren, of kies "Alle categorieën" voor het volledige overzicht ingedeeld per categorie.
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuleren</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><span data-i18n="common.cancel">Annuleren</span></button>
             <button type="button" class="btn btn-info text-white" id="confirmExportBtn">
-              <i class="fas fa-download me-1"></i> Exporteer
+              <i class="fas fa-download me-1"></i> <span data-i18n="modal.export">Exporteer</span>
             </button>
           </div>
         </div>
@@ -204,33 +216,39 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="importTxtModalLabel">
-              <i class="fas fa-file-import me-2"></i><span id="importModalTitleText">Importeer TXT</span>
+              <i class="fas fa-file-import me-2"></i><span id="importModalTitleText" data-i18n="modal.import_txt_title">Importeer TXT</span>
             </h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <div class="mb-3">
               <label for="importCategorySelect" class="form-label fw-bold">
-                <i class="fas fa-list me-1"></i> Kies Categorie
+                <i class="fas fa-list me-1"></i> <span data-i18n="modal.select_category_import">Kies Categorie</span>
               </label>
               <select class="form-select" id="importCategorySelect">
-                <option value="ALL">Alle categorieën</option>
+                <option value="ALL" data-i18n="modal.all_categories">Alle categorieën</option>
               </select>
-              <div class="form-text mt-1" id="importCategoryHelpText">
+              <div class="form-text mt-1" id="importCategoryHelpText" data-i18n="modal.import_help">
                 Als je "Alle categorieën" kiest, worden categoriekopjes in het TXT bestand (bijv. [Survival]) automatisch ingelezen.
               </div>
             </div>
             <div class="mb-3">
               <label for="importModalFileInput" class="form-label fw-bold">
-                <i class="fas fa-file-alt me-1"></i> Kies TXT Bestand
+                <i class="fas fa-file-alt me-1"></i> <span data-i18n="modal.choose_txt">Kies TXT Bestand</span>
               </label>
-              <input class="form-control" type="file" id="importModalFileInput" accept=".txt">
+              <div class="input-group">
+                <label class="btn btn-outline-info flex-shrink-0" for="importModalFileInput">
+                  <i class="fas fa-folder-open me-1"></i> <span id="customFileBtnText" data-i18n="modal.choose_file_btn">Bestand kiezen</span>
+                </label>
+                <span class="form-control text-truncate text-light min-w-0" id="customFileNameText" data-i18n="modal.no_file_chosen" style="background: rgba(15, 23, 42, 0.6); border-color: rgba(255, 255, 255, 0.15);">Geen bestand gekozen</span>
+              </div>
+              <input class="d-none" type="file" id="importModalFileInput" accept=".txt">
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuleren</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><span data-i18n="common.cancel">Annuleren</span></button>
             <button type="button" class="btn btn-primary" id="confirmImportBtn">
-              <i class="fas fa-arrow-right me-1"></i> Verder
+              <i class="fas fa-arrow-right me-1"></i> <span data-i18n="modal.next">Verder</span>
             </button>
           </div>
         </div>
@@ -243,19 +261,19 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="missingCategoriesModalLabel">
-              <i class="fas fa-folder-plus me-2 text-warning"></i>Nieuwe Categorieën Gevonden
+              <i class="fas fa-folder-plus me-2 text-warning"></i><span data-i18n="modal.missing_cats_title">Nieuwe Categorieën Gevonden</span>
             </h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <p>De volgende categorieën uit het geïmporteerde TXT-bestand bestaan nog niet op de site:</p>
+            <p data-i18n="modal.missing_cats_intro">De volgende categorieën uit het geïmporteerde TXT-bestand bestaan nog niet op de site:</p>
             <ul id="missingCategoriesList" class="list-group mb-3"></ul>
-            <p class="mb-0">Wilt u deze categorieën automatisch aanmaken op de site?</p>
+            <p class="mb-0" data-i18n="modal.missing_cats_ask">Wilt u deze categorieën automatisch aanmaken op de site?</p>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" id="skipCreateCategoriesBtn">Nee, overslaan</button>
+            <button type="button" class="btn btn-secondary" id="skipCreateCategoriesBtn"><span data-i18n="modal.skip_create">Nee, overslaan</span></button>
             <button type="button" class="btn btn-success" id="confirmCreateCategoriesBtn">
-              <i class="fas fa-plus me-1"></i> Ja, aanmaken
+              <i class="fas fa-plus me-1"></i> <span data-i18n="modal.confirm_create">Ja, aanmaken</span>
             </button>
           </div>
         </div>
@@ -331,7 +349,7 @@
           <div class="modal-header">
             <h5 class="modal-title" id="deleteConfirmModalLabel">
               <img class="modal-icon" src="images/delete-icon.png" alt="Verwijderen" loading="lazy">
-              Plugin verwijderen
+              <span data-i18n="modal.delete_title">Plugin verwijderen</span>
             </h5>
             <button class="btn-close" data-bs-dismiss="modal" type="button" aria-label="Close"></button>
           </div>
@@ -344,18 +362,18 @@
               <strong id="pluginToDeleteTitle">FancyNpcs</strong> wilt
               verwijderen?
             </p>
-            <p class="text-center text-muted">
+            <p class="text-center text-muted" data-i18n="modal.delete_confirm_text">
               Deze actie kan niet ongedaan worden gemaakt.
             </p>
           </div>
           <div class="modal-footer justify-content-center">
             <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">
               <img class="btn-icon" src="images/cancel-icon.png" alt="Annuleren" loading="lazy">
-              Annuleren
+              <span data-i18n="common.cancel">Annuleren</span>
             </button>
             <button class="btn btn-danger" id="confirmDeleteButton" type="button">
               <img class="btn-icon" src="images/delete-icon.png" alt="Verwijderen" loading="lazy">
-              Verwijderen
+              <span data-i18n="common.delete">Verwijderen</span>
             </button>
           </div>
         </div>
@@ -364,6 +382,41 @@
 
     <div class="container-fluid my-5">
       <header class="text-center mb-5 position-relative">
+        <!-- Cyber-Glass Language Dropdown (Top Right) -->
+        <div class="dropdown position-absolute top-0 end-0 me-3 mt-2 z-3" id="languageDropdownContainer">
+          <button class="btn cyber-lang-btn d-inline-flex align-items-center gap-2" type="button" id="languageDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="flag-emblem">
+              <img src="images/flags/netherlands.png" id="currentLanguageFlag" alt="NL" width="20" height="14">
+            </span>
+            <span class="cyber-lang-text" id="currentLanguageText">language / taal</span>
+            <i class="fas fa-chevron-down cyber-chevron"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end cyber-lang-menu shadow-lg border-0" aria-labelledby="languageDropdownBtn" id="languageDropdownMenu">
+            <li>
+              <a class="dropdown-item cyber-lang-item d-flex align-items-center justify-content-between active" href="#" id="langSelectNl" data-lang="nl">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="flag-emblem-sm">
+                    <img src="images/flags/netherlands.png" alt="NL" width="20" height="14">
+                  </span>
+                  <span class="lang-title">Nederlands</span>
+                </div>
+                <span class="active-pulse-dot"></span>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item cyber-lang-item d-flex align-items-center justify-content-between" href="#" id="langSelectEn" data-lang="en">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="flag-emblem-sm">
+                    <img src="images/flags/uk.png" alt="EN" width="20" height="14">
+                  </span>
+                  <span class="lang-title">English</span>
+                </div>
+                <span class="active-pulse-dot" style="display: none;"></span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
         <h1 class="ml9 text-center position-relative">
           <div>
             <img class="header-icon mb-4" src="images/plugin-repo-icon.png" alt="Plugin Repository" loading="lazy">
@@ -372,41 +425,42 @@
             </span>
           </div>
         </h1>
-        <p class="lead text-light">Overzicht van alle beschikbare plugins</p>
+        <p class="lead text-light" data-i18n="app.subtitle">Overzicht van alle beschikbare plugins</p>
 
         <!-- Auth buttons -->
-        <div class="btn-container text-center">
-          <div id="authButtons">
-            <a class="btn btn-outline-light me-2" href="/login-page">
-              <i class="fas fa-sign-in-alt me-2"></i>Inloggen
+        <div class="btn-container text-center d-flex flex-wrap align-items-center justify-content-center gap-2">
+          <div id="authButtons" class="align-items-center flex-wrap gap-2">
+            <a class="btn btn-outline-light" href="/login-page">
+              <i class="fas fa-sign-in-alt me-2"></i><span data-i18n="nav.login">Inloggen</span>
             </a>
-            <button class="btn btn-outline-info" id="exportTxtBtn" type="button" title="Exporteer huidige plugin lijst als TXT">
-              <i class="fas fa-file-download me-1"></i> Exporteer TXT
+            <button class="btn btn-outline-info" id="exportTxtBtn" type="button" title="Exporteer huidige plugin lijst als TXT" data-i18n-title="nav.export_txt_title">
+              <i class="fas fa-file-download me-1"></i> <span data-i18n="nav.export_txt">Exporteer TXT</span>
             </button>
           </div>
-          <div id="userButtons" style="display: none">
-            <span class="text-light me-3">Welkom, <span id="username"></span></span>
-            <a class="btn btn-outline-light me-2" href="/change_password">Wachtwoord Wijzigen</a>
-            <button class="btn button-creative btn-lg floating-add-btn me-2" data-bs-target="#addPluginModal" data-bs-toggle="modal" type="button">
+          <div id="userButtons" style="display: none !important" class="align-items-center flex-wrap gap-2">
+            <span class="text-light me-2"><span data-i18n="nav.welcome">Welkom</span>, <span id="username"></span></span>
+            <a class="btn btn-outline-light me-1" href="/change_password" data-i18n="nav.change_password">Wachtwoord Wijzigen</a>
+            <button class="btn button-creative btn-lg floating-add-btn me-1" data-bs-target="#addPluginModal" data-bs-toggle="modal" type="button">
               <img class="btn-icon-lg" src="images/add-icon.png" alt="Toevoegen">
-              Toevoegen
+              <span data-i18n="nav.add">Toevoegen</span>
             </button>
-            <button class="btn btn-outline-info me-2" id="exportTxtUserBtn" type="button" title="Exporteer huidige plugin lijst als TXT">
-              <i class="fas fa-file-download me-1"></i> Exporteer TXT
+            <button class="btn btn-outline-info me-1" id="exportTxtUserBtn" type="button" title="Exporteer huidige plugin lijst als TXT" data-i18n-title="nav.export_txt_title">
+              <i class="fas fa-file-download me-1"></i> <span data-i18n="nav.export_txt">Exporteer TXT</span>
             </button>
-            <button class="btn btn-outline-warning me-2" id="replaceTxtBtn" type="button" title="Vervang huidige lijst door TXT bestand">
-              <i class="fas fa-file-import me-1"></i> Lijst Vervangen (TXT)
+            <button class="btn btn-outline-warning me-1" id="replaceTxtBtn" type="button" title="Vervang huidige lijst door TXT bestand" data-i18n-title="nav.replace_txt_title">
+              <i class="fas fa-file-import me-1"></i> <span data-i18n="nav.replace_txt">Lijst Vervangen (TXT)</span>
             </button>
-            <button class="btn btn-outline-success me-2" id="appendTxtBtn" type="button" title="Voeg plugins uit TXT bestand toe">
-              <i class="fas fa-file-upload me-1"></i> TXT Bijvoegen
+            <button class="btn btn-outline-success me-1" id="appendTxtBtn" type="button" title="Voeg plugins uit TXT bestand toe" data-i18n-title="nav.append_txt_title">
+              <i class="fas fa-file-upload me-1"></i> <span data-i18n="nav.append_txt">TXT Bijvoegen</span>
             </button>
-            <a class="btn btn-outline-warning me-2" id="adminBtn" href="/admin" style="display: none">
-              <i class="fas fa-cog me-2"></i>Admin
+            <a class="btn btn-outline-warning me-1" id="adminBtn" href="/admin" style="display: none">
+              <i class="fas fa-cog me-2"></i><span data-i18n="nav.admin">Admin</span>
             </a>
-            <button class="btn btn-outline-light" id="logoutBtn" type="button">
-              <i class="fas fa-sign-out-alt me-2"></i>Uitloggen
+            <button class="btn btn-outline-light me-1" id="logoutBtn" type="button">
+              <i class="fas fa-sign-out-alt me-2"></i><span data-i18n="nav.logout">Uitloggen</span>
             </button>
           </div>
+
           <input type="file" id="replaceFileInput" accept=".txt" style="display: none;">
           <input type="file" id="appendFileInput" accept=".txt" style="display: none;">
         </div>
@@ -421,7 +475,7 @@
               <div class="card-body">
                 <h5 class="card-title">
                   <img class="section-icon" src="images/categories-icon.svg" alt="Categorieën">
-                  Server Categorieën
+                  <span data-i18n="sidebar.title">Server Categorieën</span>
                 </h5>
                 <ul id="categorySidebar" class="list-unstyled category-list mt-3">
                   <li class="category-item active" data-category="">Alles <span class="badge bg-primary rounded-pill ms-auto">0</span></li>
@@ -441,33 +495,33 @@
                     <div class="col-lg-4 col-md-6">
                       <label class="form-label fw-bold" for="searchInput">
                         <img class="input-icon" src="images/fetch-icon.png" alt="Zoeken" loading="lazy">
-                        Zoeken
+                        <span data-i18n="filters.search_label">Zoeken</span>
                       </label>
-                      <input class="form-control search-input" id="searchInput" type="text" placeholder="Zoek plugins...">
+                      <input class="form-control search-input" id="searchInput" type="text" placeholder="Zoek plugins..." data-i18n-placeholder="filters.search_placeholder">
                     </div>
                     <div class="col-lg-3 col-md-6">
                       <label class="form-label fw-bold" for="versionFilter">
                         <img class="input-icon" src="images/version-icon.png" alt="Versie" loading="lazy">
-                        Versie
+                        <span data-i18n="filters.version_label">Versie</span>
                       </label>
                       <select class="form-select version-filter" id="versionFilter">
-                        <option value="">Alle versies</option>
+                        <option value="" data-i18n="filters.all_versions">Alle versies</option>
                       </select>
                     </div>
                     <div class="col-lg-5 col-md-12">
                       <label class="form-label fw-bold" for="sortSelect">
                         <i class="fas fa-sort me-1"></i>
-                        Sorteren
+                        <span data-i18n="filters.sort_label">Sorteren</span>
                       </label>
                       <select class="form-select version-filter" id="sortSelect">
-                        <option value="name_asc">Naam (A-Z)</option>
-                        <option value="name_desc">Naam (Z-A)</option>
-                        <option value="platform_asc">Platform (A-Z)</option>
-                        <option value="platform_desc">Platform (Z-A)</option>
-                        <option value="updated_desc">Laatste wijziging (Nieuwste)</option>
-                        <option value="updated_asc">Laatste wijziging (Oudste)</option>
-                        <option value="added_desc">Recent toegevoegd (Nieuwste)</option>
-                        <option value="added_asc">Recent toegevoegd (Oudste)</option>
+                        <option value="name_asc" data-i18n="filters.sort_name_asc">Naam (A-Z)</option>
+                        <option value="name_desc" data-i18n="filters.sort_name_desc">Naam (Z-A)</option>
+                        <option value="platform_asc" data-i18n="filters.sort_platform_asc">Platform (A-Z)</option>
+                        <option value="platform_desc" data-i18n="filters.sort_platform_desc">Platform (Z-A)</option>
+                        <option value="updated_desc" data-i18n="filters.sort_updated_desc">Laatste wijziging (Nieuwste)</option>
+                        <option value="updated_asc" data-i18n="filters.sort_updated_asc">Laatste wijziging (Oudste)</option>
+                        <option value="added_desc" data-i18n="filters.sort_added_desc">Recent toegevoegd (Nieuwste)</option>
+                        <option value="added_asc" data-i18n="filters.sort_added_asc">Recent toegevoegd (Oudste)</option>
                       </select>
                     </div>
                   </div>
@@ -476,7 +530,7 @@
                     <div class="col-lg-5 col-md-6">
                       <label class="form-label fw-bold">
                         <img class="input-icon" src="images/plugin-repo-icon.png" alt="Platform" loading="lazy">
-                        Platform
+                        <span data-i18n="filters.platform_label">Platform</span>
                       </label>
                       <div class="platform-filters">
                         <div class="form-check form-check-inline">
@@ -509,27 +563,27 @@
                         </div>
                       </div>
                       <div class="mt-2 d-flex justify-content-center gap-2">
-                        <button class="btn btn-sm btn-outline-success" id="checkAllPlatforms"><img src="images/check_all.png" width="30px" height="30px"></button>
-                        <button class="btn btn-sm btn-outline-danger" id="uncheckAllPlatforms"><img src="images/uncheck_all.png" width="30px" height="30px"></button>
+                        <button class="btn btn-sm btn-outline-success" id="checkAllPlatforms" data-i18n-title="filters.check_all_platforms" title="Alle platformen selecteren"><img src="images/check_all.png" width="30px" height="30px"></button>
+                        <button class="btn btn-sm btn-outline-danger" id="uncheckAllPlatforms" data-i18n-title="filters.uncheck_all_platforms" title="Alle platformen deselecteren"><img src="images/uncheck_all.png" width="30px" height="30px"></button>
                       </div>
                     </div>
                     <div class="col-lg-5 col-md-6">
                       <label class="form-label fw-bold">
                         <img class="input-icon" src="images/plugin-repo-icon.png" alt="Platform" loading="lazy">
-                        Software/Loader
+                        <span data-i18n="filters.loader_label">Software/Loader</span>
                       </label>
                       <div class="loader-filters" id="loaderFilters">
                         <!-- Loader checkboxes will be dynamically inserted here -->
                       </div>
                       <div class="mt-2 d-flex justify-content-center gap-2">
-                        <button class="btn btn-sm btn-outline-success" id="checkAllLoaders"><img src="images/check_all.png" width="30px" height="30px"></button>
-                        <button class="btn btn-sm btn-outline-danger" id="uncheckAllLoaders"><img src="images/uncheck_all.png" width="30px" height="30px"></button>
+                        <button class="btn btn-sm btn-outline-success" id="checkAllLoaders" data-i18n-title="filters.check_all_loaders" title="Alle software/loaders selecteren"><img src="images/check_all.png" width="30px" height="30px"></button>
+                        <button class="btn btn-sm btn-outline-danger" id="uncheckAllLoaders" data-i18n-title="filters.uncheck_all_loaders" title="Alle software/loaders deselecteren"><img src="images/uncheck_all.png" width="30px" height="30px"></button>
                       </div>
                     </div>
                     <div class="col-lg-2 col-md-12">
                       <button class="btn btn-outline-secondary w-100 reset-filters-btn" id="resetFilters" type="button">
                         <img class="btn-icon" src="images/cancel-icon.png" alt="Reset" loading="lazy">
-                        Reset
+                        <span data-i18n="filters.reset">Reset</span>
                       </button>
                     </div>
                   </div>
@@ -548,7 +602,7 @@
         </div>
 
         <div class="row justify-content-center">
-          <div class="col-xxl-10 col-xl-11 col-lg-12">
+          <div class="col-lg-10">
             <div id="categoryHeaderActionContainer" class="card shadow-sm border-0 mb-3 p-3 text-light" style="display: none; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1) !important;">
               <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div class="d-flex align-items-center gap-2">
@@ -557,7 +611,7 @@
                   <span class="badge bg-primary rounded-pill" id="selectedCategoryBadge">0 plugins</span>
                 </div>
                 <button class="btn btn-danger btn-sm" id="clearCategoryPluginsHomeBtn" style="display: none;">
-                  <i class="fas fa-trash-alt me-1"></i> Verwijder alle plugins uit deze categorie
+                  <i class="fas fa-trash-alt me-1"></i> <span data-i18n="clear_category.button">Verwijder alle plugins uit deze categorie</span>
                 </button>
               </div>
             </div>
@@ -574,24 +628,27 @@
           </div>
         </div>
 
-        <!-- Pagination Controls Section -->
-        <div class="row justify-content-center mt-4 mb-3" id="paginationContainer" style="display: none;">
-          <div class="col-xxl-10 col-xl-11 col-lg-12 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-            <div class="d-flex align-items-center gap-2">
-              <label for="perPageSelect" class="form-label mb-0 fw-bold text-light">Aantal per pagina:</label>
-              <select id="perPageSelect" class="form-select form-select-sm w-auto">
-                <option value="10">10</option>
-                <option value="20" selected>20</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-                <option value="0">oneindig</option>
-              </select>
+        <!-- Pagination Controls Section (Always Visible) -->
+        <div class="row justify-content-center mt-4 mb-3" id="paginationContainer">
+          <div class="col-xxl-10 col-xl-11 col-lg-12">
+            <div class="pagination-bar-card d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+              <div class="d-flex align-items-center gap-2">
+                <i class="fas fa-list-numeric text-info fs-5 me-1"></i>
+                <label for="perPageSelect" class="form-label mb-0 fw-bold text-light" data-i18n="pagination.per_page_label">Aantal per pagina:</label>
+                <select id="perPageSelect" class="form-select form-select-sm w-auto per-page-dropdown">
+                  <option value="10">10</option>
+                  <option value="20" selected>20</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                  <option value="0" data-i18n="pagination.all">oneindig</option>
+                </select>
+              </div>
+              <nav aria-label="Plugin paginering">
+                <ul class="pagination pagination-md mb-0" id="paginationControls">
+                  <!-- Dynamic pagination buttons -->
+                </ul>
+              </nav>
             </div>
-            <nav aria-label="Plugin paginering">
-              <ul class="pagination pagination-md mb-0" id="paginationControls">
-                <!-- Dynamic pagination buttons -->
-              </ul>
-            </nav>
           </div>
         </div>
         </div>

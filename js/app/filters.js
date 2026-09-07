@@ -1,4 +1,5 @@
 import UI from './ui.js';
+import i18n from './i18n.js';
 
 class Filters {
     constructor(onFilterChange) {
@@ -35,7 +36,7 @@ class Filters {
         });
         this.resetButton.addEventListener('click', () => this.reset());
         this.includeExcludeSwitch.addEventListener('change', () => {
-            document.querySelector(`label[for=${this.includeExcludeSwitch.id}]`).textContent = this.includeExcludeSwitch.checked ? 'Include' : 'Exclude';
+            document.querySelector(`label[for=${this.includeExcludeSwitch.id}]`).textContent = this.includeExcludeSwitch.checked ? i18n.t('filters.include') : i18n.t('filters.exclude');
             this.applyFilters();
         });
     }
