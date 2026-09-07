@@ -507,8 +507,8 @@ class I18n {
             currentFlag.alt = this.currentLang.toUpperCase();
         }
         if (currentText) {
-            const langName = this.currentLang === 'en' ? 'English' : 'Nederlands';
-            currentText.textContent = `${this.t('nav.language_label')} / ${langName}`;
+            const translatedWord = this.currentLang === 'en' ? 'language' : 'taal';
+            currentText.textContent = `language / ${translatedWord}`;
         }
 
         document.querySelectorAll('#languageDropdownMenu .cyber-lang-item').forEach(item => {
