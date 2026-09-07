@@ -13,6 +13,7 @@ const translations = {
         "nav.replace_txt_title": "Vervang huidige lijst door TXT bestand",
         "nav.append_txt": "TXT Bijvoegen",
         "nav.append_txt_title": "Voeg plugins uit TXT bestand toe",
+        "nav.language_label": "Taal",
         "nav.admin": "Admin",
         "nav.home": "Home",
         "sidebar.title": "Server Categorieën",
@@ -233,6 +234,7 @@ const translations = {
         "nav.replace_txt_title": "Replace current list with TXT file",
         "nav.append_txt": "Append TXT",
         "nav.append_txt_title": "Append plugins from TXT file",
+        "nav.language_label": "Language",
         "nav.admin": "Admin",
         "nav.home": "Home",
         "sidebar.title": "Server Categories",
@@ -505,7 +507,8 @@ class I18n {
             currentFlag.alt = this.currentLang.toUpperCase();
         }
         if (currentText) {
-            currentText.textContent = this.currentLang === 'en' ? 'Language / English' : 'Language / Nederlands';
+            const langName = this.currentLang === 'en' ? 'English' : 'Nederlands';
+            currentText.textContent = `${this.t('nav.language_label')} / ${langName}`;
         }
 
         document.querySelectorAll('#languageDropdownMenu .cyber-lang-item').forEach(item => {
