@@ -13,7 +13,6 @@ class Filters {
         this.categorySidebar = document.getElementById('categorySidebar');
         this.resetButton = document.getElementById('resetFilters');
         this.includeExcludeSwitch = document.getElementById('includeExcludeSwitch');
-        this.categoryIncludeExcludeSwitch = document.getElementById('categoryIncludeExcludeSwitch');
 
         this._addEventListeners();
         this._setupPlatformLoadersCheckboxes();
@@ -37,27 +36,13 @@ class Filters {
             }
         });
         this.resetButton.addEventListener('click', () => this.reset());
-        const updateSwitchLabel = (sw) => {
-            if (sw) {
-                const label = document.querySelector(`label[for=${sw.id}]`);
-                if (label) {
-                    label.textContent = sw.checked ? i18n.t('filters.include') : i18n.t('filters.exclude');
-                }
+        this.includeExcludeSwitch.addEventListener('change', () => {
+            const label = document.querySelector(`label[for=${this.includeExcludeSwitch.id}]`);
+            if (label) {
+                label.textContent = this.includeExcludeSwitch.checked ? i18n.t('filters.include') : i18n.t('filters.exclude');
             }
-        };
-
-        if (this.includeExcludeSwitch) {
-            this.includeExcludeSwitch.addEventListener('change', () => {
-                updateSwitchLabel(this.includeExcludeSwitch);
-                this.applyFilters();
-            });
-        }
-        if (this.categoryIncludeExcludeSwitch) {
-            this.categoryIncludeExcludeSwitch.addEventListener('change', () => {
-                updateSwitchLabel(this.categoryIncludeExcludeSwitch);
-                this.applyFilters();
-            });
-        }
+            this.applyFilters();
+        });
     }
 
     _setupPlatformLoadersCheckboxes() {
@@ -89,8 +74,7 @@ class Filters {
             platforms: this._getSelectedValues('.platform-filter'),
             loaders: loaderCheckboxes.length > 0 ? this._getSelectedValues('.loader-filter') : undefined,
             category: selectedCategory,
-            include: this.includeExcludeSwitch ? this.includeExcludeSwitch.checked : true,
-            categoryInclude: this.categoryIncludeExcludeSwitch ? this.categoryIncludeExcludeSwitch.checked : true
+            include: this.includeExcludeSwitch.checked
         };
     }
 
@@ -109,17 +93,12 @@ class Filters {
         if (activeItem) activeItem.classList.remove('active');
         const defaultCatItem = this.categorySidebar.querySelector('[data-category=""]');
         if (defaultCatItem) defaultCatItem.classList.add('active');
-        if (this.includeExcludeSwitch) this.includeExcludeSwitch.checked = true;
-        if (this.categoryIncludeExcludeSwitch) this.categoryIncludeExcludeSwitch.checked = true;
+        this.includeExcludeSwitch.checked = true;
 
-        [this.includeExcludeSwitch, this.categoryIncludeExcludeSwitch].forEach(sw => {
-            if (sw) {
-                const switchLabel = document.querySelector(`label[for=${sw.id}]`);
-                if (switchLabel) {
-                    switchLabel.textContent = i18n.t('filters.include');
-                }
-            }
-        });
+        const switchLabel = document.querySelector(`label[for=${this.includeExcludeSwitch.id}]`);
+        if (switchLabel) {
+            switchLabel.textContent = i18n.t('filters.include');
+        }
 
         this.applyFilters();
 

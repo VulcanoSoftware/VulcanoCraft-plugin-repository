@@ -222,71 +222,37 @@ body {
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
 }
 
-/* Enforce ALWAYS black icons for header navigation buttons in #authButtons and #userButtons */
-#authButtons .header-nav-btn .btn-icon,
-#userButtons .header-nav-btn .btn-icon,
-#authButtons .header-nav-btn i,
-#userButtons .header-nav-btn i,
-#authButtons .header-nav-btn .fas,
-#userButtons .header-nav-btn .fas,
-#authButtons .header-nav-btn .far,
-#userButtons .header-nav-btn .far,
-#authButtons .header-nav-btn .fab,
-#userButtons .header-nav-btn .fab {
-  filter: brightness(0) !important;
-  color: #000000 !important;
+/* Button icon brightness/invert styling exclusively for header navigation buttons */
+#authButtons .btn .btn-icon,
+#userButtons .btn .btn-icon {
+  filter: brightness(0) invert(1);
 }
 
-/* Header buttons design: beautiful background colors, bold readable text, and black icons */
-#authButtons .header-nav-btn,
-#userButtons .header-nav-btn {
-  font-weight: 600;
-  border: none !important;
-  border-radius: 12px;
-  padding: 0.55rem 1.1rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
-  transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+/* Explicit light/dark classes and hover states for header button icons based on background contrast */
+#authButtons .btn.btn-icon-dark .btn-icon,
+#userButtons .btn.btn-icon-dark .btn-icon,
+#authButtons .btn-outline-primary:hover .btn-icon,
+#authButtons .btn-outline-info:hover .btn-icon,
+#authButtons .btn-outline-warning:hover .btn-icon,
+#authButtons .btn-outline-success:hover .btn-icon,
+#authButtons .btn-outline-light:hover .btn-icon,
+#userButtons .btn-outline-primary:hover .btn-icon,
+#userButtons .btn-outline-info:hover .btn-icon,
+#userButtons .btn-outline-warning:hover .btn-icon,
+#userButtons .btn-outline-success:hover .btn-icon,
+#userButtons .btn-outline-light:hover .btn-icon,
+#exportTxtBtn:hover .btn-icon,
+#exportTxtUserBtn:hover .btn-icon,
+#replaceTxtBtn:hover .btn-icon,
+#appendTxtBtn:hover .btn-icon,
+#logoutBtn:hover .btn-icon,
+#adminBtn:hover .btn-icon {
+  filter: brightness(0);
 }
 
-#authButtons .header-nav-btn,
-#userButtons .header-nav-btn,
-#authButtons .header-nav-btn span,
-#userButtons .header-nav-btn span,
-#authButtons .header-nav-btn a,
-#userButtons .header-nav-btn a {
-  color: #0f172a !important;
-}
-
-/* Specific background styles for header navigation buttons */
-#authButtons .header-nav-btn.btn-light,
-#userButtons .header-nav-btn.btn-light {
-  background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%) !important;
-}
-
-#authButtons .header-nav-btn.btn-info,
-#userButtons .header-nav-btn.btn-info,
-#exportTxtBtn,
-#exportTxtUserBtn {
-  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%) !important;
-}
-
-#authButtons .header-nav-btn.btn-warning,
-#userButtons .header-nav-btn.btn-warning,
-#replaceTxtBtn,
-#adminBtn {
-  background: linear-gradient(135deg, #facc15 0%, #eab308 100%) !important;
-}
-
-#authButtons .header-nav-btn.btn-success,
-#userButtons .header-nav-btn.btn-success,
-#appendTxtBtn {
-  background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%) !important;
-}
-
-#authButtons .header-nav-btn:hover,
-#userButtons .header-nav-btn:hover {
-  filter: brightness(1.08);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+#authButtons .btn.btn-icon-light .btn-icon,
+#userButtons .btn.btn-icon-light .btn-icon {
+  filter: brightness(0) invert(1);
 }
 
 /* Icons outside buttons keep margin for spacing */
@@ -759,7 +725,7 @@ body {
   backdrop-filter: blur(16px) !important;
   border: 1px solid rgba(56, 189, 248, 0.4) !important;
   border-radius: 30px !important;
-  padding: 0.6rem 1.3rem !important;
+  padding: 0.4rem 1rem !important;
   position: relative;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 10px rgba(56, 189, 248, 0.2) !important;
@@ -798,21 +764,14 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   overflow: hidden;
   transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.flag-emblem img {
-  width: 28px;
-  height: 20px;
-  object-fit: cover;
-  border-radius: 3px;
 }
 
 .cyber-lang-btn:hover .flag-emblem {
@@ -824,7 +783,7 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 0.88rem;
   letter-spacing: 0.4px;
 }
 
@@ -882,19 +841,12 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.1);
   overflow: hidden;
   transition: transform 0.25s ease;
-}
-
-.flag-emblem-sm img {
-  width: 24px;
-  height: 16px;
-  object-fit: cover;
-  border-radius: 2px;
 }
 
 .cyber-lang-item:hover {

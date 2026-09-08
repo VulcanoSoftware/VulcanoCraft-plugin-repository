@@ -319,7 +319,7 @@ class TestAuthArgon2(unittest.TestCase):
         db.plugins.delete_many({})
 
         db.plugins.insert_one({
-            'title': 'Plugin Category A',
+            'title': 'Plugin Only Survival',
             'url': 'https://spigotmc.org/resources/111',
             'category': 'Survival',
             'categories': ['Survival'],
@@ -327,26 +327,46 @@ class TestAuthArgon2(unittest.TestCase):
             'loaders': ['Paper']
         })
         db.plugins.insert_one({
-            'title': 'Plugin Category B',
+            'title': 'Plugin Multi Category',
             'url': 'https://spigotmc.org/resources/222',
+            'category': 'Survival',
+            'categories': ['Survival', 'Lobby'],
+            'versions': '1.20',
+            'loaders': ['Paper']
+        })
+        db.plugins.insert_one({
+            'title': 'Plugin Only Lobby',
+            'url': 'https://spigotmc.org/resources/333',
             'category': 'Lobby',
             'categories': ['Lobby'],
             'versions': '1.20',
             'loaders': ['Paper']
         })
 
-        # Test filtering by category 'Survival'
-        resp = self.app.get('/api/plugins/public?per_page=0&category=Survival')
+        # Test filtering by category 'Survival' (Include mode)
+        resp = self.app.get('/api/plugins/public?per_page=0&category=Survival&category_include=true')
         self.assertEqual(resp.status_code, 200)
         data = resp.get_json()
-        self.assertEqual(len(data['plugins']), 1)
-        self.assertEqual(data['plugins'][0]['url'], 'https://spigotmc.org/resources/111')
+        self.assertEqual(len(data['plugins']), 2)
 
-        # Test fetching all plugins (category='')
+        # Test filtering by excluding category 'Lobby' (Exclude mode)
+        # Total expanded instances across all = 4 (1 + 2 + 1)
+        # Lobby instances = 2
+        # Excluded Lobby instances leaves 2 Survival instances (1 from Only Survival + 1 from Multi Category)
+        resp_ex = self.app.get('/api/plugins/public?per_page=0&category=Lobby&category_include=false')
+        self.assertEqual(resp_ex.status_code, 200)
+        data_ex = resp_ex.get_json()
+        self.assertEqual(len(data_ex['plugins']), 2)
+        urls_ex = [p['url'] for p in data_ex['plugins']]
+        self.assertIn('https://spigotmc.org/resources/111', urls_ex)
+        self.assertIn('https://spigotmc.org/resources/222', urls_ex)
+        self.assertNotIn('https://spigotmc.org/resources/333', urls_ex)
+
+        # Test fetching all plugins (category='') -> 4 total expanded instances
         resp_all = self.app.get('/api/plugins/public?per_page=0&category=')
         self.assertEqual(resp_all.status_code, 200)
         data_all = resp_all.get_json()
-        self.assertEqual(len(data_all['plugins']), 2)
+        self.assertEqual(len(data_all['plugins']), 4)
 
         db.plugins.delete_many({})
 

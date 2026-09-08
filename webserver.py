@@ -485,80 +485,61 @@ def compute_plugin_metadata(all_plugins):
 
     return list(version_set), list(loader_set), category_counts
 
-def matches_plugin_criteria(plugin, search_term, selected_version, selected_platforms, selected_loaders, selected_category):
-    """Legacy helper function maintained for backwards compatibility."""
-    return is_plugin_included(plugin, search_term, selected_version, selected_platforms, selected_loaders, selected_category, include=True, category_include=True)
-
-def _check_category_filter(plugin, selected_category, category_include):
-    if not selected_category:
-        return True
-    plugin_cats = extract_plugin_categories(plugin)
-    matches = selected_category in plugin_cats
-    return matches if category_include else not matches
-
-def _check_include_general_filters(plugin, search_term, selected_version, selected_platforms, selected_loaders, platforms_provided, loaders_provided):
-    if search_term:
-        title = (plugin.get('title') or '').lower()
-        description = (plugin.get('description') or '').lower()
-        author = (plugin.get('author') or '').lower()
-        if search_term not in title and search_term not in description and search_term not in author:
-            return False
-
-    if selected_version:
-        v_str = plugin.get('versions') or ''
-        if selected_version not in v_str.split():
-            return False
-
+def _check_include_mode(matches_search, search_term, matches_version, selected_version, plugin_platform, selected_platforms, platforms_provided, plugin_loaders, selected_loaders, loaders_provided, matches_category, selected_category):
+    if search_term and not matches_search:
+        return False
+    if selected_version and not matches_version:
+        return False
+    if selected_category and not matches_category:
+        return False
     if platforms_provided:
-        plugin_platform = get_platform_from_url(plugin.get('url', ''))
         if not selected_platforms or plugin_platform not in selected_platforms:
             return False
-
     if loaders_provided:
-        plugin_loaders = plugin.get('loaders') or []
         if not selected_loaders or not any(loader in selected_loaders for loader in plugin_loaders):
             return False
-
     return True
 
-def _check_exclude_general_filters(plugin, search_term, selected_version, selected_platforms, selected_loaders, platforms_provided, loaders_provided):
-    if search_term:
-        title = (plugin.get('title') or '').lower()
-        description = (plugin.get('description') or '').lower()
-        author = (plugin.get('author') or '').lower()
-        if search_term in title or search_term in description or search_term in author:
-            return False
+def matches_plugin_criteria(plugin, search_term, selected_version, selected_platforms, selected_loaders, selected_category):
+    """Legacy helper function maintained for backwards compatibility."""
+    return is_plugin_included(plugin, search_term, selected_version, selected_platforms, selected_loaders, selected_category, include=True)
 
-    if selected_version:
-        v_str = plugin.get('versions') or ''
-        if selected_version in v_str.split():
-            return False
+def is_plugin_included(plugin, search_term, selected_version, selected_platforms, selected_loaders, selected_category, include, all_platforms=None, all_loaders=None, platforms_provided=None, loaders_provided=None):
+    if all_platforms is None:
+        all_platforms = ['hangar', 'spigot', 'modrinth', 'curseforge', 'bukkitdev', 'github', 'planetminecraft']
 
-    if platforms_provided and selected_platforms:
-        plugin_platform = get_platform_from_url(plugin.get('url', ''))
-        if plugin_platform in selected_platforms:
-            return False
+    if platforms_provided is None:
+        platforms_provided = selected_platforms is not None
+    if loaders_provided is None:
+        loaders_provided = selected_loaders is not None
 
-    if loaders_provided and selected_loaders:
-        plugin_loaders = plugin.get('loaders') or []
-        if any(loader in selected_loaders for loader in plugin_loaders):
-            return False
+    if selected_platforms is None:
+        selected_platforms = []
+    if selected_loaders is None:
+        selected_loaders = []
 
-    return True
+    title = (plugin.get('title') or '').lower()
+    description = (plugin.get('description') or '').lower()
+    author = (plugin.get('author') or '').lower()
 
-def is_plugin_included(plugin, search_term, selected_version, selected_platforms, selected_loaders, selected_category, include, all_platforms=None, all_loaders=None, platforms_provided=None, loaders_provided=None, category_include=True):
-    if not _check_category_filter(plugin, selected_category, category_include):
-        return False
+    matches_search = bool(search_term) and (search_term in title or search_term in description or search_term in author)
 
-    p_provided = selected_platforms is not None if platforms_provided is None else platforms_provided
-    l_provided = selected_loaders is not None if loaders_provided is None else loaders_provided
+    v_str = plugin.get('versions') or ''
+    matches_version = bool(selected_version) and (selected_version in v_str.split())
 
-    sel_platforms = selected_platforms or []
-    sel_loaders = selected_loaders or []
+    plugin_platform = get_platform_from_url(plugin.get('url', ''))
+    plugin_loaders = plugin.get('loaders') or []
+    plugin_cats = extract_plugin_categories(plugin)
+    matches_category = bool(selected_category) and (selected_category in plugin_cats)
 
-    if include:
-        return _check_include_general_filters(plugin, search_term, selected_version, sel_platforms, sel_loaders, p_provided, l_provided)
-    return _check_exclude_general_filters(plugin, search_term, selected_version, sel_platforms, sel_loaders, p_provided, l_provided)
+    included = _check_include_mode(
+        matches_search, search_term, matches_version, selected_version,
+        plugin_platform, selected_platforms, platforms_provided,
+        plugin_loaders, selected_loaders, loaders_provided,
+        matches_category, selected_category
+    )
+
+    return included if include else not included
 
 def sort_plugins(plugins, sort_by):
     if sort_by == 'name_asc':
@@ -581,9 +562,9 @@ def sort_plugins(plugins, sort_by):
 
 def expand_plugin_categories(per_plugin_filtered, selected_category, category_include=True):
     filtered_expanded = []
-    if not selected_category or not category_include:
+    if not selected_category:
         for plugin in per_plugin_filtered:
-            plugin_cats = [c for c in extract_plugin_categories(plugin) if c != selected_category]
+            plugin_cats = list(extract_plugin_categories(plugin))
             if not plugin_cats:
                 p_copy = dict(plugin)
                 p_copy['_categoryContext'] = ''
@@ -593,11 +574,20 @@ def expand_plugin_categories(per_plugin_filtered, selected_category, category_in
                     p_copy = dict(plugin)
                     p_copy['_categoryContext'] = cat
                     filtered_expanded.append(p_copy)
+    elif category_include:
+        for plugin in per_plugin_filtered:
+            plugin_cats = extract_plugin_categories(plugin)
+            if selected_category in plugin_cats:
+                p_copy = dict(plugin)
+                p_copy['_categoryContext'] = selected_category
+                filtered_expanded.append(p_copy)
     else:
         for plugin in per_plugin_filtered:
-            p_copy = dict(plugin)
-            p_copy['_categoryContext'] = selected_category
-            filtered_expanded.append(p_copy)
+            plugin_cats = [c for c in extract_plugin_categories(plugin) if c != selected_category]
+            for cat in plugin_cats:
+                p_copy = dict(plugin)
+                p_copy['_categoryContext'] = cat
+                filtered_expanded.append(p_copy)
 
     return filtered_expanded
 
@@ -657,23 +647,20 @@ def api_plugins_public():
             ALL_PLATFORMS,
             all_loaders,
             params['platforms_provided'],
-            params['loaders_provided'],
-            params['category_include']
+            params['loaders_provided']
         )
     ]
 
     per_plugin_filtered = sort_plugins(per_plugin_filtered, params['sort_by'])
-    filtered_expanded = expand_plugin_categories(per_plugin_filtered, params['selected_category'], params['category_include'])
+    filtered_expanded = expand_plugin_categories(per_plugin_filtered, params['selected_category'])
     paginated_plugins, total_items, current_page, total_pages = paginate_items(
         filtered_expanded, params['page'], params['per_page']
     )
 
-    total_all_expanded = sum(category_counts.values()) if category_counts else len(all_plugins)
-
     return jsonify({
         'plugins': paginated_plugins,
         'total': total_items,
-        'total_all': total_all_expanded,
+        'total_all': len(all_plugins),
         'page': current_page,
         'per_page': params['per_page'],
         'total_pages': total_pages,

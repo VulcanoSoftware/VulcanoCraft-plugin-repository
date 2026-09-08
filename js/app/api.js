@@ -31,7 +31,6 @@ class API {
         if (params.loaders !== undefined) query.set('loaders', Array.isArray(params.loaders) ? params.loaders.join(',') : params.loaders);
         if (params.category) query.set('category', params.category);
         if (params.include !== undefined) query.set('include', params.include);
-        if (params.categoryInclude !== undefined) query.set('category_include', params.categoryInclude);
         if (params.sort) query.set('sort', params.sort);
 
         const queryString = query.toString();
