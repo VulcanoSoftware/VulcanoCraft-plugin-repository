@@ -42,6 +42,7 @@ settings.json
 *.log
 .env
 backups/
+mongo-live-data/
 
 # Temporary Files
 *.tmp
