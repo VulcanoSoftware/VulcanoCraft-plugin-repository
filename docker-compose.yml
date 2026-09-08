@@ -2,6 +2,7 @@ services:
   app:
     build: .
     image: vulcanocraft-app
+    restart: unless-stopped
     ports:
       - "8000:8000"
     volumes:
@@ -49,6 +50,7 @@ services:
   cron:
     image: vulcanocraft-app
     command: ["python", "cron.py"]
+    restart: unless-stopped
     environment:
       - FLASK_ENV=production
       - MONGO_URI=${MONGO_URI}
@@ -67,6 +69,7 @@ services:
 
   backup:
     image: mongo:4.4.18
+    restart: unless-stopped
     depends_on:
       mongo:
         condition: service_healthy
