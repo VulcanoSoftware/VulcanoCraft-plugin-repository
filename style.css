@@ -2469,7 +2469,7 @@ body {
   border-color: rgba(255, 255, 255, 0.4);
 }
 
-.form-check-label {
+.form-check.form-switch .form-check-label {
   font-weight: 600;
   letter-spacing: 0.3px;
   cursor: pointer;
