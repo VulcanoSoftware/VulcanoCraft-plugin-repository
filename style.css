@@ -2437,6 +2437,45 @@ body {
     box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
 }
 
+/* Custom Switch Styling for Include / Exclude Switches */
+.form-check.form-switch {
+  padding-left: 2.8em;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.form-check-input[type="checkbox"] {
+  width: 2.8em;
+  height: 1.5em;
+  margin-left: -2.8em;
+  background-color: #ef4444; /* Exclude state - red */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 2em;
+  transition: background-color 0.25s ease-in-out, border-color 0.25s ease-in-out, box-shadow 0.25s ease-in-out, background-position 0.25s ease-in-out;
+  cursor: pointer;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.form-check-input[type="checkbox"]:checked {
+  background-color: #22c55e; /* Include state - green */
+  border-color: #16a34a;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.4);
+}
+
+.form-check-input[type="checkbox"]:focus {
+  box-shadow: 0 0 0 0.25rem rgba(34, 197, 94, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.form-check-label {
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  user-select: none;
+}
+
 /* Results Counter Bar */
 .counter-bar-card {
   background: rgba(30, 41, 59, 0.65) !important;
