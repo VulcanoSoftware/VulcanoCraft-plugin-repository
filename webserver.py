@@ -493,8 +493,12 @@ def _check_category_filter(plugin, selected_category, category_include):
     if not selected_category:
         return True
     plugin_cats = extract_plugin_categories(plugin)
-    matches = selected_category in plugin_cats
-    return matches if category_include else not matches
+    if category_include:
+        return selected_category in plugin_cats
+    else:
+        if not plugin_cats:
+            return True
+        return any(c != selected_category for c in plugin_cats)
 
 def _check_include_general_filters(plugin, search_term, selected_version, selected_platforms, selected_loaders, platforms_provided, loaders_provided):
     if search_term:
