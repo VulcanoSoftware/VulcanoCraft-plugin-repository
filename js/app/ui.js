@@ -455,7 +455,7 @@ class UI {
         this.updateHeaderButtonIconContrast();
     }
 
-    updateResultsCount(pluginsOnCurrentPageCount, totalFilteredCount, totalAllPluginsCount, activeCategory = '') {
+    updateResultsCount(pluginsOnCurrentPageCount, totalFilteredCount, totalAllPluginsCount, activeCategory = '', categoryCounts = {}) {
         if (!this.resultsCounter) {
             this.resultsCounter = document.createElement('div');
             this.resultsCounter.id = 'resultsCounter';
@@ -491,6 +491,7 @@ class UI {
                     </div>`;
 
         if (activeCategory) {
+            const catCount = (categoryCounts && categoryCounts[activeCategory] !== undefined) ? categoryCounts[activeCategory] : filtered;
             html += `
                     <div class="col">
                         <div class="counter-badge-item counter-category d-flex align-items-center gap-3">
@@ -499,7 +500,7 @@ class UI {
                             </div>
                             <div class="text-start min-w-0">
                                 <div class="counter-label text-truncate" title="${activeCategory}">${activeCategory}</div>
-                                <div class="counter-value">${filtered} <span>${pluginWord(filtered)}</span></div>
+                                <div class="counter-value">${catCount} <span>${pluginWord(catCount)}</span></div>
                             </div>
                         </div>
                     </div>`;

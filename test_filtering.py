@@ -2,13 +2,15 @@ import pytest
 import mongomock
 from unittest.mock import patch
 
-with patch('pymongo.MongoClient', mongomock.MongoClient):
-    from webserver import (
-        _check_category_filter,
-        is_plugin_included,
-        expand_plugin_categories,
-        extract_plugin_categories
-    )
+mongo_patcher = patch('pymongo.MongoClient', mongomock.MongoClient)
+mongo_patcher.start()
+
+from webserver import (
+    _check_category_filter,
+    is_plugin_included,
+    expand_plugin_categories,
+    extract_plugin_categories
+)
 
 
 def test_category_filter_include_and_exclude():
