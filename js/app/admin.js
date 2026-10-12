@@ -123,14 +123,16 @@ class AdminPage {
         }
         if (this.usersPerPageSelect) {
             this.usersPerPageSelect.addEventListener('change', (e) => {
-                this.usersPerPage = parseInt(e.target.value, 10);
+                const parsed = parseInt(e.target.value, 10);
+                this.usersPerPage = isNaN(parsed) ? 12 : parsed;
                 this.usersCurrentPage = 1;
                 this._loadUsers();
             });
         }
         if (this.pluginsPerPageSelect) {
             this.pluginsPerPageSelect.addEventListener('change', (e) => {
-                this.pluginsPerPage = parseInt(e.target.value, 10);
+                const parsed = parseInt(e.target.value, 10);
+                this.pluginsPerPage = isNaN(parsed) ? 20 : parsed;
                 this.pluginsCurrentPage = 1;
                 this._loadPlugins();
             });
