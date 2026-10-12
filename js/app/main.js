@@ -406,7 +406,8 @@ class App {
     setupEventListeners() {
         if (UI.perPageSelect) {
             UI.perPageSelect.addEventListener('change', (e) => {
-                this.perPage = parseInt(e.target.value, 10) || 20;
+                const parsed = parseInt(e.target.value, 10);
+                this.perPage = isNaN(parsed) ? 20 : parsed;
                 this.currentPage = 1;
                 this.loadAndRenderPlugins(this.filters.getFilterParams());
             });

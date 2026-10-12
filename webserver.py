@@ -245,6 +245,13 @@ def sanitize_str(val):
         return ""
     return val.strip()
 
+def sanitize_int(val, default=0):
+    """Ensure value is safely converted to an integer or return default."""
+    try:
+        return int(val)
+    except (ValueError, TypeError):
+        return default
+
 def sanitize_nosql(val):
     """Recursively strip dicts containing MongoDB query operators ($) or dot notation to prevent NoSQL injection."""
     if isinstance(val, dict):
