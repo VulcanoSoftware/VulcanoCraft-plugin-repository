@@ -488,5 +488,153 @@ class TestAuthArgon2(unittest.TestCase):
         db.users.delete_many({"username": "user_unlimited"})
         db.plugins.delete_many({})
 
+    @patch('subprocess.check_output')
+    @patch('requests.get')
+    def test_admin_check_update_success(self, mock_requests_get, mock_check_output):
+        db.users.delete_many({"username": "admin_check_user"})
+        db.users.insert_one({
+            'username': 'admin_check_user',
+            'password': hash_password('adminpass'),
+            'role': 'admin'
+        })
+
+        mock_check_output.side_effect = [
+            "3788d9e5b571ce8955bc915f29b235e63c6614b8\n", # git rev-parse HEAD
+            "3788d9e5b571ce8955bc915f29b235e63c6614b8|3788d9e|Author|2026-10-20T10:00:00Z|Commit msg\n" # git log
+        ]
+
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {
+            'sha': '3788d9e5b571ce8955bc915f29b235e63c6614b8',
+            'commit': {
+                'message': 'Commit msg',
+                'committer': {'date': '2026-10-20T10:00:00Z'}
+            }
+        }
+        mock_requests_get.return_value = mock_resp
+
+        with self.app.session_transaction() as sess:
+            sess['user'] = 'admin_check_user'
+
+        resp = self.app.get('/admin/update/check')
+        self.assertEqual(resp.status_code, 200)
+        data = resp.get_json()
+        self.assertIsNone(data.get('github_error'))
+        self.assertEqual(data.get('current_commit'), '3788d9e')
+        self.assertFalse(data.get('update_available'))
+        self.assertIn('history', data)
+
+        db.users.delete_many({"username": "admin_check_user"})
+
+    @patch('subprocess.check_output')
+    @patch('requests.get')
+    def test_admin_check_update_rate_limit_fallback(self, mock_requests_get, mock_check_output):
+        db.users.delete_many({"username": "admin_check_user2"})
+        db.users.insert_one({
+            'username': 'admin_check_user2',
+            'password': hash_password('adminpass'),
+            'role': 'admin'
+        })
+
+        mock_check_output.side_effect = [
+            "3788d9e5b571ce8955bc915f29b235e63c6614b8\n", # git rev-parse HEAD
+            "3788d9e5b571ce8955bc915f29b235e63c6614b8|3788d9e|Author|2026-10-20T10:00:00Z|Commit msg\n" # git log
+        ]
+
+        mock_resp = MagicMock()
+        mock_resp.status_code = 403
+        mock_requests_get.return_value = mock_resp
+
+        with self.app.session_transaction() as sess:
+            sess['user'] = 'admin_check_user2'
+
+        resp = self.app.get('/admin/update/check')
+        self.assertEqual(resp.status_code, 200)
+        data = resp.get_json()
+        self.assertIsNotNone(data.get('github_error'))
+        self.assertIn('Rate Limit', data.get('github_error'))
+        self.assertEqual(data.get('current_commit'), '3788d9e')
+        self.assertFalse(data.get('update_available'))
+        self.assertIn('history', data)
+
+        db.users.delete_many({"username": "admin_check_user2"})
+
+    @patch('subprocess.check_output')
+    @patch('requests.get')
+    def test_admin_check_update_network_exception_fallback(self, mock_requests_get, mock_check_output):
+        import requests as req_mod
+        db.users.delete_many({"username": "admin_check_user3"})
+        db.users.insert_one({
+            'username': 'admin_check_user3',
+            'password': hash_password('adminpass'),
+            'role': 'admin'
+        })
+
+        mock_check_output.side_effect = [
+            "3788d9e5b571ce8955bc915f29b235e63c6614b8\n",
+            "3788d9e5b571ce8955bc915f29b235e63c6614b8|3788d9e|Author|2026-10-20T10:00:00Z|Commit msg\n"
+        ]
+
+        mock_requests_get.side_effect = req_mod.exceptions.ConnectionError("Failed to connect")
+
+        with self.app.session_transaction() as sess:
+            sess['user'] = 'admin_check_user3'
+
+        resp = self.app.get('/admin/update/check')
+        self.assertEqual(resp.status_code, 200)
+        data = resp.get_json()
+        self.assertIsNotNone(data.get('github_error'))
+        self.assertIn('Netwerkfout', data.get('github_error'))
+        self.assertEqual(data.get('current_commit'), '3788d9e')
+        self.assertFalse(data.get('update_available'))
+
+        db.users.delete_many({"username": "admin_check_user3"})
+
+    @patch('os.getenv')
+    @patch('subprocess.check_output')
+    @patch('requests.get')
+    def test_admin_check_update_uses_github_token(self, mock_requests_get, mock_check_output, mock_getenv):
+        db.users.delete_many({"username": "admin_token_user"})
+        db.users.insert_one({
+            'username': 'admin_token_user',
+            'password': hash_password('adminpass'),
+            'role': 'admin'
+        })
+
+        def getenv_side_effect(key, default=None):
+            if key in ('GITHUB_TOKEN', 'GH_TOKEN'):
+                return 'ghp_testtoken123456789'
+            import os
+            return os.environ.get(key, default)
+
+        mock_getenv.side_effect = getenv_side_effect
+
+        mock_check_output.side_effect = [
+            "3788d9e5b571ce8955bc915f29b235e63c6614b8\n",
+            "3788d9e5b571ce8955bc915f29b235e63c6614b8|3788d9e|Author|2026-10-20T10:00:00Z|Commit msg\n"
+        ]
+
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {
+            'sha': '3788d9e5b571ce8955bc915f29b235e63c6614b8',
+            'commit': {'message': 'msg', 'committer': {'date': '2026-10-20'}}
+        }
+        mock_requests_get.return_value = mock_resp
+
+        with self.app.session_transaction() as sess:
+            sess['user'] = 'admin_token_user'
+
+        resp = self.app.get('/admin/update/check')
+        self.assertEqual(resp.status_code, 200)
+
+        # Check that request.get was called with Bearer token header
+        _, kwargs = mock_requests_get.call_args
+        self.assertIn('headers', kwargs)
+        self.assertEqual(kwargs['headers'].get('Authorization'), 'Bearer ghp_testtoken123456789')
+
+        db.users.delete_many({"username": "admin_token_user"})
+
 if __name__ == '__main__':
     unittest.main()

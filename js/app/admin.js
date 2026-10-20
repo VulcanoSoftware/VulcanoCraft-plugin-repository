@@ -403,7 +403,14 @@ class AdminPage {
             document.getElementById('commitMessage').textContent = data.commit_message || '-';
             document.getElementById('commitDate').textContent = data.commit_date ? new Date(data.commit_date).toLocaleString(langLocale) : '-';
 
-            if (data.update_available) {
+            if (data.github_error) {
+                this.updateStatusBadge.className = 'badge bg-danger';
+                this.updateStatusBadge.textContent = i18n.t('admin.check_failed');
+                this.updateAlert.className = 'alert alert-warning mt-3 mb-0';
+                this.updateAlert.textContent = `${i18n.t('admin.check_failed')}: ${data.github_error}`;
+                this.updateAlert.style.display = 'block';
+                this.applyUpdateBtn.style.display = 'none';
+            } else if (data.update_available) {
                 this.updateStatusBadge.className = 'badge bg-warning text-dark';
                 this.updateStatusBadge.textContent = i18n.t('admin.update_available');
                 if (this.currentRole === 'admin') {
