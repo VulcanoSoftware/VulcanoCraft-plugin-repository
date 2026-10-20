@@ -1,0 +1,30 @@
+/* Custom styles for VulcanoCraft GitHub Pages Configurator */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: #121212 !important;
+}
+
+.fs-7 {
+  font-size: 0.85rem;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.form-control:focus {
+  background-color: #1b1e22;
+  color: #ffffff;
+  border-color: #0dcaf0;
+  box-shadow: 0 0 0 0.25rem rgba(13, 202, 240, 0.25);
+}
+
+.card {
+  border-radius: 0.5rem;
+}
+
+.btn-gen-secret:hover {
+  background-color: #ffc107;
+  color: #000;
+}
