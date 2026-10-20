@@ -913,41 +913,48 @@ def sync_files_to_host(source_dir=".", host_dir="/host"):
 
 def _check_github_update(local_sha, headers):
     """Helper function to fetch remote commit info and check update availability."""
-    response = requests.get(
-        'https://api.github.com/repos/VulcanoSoftware/VulcanoCraft-plugin-repository/commits/main',
-        headers=headers,
-        timeout=10
-    )
-    if response.status_code != 200:
-        return None, f'Kon GitHub API niet bereiken (Status {response.status_code})'
+    try:
+        response = requests.get(
+            'https://api.github.com/repos/VulcanoSoftware/VulcanoCraft-plugin-repository/commits/main',
+            headers=headers,
+            timeout=10
+        )
+        if response.status_code in (403, 429):
+            return None, 'GitHub API limiet bereikt (Rate Limit). Probeer het later opnieuw.'
+        if response.status_code != 200:
+            return None, f'Kon GitHub API niet bereiken (Status {response.status_code})'
 
-    remote_data = response.json()
-    remote_sha = remote_data.get('sha', '')
-    commit_info = remote_data.get('commit', {})
-    commit_message = commit_info.get('message', '')
-    commit_date = commit_info.get('committer', {}).get('date', '')
+        remote_data = response.json()
+        remote_sha = remote_data.get('sha', '')
+        commit_info = remote_data.get('commit', {})
+        commit_message = commit_info.get('message', '')
+        commit_date = commit_info.get('committer', {}).get('date', '')
 
-    update_available = False
-    if remote_sha and local_sha != remote_sha:
-        try:
-            compare_url = f'https://api.github.com/repos/VulcanoSoftware/VulcanoCraft-plugin-repository/compare/{local_sha}...{remote_sha}'
-            comp_resp = requests.get(compare_url, headers=headers, timeout=10)
-            if comp_resp.status_code == 200:
-                comp_data = comp_resp.json()
-                ahead_by = comp_data.get('ahead_by', 0)
-                status = comp_data.get('status', '')
-                update_available = (ahead_by > 0) or (status in ['ahead', 'diverged'])
-            else:
+        update_available = False
+        if remote_sha and local_sha != remote_sha:
+            try:
+                compare_url = f'https://api.github.com/repos/VulcanoSoftware/VulcanoCraft-plugin-repository/compare/{local_sha}...{remote_sha}'
+                comp_resp = requests.get(compare_url, headers=headers, timeout=10)
+                if comp_resp.status_code == 200:
+                    comp_data = comp_resp.json()
+                    ahead_by = comp_data.get('ahead_by', 0)
+                    status = comp_data.get('status', '')
+                    update_available = (ahead_by > 0) or (status in ['ahead', 'diverged'])
+                else:
+                    update_available = True
+            except Exception:
                 update_available = True
-        except Exception:
-            update_available = True
 
-    return {
-        'remote_sha': remote_sha,
-        'commit_message': commit_message,
-        'commit_date': commit_date,
-        'update_available': update_available
-    }, None
+        return {
+            'remote_sha': remote_sha,
+            'commit_message': commit_message,
+            'commit_date': commit_date,
+            'update_available': update_available
+        }, None
+    except requests.exceptions.RequestException as req_err:
+        return None, f'Netwerkfout bij verbinden met GitHub API: {str(req_err)}'
+    except Exception as e:
+        return None, f'Fout bij verwerken van GitHub API response: {str(e)}'
 
 def _get_git_history(local_sha, count=15):
     """Helper function to fetch local git commit history."""
@@ -1007,16 +1014,35 @@ def admin_check_update():
             return jsonify({'error': 'Geen git repository of git executable gevonden op de server.'}), 500
 
         headers = {'User-Agent': 'VulcanoCraft-Repository-App'}
-        remote_info, err = _check_github_update(local_sha, headers)
-        if err:
-            return jsonify({'error': err}), 502
+        github_token = os.getenv('GITHUB_TOKEN') or os.getenv('GH_TOKEN')
+        if github_token:
+            headers['Authorization'] = f'Bearer {github_token}'
 
         history = _get_git_history(local_sha, count=15)
         previous_sha = _get_previous_commit(local_sha, history)
 
+        remote_info, err = _check_github_update(local_sha, headers)
+
+        if err or not remote_info:
+            return jsonify({
+                'update_available': False,
+                'github_error': err or 'Kon GitHub API niet bereiken.',
+                'rollback_available': bool(previous_sha or len(history) > 1),
+                'previous_commit': previous_sha[:7] if previous_sha else '',
+                'full_previous_commit': previous_sha,
+                'current_commit': local_sha[:7],
+                'latest_commit': '',
+                'full_current_commit': local_sha,
+                'full_latest_commit': '',
+                'commit_message': '',
+                'commit_date': '',
+                'history': history
+            }), 200
+
         remote_sha = remote_info['remote_sha']
         return jsonify({
             'update_available': remote_info['update_available'],
+            'github_error': None,
             'rollback_available': bool(previous_sha or len(history) > 1),
             'previous_commit': previous_sha[:7] if previous_sha else '',
             'full_previous_commit': previous_sha,
@@ -1027,7 +1053,7 @@ def admin_check_update():
             'commit_message': remote_info['commit_message'],
             'commit_date': remote_info['commit_date'],
             'history': history
-        })
+        }), 200
     except Exception as e:
         return jsonify({'error': f'Fout bij controleren van updates: {str(e)}'}), 500
 
