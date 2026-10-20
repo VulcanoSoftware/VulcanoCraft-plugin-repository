@@ -1036,21 +1036,28 @@ def admin_check_update():
 def admin_apply_update():
     """Download en pas de nieuwste update van GitHub main branch toe."""
     try:
+        git_cmds = [
+            ['git', 'fetch', 'origin', 'main'],
+            ['git', 'checkout', '-B', 'main', 'origin/main'],
+            ['git', 'reset', '--hard', 'origin/main']
+        ]
+        last_output = ""
         try:
-            result = subprocess.run(
-                ['git', 'pull', 'origin', 'main'],
-                capture_output=True,
-                text=True,
-                timeout=60
-            )
+            for cmd in git_cmds:
+                result = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    timeout=60
+                )
+                if result.returncode != 0:
+                    return jsonify({
+                        'error': f'Git update mislukt bij {" ".join(cmd)}: {result.stderr or result.stdout}'
+                    }), 500
+                last_output = result.stdout
         except FileNotFoundError:
             return jsonify({
                 'error': 'Git is niet geïnstalleerd op de server of container.'
-            }), 500
-
-        if result.returncode != 0:
-            return jsonify({
-                'error': f'Git pull mislukt: {result.stderr or result.stdout}'
             }), 500
 
         # Installeer of update Python dependencies in requirements.txt
@@ -1088,7 +1095,7 @@ def admin_apply_update():
             'success': True,
             'message': 'Update succesvol toegepast! Server herstart nu...',
             'synced_to_host': synced_to_host,
-            'output': result.stdout
+            'output': last_output
         })
     except Exception as e:
         return jsonify({'error': f'Fout bij toepassen van update: {str(e)}'}), 500
