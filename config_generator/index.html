@@ -10,11 +10,11 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-dark text-light min-vh-100 d-flex flex-column">
+<body class="bg-dark text-white min-vh-100 d-flex flex-column">
 
   <nav class="navbar navbar-expand-lg navbar-dark border-bottom border-secondary py-3 navbar-custom">
     <div class="container">
-      <a class="navbar-brand d-flex align-items-center gap-2 fw-bold fs-4 text-light" href="#">
+      <a class="navbar-brand d-flex align-items-center gap-2 fw-bold fs-4 text-white" href="#">
         <i class="fa-solid fa-sliders text-warning"></i> VulcanoCraft Configurator
       </a>
       <span class="badge bg-success bg-gradient text-white px-3 py-2 rounded-pill fw-semibold shadow-sm">
@@ -36,7 +36,7 @@
     <!-- Upload Existing .env Section -->
     <div class="row mb-4">
       <div class="col-12">
-        <div class="card bg-dark-card border-secondary shadow-sm upload-card text-light">
+        <div class="card bg-dark-card border-secondary shadow-sm upload-card text-white">
           <div class="card-body p-4">
             <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
               <div class="d-flex align-items-center gap-3">
@@ -44,7 +44,7 @@
                   <i class="fa-solid fa-file-arrow-up"></i>
                 </div>
                 <div>
-                  <h5 class="fw-bold mb-1 text-light">Update Existing Configuration</h5>
+                  <h5 class="fw-bold mb-1 text-white">Update Existing Configuration</h5>
                   <p class="text-secondary mb-0 fs-7">
                     Upload an existing <code>.env</code> file to auto-fill form fields. Any custom or non-standard variables will be safely preserved.
                   </p>
@@ -69,9 +69,9 @@
     <div class="row g-4">
       <!-- Form Column -->
       <div class="col-lg-6">
-        <div class="card bg-dark-card border-secondary h-100 shadow-sm text-light">
-          <div class="card-header bg-dark-header border-secondary d-flex justify-content-between align-items-center py-3 text-light">
-            <h5 class="mb-0 fw-bold d-flex align-items-center gap-2 text-light">
+        <div class="card bg-dark-card border-secondary h-100 shadow-sm text-white">
+          <div class="card-header bg-dark-header border-secondary d-flex justify-content-between align-items-center py-3 text-white">
+            <h5 class="mb-0 fw-bold d-flex align-items-center gap-2 text-white">
               <i class="fa-solid fa-gears text-info"></i> Configuration Settings
             </h5>
             <button id="btnGenerateAllSecrets" type="button" class="btn btn-sm btn-outline-warning fw-semibold">
@@ -86,21 +86,21 @@
                   <i class="fa-solid fa-database"></i> Database Settings (MongoDB)
                 </h6>
                 <div class="mb-3">
-                  <label for="mongoUser" class="form-label text-light fw-medium">MongoDB Root Username</label>
-                  <input type="text" class="form-control bg-dark text-light border-secondary" id="mongoUser" value="vulcano_root" required>
+                  <label for="mongoUser" class="form-label text-white fw-medium">MongoDB Root Username</label>
+                  <input type="text" class="form-control bg-dark text-white border-secondary" id="mongoUser" value="vulcano_root" required>
                 </div>
                 <div class="mb-3">
-                  <label for="mongoPassword" class="form-label text-light fw-medium">MongoDB Root Password</label>
+                  <label for="mongoPassword" class="form-label text-white fw-medium">MongoDB Root Password</label>
                   <div class="input-group">
-                    <input type="text" class="form-control bg-dark text-light border-secondary" id="mongoPassword" value="change-me-strong-mongo-password" required>
-                    <button class="btn btn-outline-secondary btn-gen-secret text-light" type="button" data-target="mongoPassword" title="Generate random password">
+                    <input type="text" class="form-control bg-dark text-white border-secondary" id="mongoPassword" value="change-me-strong-mongo-password" required>
+                    <button class="btn btn-outline-secondary btn-gen-secret text-white" type="button" data-target="mongoPassword" title="Generate random password">
                       <i class="fa-solid fa-arrows-rotate"></i>
                     </button>
                   </div>
                 </div>
                 <div class="mb-3">
-                  <label for="mongoDbName" class="form-label text-light fw-medium">Database Name</label>
-                  <input type="text" class="form-control bg-dark text-light border-secondary" id="mongoDbName" value="vulcanocraft" required>
+                  <label for="mongoDbName" class="form-label text-white fw-medium">Database Name</label>
+                  <input type="text" class="form-control bg-dark text-white border-secondary" id="mongoDbName" value="vulcanocraft" required>
                 </div>
               </div>
 
@@ -110,26 +110,26 @@
                   <i class="fa-solid fa-shield-halved"></i> Webserver &amp; Security
                 </h6>
                 <div class="mb-3">
-                  <label for="flaskSecretKey" class="form-label text-light fw-medium">Flask Secret Key</label>
+                  <label for="flaskSecretKey" class="form-label text-white fw-medium">Flask Secret Key</label>
                   <div class="input-group">
-                    <input type="text" class="form-control bg-dark text-light border-secondary" id="flaskSecretKey" value="change-me-strong-flask-secret-key" required>
-                    <button class="btn btn-outline-secondary btn-gen-secret text-light" type="button" data-target="flaskSecretKey" title="Generate secret key">
+                    <input type="text" class="form-control bg-dark text-white border-secondary" id="flaskSecretKey" value="change-me-strong-flask-secret-key" required>
+                    <button class="btn btn-outline-secondary btn-gen-secret text-white" type="button" data-target="flaskSecretKey" title="Generate secret key">
                       <i class="fa-solid fa-arrows-rotate"></i>
                     </button>
                   </div>
                 </div>
                 <div class="mb-3">
-                  <label for="adminDefaultPassword" class="form-label text-light fw-medium">Default Admin Password</label>
+                  <label for="adminDefaultPassword" class="form-label text-white fw-medium">Default Admin Password</label>
                   <div class="input-group">
-                    <input type="text" class="form-control bg-dark text-light border-secondary" id="adminDefaultPassword" value="admin123" required>
-                    <button class="btn btn-outline-secondary btn-gen-secret text-light" type="button" data-target="adminDefaultPassword" title="Generate password">
+                    <input type="text" class="form-control bg-dark text-white border-secondary" id="adminDefaultPassword" value="admin123" required>
+                    <button class="btn btn-outline-secondary btn-gen-secret text-white" type="button" data-target="adminDefaultPassword" title="Generate password">
                       <i class="fa-solid fa-arrows-rotate"></i>
                     </button>
                   </div>
                 </div>
                 <div class="mb-3">
-                  <label for="appPort" class="form-label text-light fw-medium">Host HTTP Port</label>
-                  <input type="number" class="form-control bg-dark text-light border-secondary" id="appPort" value="5000" min="1" max="65535" required>
+                  <label for="appPort" class="form-label text-white fw-medium">Host HTTP Port</label>
+                  <input type="number" class="form-control bg-dark text-white border-secondary" id="appPort" value="5000" min="1" max="65535" required>
                 </div>
               </div>
 
@@ -139,12 +139,12 @@
                   <i class="fa-solid fa-plug"></i> API Integrations
                 </h6>
                 <div class="mb-3">
-                  <label for="curseforgeApiKey" class="form-label text-light fw-medium">CurseForge API Key <span class="text-secondary fs-7">(Optional)</span></label>
-                  <input type="text" class="form-control bg-dark text-light border-secondary" id="curseforgeApiKey" placeholder="$2a$10$...">
+                  <label for="curseforgeApiKey" class="form-label text-white fw-medium">CurseForge API Key <span class="text-secondary fs-7">(Optional)</span></label>
+                  <input type="text" class="form-control bg-dark text-white border-secondary" id="curseforgeApiKey" placeholder="$2a$10$...">
                 </div>
                 <div class="mb-3">
-                  <label for="githubToken" class="form-label text-light fw-medium">GitHub Access Token <span class="text-secondary fs-7">(Optional, prevents rate-limiting for update checks)</span></label>
-                  <input type="text" class="form-control bg-dark text-light border-secondary" id="githubToken" placeholder="ghp_...">
+                  <label for="githubToken" class="form-label text-white fw-medium">GitHub Access Token <span class="text-secondary fs-7">(Optional, prevents rate-limiting for update checks)</span></label>
+                  <input type="text" class="form-control bg-dark text-white border-secondary" id="githubToken" placeholder="ghp_...">
                 </div>
               </div>
 
@@ -155,11 +155,11 @@
                 </h6>
                 <div class="form-check form-switch mb-3">
                   <input class="form-check-input" type="checkbox" id="enableBackups" checked>
-                  <label class="form-check-label text-light fw-medium" for="enableBackups">Enable Automatic Backups</label>
+                  <label class="form-check-label text-white fw-medium" for="enableBackups">Enable Automatic Backups</label>
                 </div>
                 <div class="mb-3" id="backupIntervalGroup">
-                  <label for="backupIntervalHours" class="form-label text-light fw-medium">Backup Interval (Hours)</label>
-                  <input type="number" class="form-control bg-dark text-light border-secondary" id="backupIntervalHours" value="24" min="1" max="168">
+                  <label for="backupIntervalHours" class="form-label text-white fw-medium">Backup Interval (Hours)</label>
+                  <input type="number" class="form-control bg-dark text-white border-secondary" id="backupIntervalHours" value="24" min="1" max="168">
                 </div>
               </div>
 
@@ -177,9 +177,9 @@
 
       <!-- Live Preview & Output Column -->
       <div class="col-lg-6 d-flex flex-column gap-4">
-        <div class="card bg-dark-card border-secondary shadow-sm flex-grow-1 text-light">
-          <div class="card-header bg-dark-header border-secondary d-flex justify-content-between align-items-center py-3 text-light">
-            <h5 class="mb-0 fw-bold d-flex align-items-center gap-2 text-light">
+        <div class="card bg-dark-card border-secondary shadow-sm flex-grow-1 text-white">
+          <div class="card-header bg-dark-header border-secondary d-flex justify-content-between align-items-center py-3 text-white">
+            <h5 class="mb-0 fw-bold d-flex align-items-center gap-2 text-white">
               <i class="fa-solid fa-file-code text-success"></i> Live .env Preview
             </h5>
             <div class="d-flex gap-2">
@@ -196,9 +196,9 @@
           </div>
         </div>
 
-        <div class="card bg-dark-card border-secondary shadow-sm text-light">
-          <div class="card-header bg-dark-header border-secondary py-3 text-light">
-            <h5 class="mb-0 fw-bold d-flex align-items-center gap-2 text-light">
+        <div class="card bg-dark-card border-secondary shadow-sm text-white">
+          <div class="card-header bg-dark-header border-secondary py-3 text-white">
+            <h5 class="mb-0 fw-bold d-flex align-items-center gap-2 text-white">
               <i class="fa-solid fa-rocket text-info"></i> Deployment &amp; Next Steps
             </h5>
           </div>
@@ -209,7 +209,7 @@
               </li>
               <li class="mb-3">
                 <strong>Start with Docker:</strong> Run the command below in your terminal:
-                <div class="bg-black text-light p-2 rounded mt-2 font-monospace fs-7 d-flex justify-content-between align-items-center border border-secondary">
+                <div class="bg-black text-white p-2 rounded mt-2 font-monospace fs-7 d-flex justify-content-between align-items-center border border-secondary">
                   <code>docker compose up -d</code>
                   <button class="btn btn-sm btn-outline-warning border-0 btn-copy-cmd" data-cmd="docker compose up -d" title="Copy command">
                     <i class="fa-solid fa-copy"></i>
