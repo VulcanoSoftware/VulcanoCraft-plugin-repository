@@ -105,43 +105,36 @@ document.addEventListener('DOMContentLoaded', () => {
     return { parsedKV, customKV };
   }
 
-  function applyEnvToForm(parsedKV, customKV) {
-    customEnvVars = { ...customKV };
-
-    // MongoDB Username & Password from MONGO_URI if present
-    if (parsedKV['MONGO_URI']) {
-      try {
-        const uriStr = parsedKV['MONGO_URI'];
-        if (uriStr.startsWith('mongodb://')) {
-          const match = uriStr.match(/^mongodb:\/\/([^:]+):([^@]+)@/);
-          if (match) {
-            elements.mongoUser.value = decodeURIComponent(match[1]);
-            elements.mongoPassword.value = decodeURIComponent(match[2]);
-          }
-        }
-      } catch (e) {
-        console.warn('Failed to parse MONGO_URI credentials:', e);
+  function applyMongoCredentials(parsedKV) {
+    if (parsedKV['MONGO_URI'] && parsedKV['MONGO_URI'].startsWith('mongodb://')) {
+      const match = parsedKV['MONGO_URI'].match(/^mongodb:\/\/([^:]+):([^@]+)@/);
+      if (match) {
+        elements.mongoUser.value = decodeURIComponent(match[1]);
+        elements.mongoPassword.value = decodeURIComponent(match[2]);
       }
     }
-
     if (parsedKV['MONGO_ROOT_USERNAME']) elements.mongoUser.value = parsedKV['MONGO_ROOT_USERNAME'];
     if (parsedKV['MONGO_ROOT_PASSWORD']) elements.mongoPassword.value = parsedKV['MONGO_ROOT_PASSWORD'];
     if (parsedKV['MONGO_DB_NAME']) elements.mongoDbName.value = parsedKV['MONGO_DB_NAME'];
+  }
 
+  function applyServerAndApiCredentials(parsedKV) {
     if (parsedKV['FLASK_SECRET_KEY']) elements.flaskSecretKey.value = parsedKV['FLASK_SECRET_KEY'];
     if (parsedKV['ADMIN_DEFAULT_PASSWORD']) elements.adminDefaultPassword.value = parsedKV['ADMIN_DEFAULT_PASSWORD'];
-
     if (parsedKV['CURSEFORGE_API_KEY'] !== undefined) elements.curseforgeApiKey.value = parsedKV['CURSEFORGE_API_KEY'];
     if (parsedKV['GITHUB_TOKEN'] !== undefined) elements.githubToken.value = parsedKV['GITHUB_TOKEN'];
+  }
 
+  function applyBackupSettings(parsedKV) {
     if (parsedKV['ENABLE_BACKUPS'] !== undefined) {
       const isEnabled = parsedKV['ENABLE_BACKUPS'].toLowerCase() === 'true';
       elements.enableBackups.checked = isEnabled;
       elements.backupIntervalGroup.style.display = isEnabled ? 'block' : 'none';
     }
-
     if (parsedKV['BACKUP_INTERVAL_HOURS']) elements.backupIntervalHours.value = parsedKV['BACKUP_INTERVAL_HOURS'];
+  }
 
+  function updateCustomVarsBadge() {
     const customKeysCount = Object.keys(customEnvVars).length;
     if (customKeysCount > 0) {
       elements.customVarsCount.textContent = customKeysCount;
@@ -149,7 +142,14 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       elements.customVarsBadge.classList.add('d-none');
     }
+  }
 
+  function applyEnvToForm(parsedKV, customKV) {
+    customEnvVars = { ...customKV };
+    applyMongoCredentials(parsedKV);
+    applyServerAndApiCredentials(parsedKV);
+    applyBackupSettings(parsedKV);
+    updateCustomVarsBadge();
     renderEnv();
   }
 
