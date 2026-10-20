@@ -186,7 +186,8 @@ class Modals {
 
         if (this.bulkPerPageSelect) {
             this.bulkPerPageSelect.addEventListener('change', (e) => {
-                this.bulkPerPage = parseInt(e.target.value, 10);
+                const parsed = parseInt(e.target.value, 10);
+                this.bulkPerPage = isNaN(parsed) ? 5 : parsed;
                 this.bulkCurrentPage = 1;
                 this._renderBulkPreviewList();
             });

@@ -446,5 +446,45 @@ class TestAuthArgon2(unittest.TestCase):
         db.server_categories.delete_many({})
         db.plugins.delete_many({})
 
+    def test_unlimited_pagination_public_and_user_api(self):
+        db.plugins.delete_many({})
+        db.users.delete_many({"username": "user_unlimited"})
+
+        db.users.insert_one({
+            'username': 'user_unlimited',
+            'password': hash_password('pass123'),
+            'role': 'user'
+        })
+
+        plugin_docs = [
+            {
+                'title': f'Plugin {i}',
+                'url': f'https://spigotmc.org/resources/{1000 + i}',
+                'owner': 'user_unlimited',
+                'category': 'General',
+                'categories': ['General']
+            } for i in range(25)
+        ]
+        db.plugins.insert_many(plugin_docs)
+
+        resp_public = self.app.get('/api/plugins/public?per_page=0')
+        self.assertEqual(resp_public.status_code, 200)
+        data_public = resp_public.get_json()
+        self.assertEqual(len(data_public['plugins']), 25)
+        self.assertEqual(data_public['total'], 25)
+        self.assertEqual(data_public['total_pages'], 1)
+        self.assertEqual(data_public['per_page'], 0)
+
+        with self.app.session_transaction() as sess:
+            sess['user'] = 'user_unlimited'
+
+        resp_user = self.app.get('/api/plugins?per_page=0')
+        self.assertEqual(resp_user.status_code, 200)
+        data_user = resp_user.get_json()
+        self.assertEqual(len(data_user), 25)
+
+        db.users.delete_many({"username": "user_unlimited"})
+        db.plugins.delete_many({})
+
 if __name__ == '__main__':
     unittest.main()
