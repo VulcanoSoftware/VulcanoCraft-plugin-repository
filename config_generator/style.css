@@ -117,6 +117,17 @@ body {
   border-color: #ffc107;
 }
 
+.btn-outline-info {
+  border-color: #30363d !important;
+  color: #38bdf8 !important;
+}
+
+.btn-outline-info:hover {
+  background-color: #0284c7 !important;
+  border-color: #0284c7 !important;
+  color: #ffffff !important;
+}
+
 .code-preview {
   max-height: 520px;
   min-height: 360px;

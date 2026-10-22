@@ -238,11 +238,21 @@
                 </h6>
                 <div class="mb-3">
                   <label for="curseforgeApiKey" class="form-label text-white fw-medium">CurseForge API Key <span class="text-secondary fs-7">(Optional)</span></label>
-                  <input type="text" class="form-control bg-dark text-white border-secondary" id="curseforgeApiKey" placeholder="your-curseforge-api-key-here">
+                  <div class="input-group">
+                    <input type="text" class="form-control bg-dark text-white border-secondary" id="curseforgeApiKey" placeholder="your-curseforge-api-key-here">
+                    <a href="https://console.curseforge.com/" target="_blank" rel="noopener noreferrer" class="btn btn-outline-info text-white d-flex align-items-center gap-1" title="Get CurseForge API Key">
+                      <i class="fa-solid fa-arrow-up-right-from-square"></i> <span class="d-none d-sm-inline">Get Key</span>
+                    </a>
+                  </div>
                 </div>
                 <div class="mb-3">
                   <label for="githubToken" class="form-label text-white fw-medium">GitHub Access Token <span class="text-secondary fs-7">(Optional, prevents rate-limiting for update checks)</span></label>
-                  <input type="text" class="form-control bg-dark text-white border-secondary" id="githubToken" placeholder="ghp_...">
+                  <div class="input-group">
+                    <input type="text" class="form-control bg-dark text-white border-secondary" id="githubToken" placeholder="ghp_...">
+                    <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" class="btn btn-outline-info text-white d-flex align-items-center gap-1" title="Get GitHub Personal Access Token">
+                      <i class="fa-solid fa-arrow-up-right-from-square"></i> <span class="d-none d-sm-inline">Get Token</span>
+                    </a>
+                  </div>
                 </div>
               </div>
 
