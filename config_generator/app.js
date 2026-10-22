@@ -99,16 +99,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const key = trimmed.substring(0, eqIdx).trim();
       let val = trimmed.substring(eqIdx + 1).trim();
 
-      // Remove surrounding quotes if present
       if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
         val = val.substring(1, val.length - 1);
       }
 
       parsedKV[key] = val;
-
-      if (!standardKeys.has(key)) {
-        customKV[key] = val;
-      }
+      if (!standardKeys.has(key)) customKV[key] = val;
     });
 
     return { parsedKV, customKV };
@@ -188,90 +184,94 @@ document.addEventListener('DOMContentLoaded', () => {
     reader.readAsText(file);
   }
 
+  function getDockerInstructions(port) {
+    return `
+      <ol class="mb-0 ps-3">
+        <li class="mb-3">
+          <strong>Save Configuration:</strong> Click <code class="text-success">Download .env</code> above and place the <code>.env</code> file in the root directory of your project.
+        </li>
+        <li class="mb-3">
+          <strong>Build &amp; Start Stack:</strong> Run Docker Compose to launch Flask WSGI (${port}), MongoDB, cron, and optional backups:
+          <div class="bg-black text-white p-2 rounded mt-2 font-monospace fs-7 d-flex justify-content-between align-items-center border border-secondary">
+            <code>docker compose build app &amp;&amp; docker compose up -d</code>
+            <button class="btn btn-sm btn-outline-warning border-0 btn-copy-cmd" data-cmd="docker compose build app &amp;&amp; docker compose up -d" title="Copy command">
+              <i class="fa-solid fa-copy"></i>
+            </button>
+          </div>
+        </li>
+        <li class="mb-3">
+          <strong>Create Initial Admin Account:</strong>
+          <div class="bg-black text-white p-2 rounded mt-2 font-monospace fs-7 d-flex justify-content-between align-items-center border border-secondary">
+            <code>docker compose exec app python create_admin.py</code>
+            <button class="btn btn-sm btn-outline-warning border-0 btn-copy-cmd" data-cmd="docker compose exec app python create_admin.py" title="Copy command">
+              <i class="fa-solid fa-copy"></i>
+            </button>
+          </div>
+        </li>
+        <li>
+          <strong>Access Application:</strong> Open browser at <a href="http://localhost:${port}" target="_blank" class="text-info fw-bold text-decoration-none">http://localhost:${port}</a>.
+        </li>
+      </ol>`;
+  }
+
+  function getLocalInstructions(port) {
+    return `
+      <ol class="mb-0 ps-3">
+        <li class="mb-3">
+          <strong>Install Dependencies:</strong> Use <code>uv</code> or <code>pip</code> with Python 3.11:
+          <div class="bg-black text-white p-2 rounded mt-2 font-monospace fs-7 d-flex justify-content-between align-items-center border border-secondary">
+            <code>uv pip install -r requirements.txt &amp;&amp; playwright install</code>
+            <button class="btn btn-sm btn-outline-warning border-0 btn-copy-cmd" data-cmd="uv pip install -r requirements.txt &amp;&amp; playwright install" title="Copy command">
+              <i class="fa-solid fa-copy"></i>
+            </button>
+          </div>
+        </li>
+        <li class="mb-3">
+          <strong>Start Local Server:</strong> Run Flask webserver:
+          <div class="bg-black text-white p-2 rounded mt-2 font-monospace fs-7 d-flex justify-content-between align-items-center border border-secondary">
+            <code>uv run webserver.py</code>
+            <button class="btn btn-sm btn-outline-warning border-0 btn-copy-cmd" data-cmd="uv run webserver.py" title="Copy command">
+              <i class="fa-solid fa-copy"></i>
+            </button>
+          </div>
+        </li>
+        <li>
+          <strong>Access Application:</strong> Open browser at <a href="http://localhost:${port}" target="_blank" class="text-info fw-bold text-decoration-none">http://localhost:${port}</a>.
+        </li>
+      </ol>`;
+  }
+
+  function getArm64Instructions(port) {
+    return `
+      <ol class="mb-0 ps-3">
+        <li class="mb-3">
+          <strong>Requirements &amp; Architecture:</strong> Requires a 64-bit OS (e.g., Raspberry Pi OS 64-bit or Ubuntu Server 64-bit). The Docker stack pins <code>mongo:4.4.18</code> to guarantee ARMv8 CPU compatibility.
+        </li>
+        <li class="mb-3">
+          <strong>Build &amp; Launch Stack:</strong>
+          <div class="bg-black text-white p-2 rounded mt-2 font-monospace fs-7 d-flex justify-content-between align-items-center border border-secondary">
+            <code>docker compose build app &amp;&amp; docker compose up -d</code>
+            <button class="btn btn-sm btn-outline-warning border-0 btn-copy-cmd" data-cmd="docker compose build app &amp;&amp; docker compose up -d" title="Copy command">
+              <i class="fa-solid fa-copy"></i>
+            </button>
+          </div>
+        </li>
+        <li>
+          <strong>Access Application:</strong> Open browser at <a href="http://localhost:${port}" target="_blank" class="text-info fw-bold text-decoration-none">http://localhost:${port}</a>.
+        </li>
+      </ol>`;
+  }
+
   function renderDeploymentInstructions() {
     const port = elements.appPort.value.trim() || (currentDeployMethod === 'local' ? '5000' : '8000');
-    let html = '';
+    const instructionMap = {
+      docker: getDockerInstructions(port),
+      local: getLocalInstructions(port),
+      arm64: getArm64Instructions(port)
+    };
 
-    if (currentDeployMethod === 'docker') {
-      html = `
-        <ol class="mb-0 ps-3">
-          <li class="mb-3">
-            <strong>Save Configuration:</strong> Click <code class="text-success">Download .env</code> above and place the <code>.env</code> file in the root directory of your project.
-          </li>
-          <li class="mb-3">
-            <strong>Build &amp; Start Stack:</strong> Run Docker Compose to launch Flask WSGI (${port}), MongoDB, cron, and optional backups:
-            <div class="bg-black text-white p-2 rounded mt-2 font-monospace fs-7 d-flex justify-content-between align-items-center border border-secondary">
-              <code>docker compose build app &amp;&amp; docker compose up -d</code>
-              <button class="btn btn-sm btn-outline-warning border-0 btn-copy-cmd" data-cmd="docker compose build app &amp;&amp; docker compose up -d" title="Copy command">
-                <i class="fa-solid fa-copy"></i>
-              </button>
-            </div>
-          </li>
-          <li class="mb-3">
-            <strong>Create Initial Admin Account:</strong>
-            <div class="bg-black text-white p-2 rounded mt-2 font-monospace fs-7 d-flex justify-content-between align-items-center border border-secondary">
-              <code>docker compose exec app python create_admin.py</code>
-              <button class="btn btn-sm btn-outline-warning border-0 btn-copy-cmd" data-cmd="docker compose exec app python create_admin.py" title="Copy command">
-                <i class="fa-solid fa-copy"></i>
-              </button>
-            </div>
-          </li>
-          <li>
-            <strong>Access Application:</strong> Open browser at <a href="http://localhost:${port}" target="_blank" class="text-info fw-bold text-decoration-none">http://localhost:${port}</a>.
-          </li>
-        </ol>
-      `;
-    } else if (currentDeployMethod === 'local') {
-      html = `
-        <ol class="mb-0 ps-3">
-          <li class="mb-3">
-            <strong>Install Dependencies:</strong> Use <code>uv</code> or <code>pip</code> with Python 3.11:
-            <div class="bg-black text-white p-2 rounded mt-2 font-monospace fs-7 d-flex justify-content-between align-items-center border border-secondary">
-              <code>uv pip install -r requirements.txt &amp;&amp; playwright install</code>
-              <button class="btn btn-sm btn-outline-warning border-0 btn-copy-cmd" data-cmd="uv pip install -r requirements.txt &amp;&amp; playwright install" title="Copy command">
-                <i class="fa-solid fa-copy"></i>
-              </button>
-            </div>
-          </li>
-          <li class="mb-3">
-            <strong>Start Local Server:</strong> Run Flask webserver:
-            <div class="bg-black text-white p-2 rounded mt-2 font-monospace fs-7 d-flex justify-content-between align-items-center border border-secondary">
-              <code>uv run webserver.py</code>
-              <button class="btn btn-sm btn-outline-warning border-0 btn-copy-cmd" data-cmd="uv run webserver.py" title="Copy command">
-                <i class="fa-solid fa-copy"></i>
-              </button>
-            </div>
-          </li>
-          <li>
-            <strong>Access Application:</strong> Open browser at <a href="http://localhost:${port}" target="_blank" class="text-info fw-bold text-decoration-none">http://localhost:${port}</a>.
-          </li>
-        </ol>
-      `;
-    } else if (currentDeployMethod === 'arm64') {
-      html = `
-        <ol class="mb-0 ps-3">
-          <li class="mb-3">
-            <strong>Requirements &amp; Architecture:</strong> Requires a 64-bit OS (e.g., Raspberry Pi OS 64-bit or Ubuntu Server 64-bit). The Docker stack pins <code>mongo:4.4.18</code> to guarantee ARMv8 CPU compatibility.
-          </li>
-          <li class="mb-3">
-            <strong>Build &amp; Launch Stack:</strong>
-            <div class="bg-black text-white p-2 rounded mt-2 font-monospace fs-7 d-flex justify-content-between align-items-center border border-secondary">
-              <code>docker compose build app &amp;&amp; docker compose up -d</code>
-              <button class="btn btn-sm btn-outline-warning border-0 btn-copy-cmd" data-cmd="docker compose build app &amp;&amp; docker compose up -d" title="Copy command">
-                <i class="fa-solid fa-copy"></i>
-              </button>
-            </div>
-          </li>
-          <li>
-            <strong>Access Application:</strong> Open browser at <a href="http://localhost:${port}" target="_blank" class="text-info fw-bold text-decoration-none">http://localhost:${port}</a>.
-          </li>
-        </ol>
-      `;
-    }
+    elements.deploymentInstructions.innerHTML = instructionMap[currentDeployMethod] || getDockerInstructions(port);
 
-    elements.deploymentInstructions.innerHTML = html;
-
-    // Attach click listeners to new copy command buttons
     elements.deploymentInstructions.querySelectorAll('.btn-copy-cmd').forEach(btn => {
       btn.addEventListener('click', () => {
         const cmd = btn.getAttribute('data-cmd');
@@ -282,8 +282,52 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function buildMongoSection(user, pass, dbName, mongoUri) {
+    return `# MongoDB Database Config\n` +
+      `MONGO_ROOT_USERNAME=${user}\n` +
+      `MONGO_ROOT_PASSWORD=${pass}\n` +
+      `MONGO_DB_NAME=${dbName}\n` +
+      `MONGO_URI=${mongoUri}\n` +
+      `MONGO_BACKUP_URI=${mongoUri}\n\n`;
+  }
+
+  function buildWebserverSection(flaskKey, adminPass) {
+    return `# Webserver & Security\n` +
+      `FLASK_SECRET_KEY=${flaskKey}\n` +
+      `ADMIN_DEFAULT_PASSWORD=${adminPass}\n\n`;
+  }
+
+  function buildApiSection(cfKey, ghToken) {
+    let text = cfKey ?
+      `# API Integration Key\nCURSEFORGE_API_KEY=${cfKey}\n\n` :
+      `# CURSEFORGE_API_KEY=\n\n`;
+
+    text += ghToken ?
+      `# GitHub Access Token (Prevents rate-limiting for update checks)\nGITHUB_TOKEN=${ghToken}\n\n` :
+      `# GITHUB_TOKEN=\n\n`;
+
+    return text;
+  }
+
+  function buildBackupSection(backups, interval) {
+    return `# Automatic Backups\n` +
+      `ENABLE_BACKUPS=${backups ? 'true' : 'false'}\n` +
+      `BACKUP_INTERVAL_HOURS=${interval}\n`;
+  }
+
+  function buildCustomSection() {
+    const customKeys = Object.keys(customEnvVars);
+    if (customKeys.length === 0) return '';
+    let text = `\n# Additional / Custom Variables (Preserved from imported .env)\n`;
+    customKeys.forEach(k => {
+      text += `${k}=${customEnvVars[k]}\n`;
+    });
+    return text;
+  }
+
   function renderEnv() {
-    const host = elements.mongoHost.value.trim() || (currentDeployMethod === 'docker' || currentDeployMethod === 'arm64' ? 'mongo' : 'localhost');
+    const defaultHost = (currentDeployMethod === 'docker' || currentDeployMethod === 'arm64') ? 'mongo' : 'localhost';
+    const host = elements.mongoHost.value.trim() || defaultHost;
     const port = elements.mongoPort.value.trim() || '27017';
     const user = elements.mongoUser.value.trim() || 'vulcano_root';
     const pass = elements.mongoPassword.value.trim() || 'change-me-strong-mongo-password';
@@ -297,49 +341,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const mongoUri = `mongodb://${encodeURIComponent(user)}:${encodeURIComponent(pass)}@${host}:${port}/${dbName}?authSource=admin`;
 
-    let envContent = `# ==========================================\n`;
-    envContent += `# VulcanoCraft Configuration File (.env)\n`;
-    envContent += `# Target Deployment Method: ${currentDeployMethod.toUpperCase()}\n`;
-    envContent += `# Generated via VulcanoCraft Configurator\n`;
-    envContent += `# ==========================================\n\n`;
+    let envContent = `# ==========================================\n` +
+      `# VulcanoCraft Configuration File (.env)\n` +
+      `# Target Deployment Method: ${currentDeployMethod.toUpperCase()}\n` +
+      `# Generated via VulcanoCraft Configurator\n` +
+      `# ==========================================\n\n`;
 
-    envContent += `# MongoDB Database Config\n`;
-    envContent += `MONGO_ROOT_USERNAME=${user}\n`;
-    envContent += `MONGO_ROOT_PASSWORD=${pass}\n`;
-    envContent += `MONGO_DB_NAME=${dbName}\n`;
-    envContent += `MONGO_URI=${mongoUri}\n`;
-    envContent += `MONGO_BACKUP_URI=${mongoUri}\n\n`;
-
-    envContent += `# Webserver & Security\n`;
-    envContent += `FLASK_SECRET_KEY=${flaskKey}\n`;
-    envContent += `ADMIN_DEFAULT_PASSWORD=${adminPass}\n\n`;
-
-    if (cfKey) {
-      envContent += `# API Integration Key\n`;
-      envContent += `CURSEFORGE_API_KEY=${cfKey}\n\n`;
-    } else {
-      envContent += `# CURSEFORGE_API_KEY=\n\n`;
-    }
-
-    if (ghToken) {
-      envContent += `# GitHub Access Token (Prevents rate-limiting for update checks)\n`;
-      envContent += `GITHUB_TOKEN=${ghToken}\n\n`;
-    } else {
-      envContent += `# GITHUB_TOKEN=\n\n`;
-    }
-
-    envContent += `# Automatic Backups\n`;
-    envContent += `ENABLE_BACKUPS=${backups ? 'true' : 'false'}\n`;
-    envContent += `BACKUP_INTERVAL_HOURS=${interval}\n`;
-
-    // Append preserved custom/additional variables
-    const customKeys = Object.keys(customEnvVars);
-    if (customKeys.length > 0) {
-      envContent += `\n# Additional / Custom Variables (Preserved from imported .env)\n`;
-      customKeys.forEach(k => {
-        envContent += `${k}=${customEnvVars[k]}\n`;
-      });
-    }
+    envContent += buildMongoSection(user, pass, dbName, mongoUri);
+    envContent += buildWebserverSection(flaskKey, adminPass);
+    envContent += buildApiSection(cfKey, ghToken);
+    envContent += buildBackupSection(backups, interval);
+    envContent += buildCustomSection();
 
     elements.envPreview.textContent = envContent;
     renderDeploymentInstructions();
