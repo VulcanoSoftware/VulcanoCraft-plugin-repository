@@ -449,11 +449,20 @@ class App {
 
         const langNlBtn = document.getElementById('langSelectNl');
         const langEnBtn = document.getElementById('langSelectEn');
+        const langDeBtn = document.getElementById('langSelectDe');
 
         if (langNlBtn) {
             langNlBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 i18n.setLanguage('nl', this.authStatus.logged_in);
+                this.loadAndRenderPlugins(this.filters.getFilterParams());
+            });
+        }
+
+        if (langDeBtn) {
+            langDeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                i18n.setLanguage('de', this.authStatus.logged_in);
                 this.loadAndRenderPlugins(this.filters.getFilterParams());
             });
         }
