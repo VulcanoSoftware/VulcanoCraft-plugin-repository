@@ -18,7 +18,7 @@
         <i class="fa-solid fa-sliders text-warning"></i> VulcanoCraft Configurator
       </a>
       <span class="badge bg-success bg-gradient text-white px-3 py-2 rounded-pill fw-semibold shadow-sm">
-        <i class="fa-solid fa-shield-halved me-1"></i> Production Ready &amp; Client-Side
+        <i class="fa-solid fa-shield-halved me-1"></i> Client-Side &amp; Secure
       </span>
     </div>
   </nav>
@@ -28,8 +28,78 @@
       <div class="col-12 text-center">
         <h1 class="fw-bold mb-2 display-6 text-gradient">VulcanoCraft Configuration Generator</h1>
         <p class="text-secondary fs-5 max-w-700 mx-auto">
-          Easily generate or update your <code>.env</code> configuration file for your server. Upload an existing configuration to preserve custom settings while updating values.
+          Easily generate or update your <code>.env</code> configuration file for your server. Choose your target deployment method, configure settings, or upload an existing file to preserve custom parameters.
         </p>
+      </div>
+    </div>
+
+    <!-- Deployment Method Selector -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card bg-dark-card border-secondary shadow-sm">
+          <div class="card-header bg-dark-header border-secondary py-3">
+            <h5 class="mb-0 fw-bold text-white d-flex align-items-center gap-2">
+              <i class="fa-solid fa-cubes text-warning"></i> Choose Deployment Method
+            </h5>
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-3" id="deployMethodCards">
+              <!-- Docker Compose Production -->
+              <div class="col-md-4">
+                <div class="deploy-card active p-3 rounded border border-warning h-100 cursor-pointer" data-method="docker">
+                  <div class="d-flex align-items-center gap-3 mb-2">
+                    <div class="deploy-icon rounded-circle bg-primary bg-opacity-20 text-primary p-2 fs-4">
+                      <i class="fa-brands fa-docker"></i>
+                    </div>
+                    <div>
+                      <h6 class="fw-bold mb-0 text-white">Docker Compose</h6>
+                      <span class="badge bg-warning text-dark fs-8">Recommended</span>
+                    </div>
+                  </div>
+                  <p class="text-secondary fs-7 mb-0">
+                    Production stack with Flask/Gunicorn app (port 8000), MongoDB (port 27017), automated background cron, and optional backups.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Local / Standalone Python -->
+              <div class="col-md-4">
+                <div class="deploy-card p-3 rounded border border-secondary h-100 cursor-pointer" data-method="local">
+                  <div class="d-flex align-items-center gap-3 mb-2">
+                    <div class="deploy-icon rounded-circle bg-success bg-opacity-20 text-success p-2 fs-4">
+                      <i class="fa-brands fa-python"></i>
+                    </div>
+                    <div>
+                      <h6 class="fw-bold mb-0 text-white">Local / Standalone</h6>
+                      <span class="badge bg-secondary text-white fs-8">Development</span>
+                    </div>
+                  </div>
+                  <p class="text-secondary fs-7 mb-0">
+                    Run locally using Python 3.11 with <code>uv</code> or <code>pip</code> on port 5000 connecting to local or remote MongoDB.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Docker ARM64 / Raspberry Pi -->
+              <div class="col-md-4">
+                <div class="deploy-card p-3 rounded border border-secondary h-100 cursor-pointer" data-method="arm64">
+                  <div class="d-flex align-items-center gap-3 mb-2">
+                    <div class="deploy-icon rounded-circle bg-info bg-opacity-20 text-info p-2 fs-4">
+                      <i class="fa-solid fa-microchip"></i>
+                    </div>
+                    <div>
+                      <h6 class="fw-bold mb-0 text-white">ARM64 / Raspberry Pi 4</h6>
+                      <span class="badge bg-info text-dark fs-8">64-bit OS</span>
+                    </div>
+                  </div>
+                  <p class="text-secondary fs-7 mb-0">
+                    Optimized for ARM64 single-board servers using pinned <code>mongo:4.4.18</code> to avoid ARMv8 CPU compatibility crashes.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -44,22 +114,38 @@
                   <i class="fa-solid fa-file-arrow-up"></i>
                 </div>
                 <div>
-                  <h5 class="fw-bold mb-1 text-white">Update Existing Configuration</h5>
+                  <h5 class="fw-bold mb-1 text-white">Upload Existing Configuration</h5>
                   <p class="text-secondary mb-0 fs-7">
-                    Upload an existing <code>.env</code> file to auto-fill form fields. Any custom or non-standard variables will be safely preserved.
+                    Upload an existing <code>.env</code> file to populate settings automatically. Any custom variables will be preserved.
                   </p>
                 </div>
               </div>
               <div class="d-flex gap-2 w-100 w-md-auto justify-content-md-end">
                 <input type="file" id="envFileInput" class="d-none" accept=".env,text/plain">
                 <button id="btnUploadEnv" type="button" class="btn btn-outline-warning px-4 py-2 fw-semibold d-flex align-items-center gap-2">
-                  <i class="fa-solid fa-upload"></i> Upload .env File
+                  <i class="fa-solid fa-folder-open"></i> Select .env File
                 </button>
               </div>
             </div>
+
             <!-- Dropzone info -->
-            <div id="dropZone" class="drop-zone mt-3 text-center p-3 rounded border border-dashed border-secondary text-secondary">
-              <i class="fa-solid fa-cloud-arrow-up me-2"></i> Drag &amp; drop an existing <code>.env</code> file here to import
+            <div id="dropZone" class="drop-zone mt-3 text-center p-4 rounded border border-dashed border-secondary text-secondary">
+              <i class="fa-solid fa-cloud-arrow-up fs-3 mb-2 d-block text-warning opacity-75"></i>
+              <span class="fw-medium">Drag &amp; drop your existing <code>.env</code> file here</span>
+              <span class="d-block text-secondary fs-7 mt-1">or click "Select .env File" above</span>
+            </div>
+
+            <!-- Upload Status Badge -->
+            <div id="uploadStatusBadge" class="alert alert-success border-success d-none mt-3 mb-0 fs-7 d-flex align-items-center justify-content-between">
+              <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid fa-circle-check fs-5"></i>
+                <div>
+                  Loaded config from <strong id="uploadedFileName">.env</strong>: <span id="uploadedStats">0 variables imported</span>.
+                </div>
+              </div>
+              <button type="button" id="btnClearUpload" class="btn btn-sm btn-outline-light text-white" title="Clear imported configuration">
+                <i class="fa-solid fa-xmark me-1"></i> Reset
+              </button>
             </div>
           </div>
         </div>
@@ -85,6 +171,16 @@
                 <h6 class="text-warning fw-bold border-bottom border-secondary pb-2 mb-3 d-flex align-items-center gap-2">
                   <i class="fa-solid fa-database"></i> Database Settings (MongoDB)
                 </h6>
+                <div class="row g-3 mb-3">
+                  <div class="col-md-7">
+                    <label for="mongoHost" class="form-label text-white fw-medium">MongoDB Host</label>
+                    <input type="text" class="form-control bg-dark text-white border-secondary" id="mongoHost" value="mongo" required placeholder="mongo or localhost">
+                  </div>
+                  <div class="col-md-5">
+                    <label for="mongoPort" class="form-label text-white fw-medium">MongoDB Port</label>
+                    <input type="number" class="form-control bg-dark text-white border-secondary" id="mongoPort" value="27017" min="1" max="65535" required>
+                  </div>
+                </div>
                 <div class="mb-3">
                   <label for="mongoUser" class="form-label text-white fw-medium">MongoDB Root Username</label>
                   <input type="text" class="form-control bg-dark text-white border-secondary" id="mongoUser" value="vulcano_root" required>
@@ -110,10 +206,12 @@
                   <i class="fa-solid fa-shield-halved"></i> Webserver &amp; Security
                 </h6>
                 <div class="mb-3">
-                  <label for="flaskSecretKey" class="form-label text-white fw-medium">Flask Secret Key</label>
+                  <label for="flaskSecretKey" class="form-label text-white fw-medium">
+                    Flask Secret Key <span class="text-secondary fs-7">(Recommended: 64 random hex chars)</span>
+                  </label>
                   <div class="input-group">
-                    <input type="text" class="form-control bg-dark text-white border-secondary" id="flaskSecretKey" value="change-me-strong-flask-secret-key" required>
-                    <button class="btn btn-outline-secondary btn-gen-secret text-white" type="button" data-target="flaskSecretKey" title="Generate secret key">
+                    <input type="text" class="form-control bg-dark text-white border-secondary" id="flaskSecretKey" value="a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890" required>
+                    <button class="btn btn-outline-secondary btn-gen-secret text-white" type="button" data-target="flaskSecretKey" title="Generate 64-character hex secret key">
                       <i class="fa-solid fa-arrows-rotate"></i>
                     </button>
                   </div>
@@ -121,15 +219,15 @@
                 <div class="mb-3">
                   <label for="adminDefaultPassword" class="form-label text-white fw-medium">Default Admin Password</label>
                   <div class="input-group">
-                    <input type="text" class="form-control bg-dark text-white border-secondary" id="adminDefaultPassword" value="admin123" required>
-                    <button class="btn btn-outline-secondary btn-gen-secret text-white" type="button" data-target="adminDefaultPassword" title="Generate password">
+                    <input type="text" class="form-control bg-dark text-white border-secondary" id="adminDefaultPassword" value="change-me-strong-admin-password" required>
+                    <button class="btn btn-outline-secondary btn-gen-secret text-white" type="button" data-target="adminDefaultPassword" title="Generate random admin password">
                       <i class="fa-solid fa-arrows-rotate"></i>
                     </button>
                   </div>
                 </div>
                 <div class="mb-3">
                   <label for="appPort" class="form-label text-white fw-medium">Host HTTP Port</label>
-                  <input type="number" class="form-control bg-dark text-white border-secondary" id="appPort" value="5000" min="1" max="65535" required>
+                  <input type="number" class="form-control bg-dark text-white border-secondary" id="appPort" value="8000" min="1" max="65535" required>
                 </div>
               </div>
 
@@ -140,7 +238,7 @@
                 </h6>
                 <div class="mb-3">
                   <label for="curseforgeApiKey" class="form-label text-white fw-medium">CurseForge API Key <span class="text-secondary fs-7">(Optional)</span></label>
-                  <input type="text" class="form-control bg-dark text-white border-secondary" id="curseforgeApiKey" placeholder="$2a$10$...">
+                  <input type="text" class="form-control bg-dark text-white border-secondary" id="curseforgeApiKey" placeholder="your-curseforge-api-key-here">
                 </div>
                 <div class="mb-3">
                   <label for="githubToken" class="form-label text-white fw-medium">GitHub Access Token <span class="text-secondary fs-7">(Optional, prevents rate-limiting for update checks)</span></label>
@@ -202,24 +300,8 @@
               <i class="fa-solid fa-rocket text-info"></i> Deployment &amp; Next Steps
             </h5>
           </div>
-          <div class="card-body p-4">
-            <ol class="mb-0 ps-3">
-              <li class="mb-3">
-                <strong>Save Configuration:</strong> Click <code class="text-success">Download .env</code> above and place the file in the root directory of your VulcanoCraft project.
-              </li>
-              <li class="mb-3">
-                <strong>Start with Docker:</strong> Run the command below in your terminal:
-                <div class="bg-black text-white p-2 rounded mt-2 font-monospace fs-7 d-flex justify-content-between align-items-center border border-secondary">
-                  <code>docker compose up -d</code>
-                  <button class="btn btn-sm btn-outline-warning border-0 btn-copy-cmd" data-cmd="docker compose up -d" title="Copy command">
-                    <i class="fa-solid fa-copy"></i>
-                  </button>
-                </div>
-              </li>
-              <li>
-                <strong>Access Application:</strong> Open your web browser at <a id="appUrlLink" href="http://localhost:5000" target="_blank" class="text-info fw-bold text-decoration-none">http://localhost:5000</a>.
-              </li>
-            </ol>
+          <div class="card-body p-4" id="deploymentInstructions">
+            <!-- Dynamic instructions rendered by app.js -->
           </div>
         </div>
       </div>

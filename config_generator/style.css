@@ -13,6 +13,14 @@ body {
   font-size: 0.85rem;
 }
 
+.fs-8 {
+  font-size: 0.75rem;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
 .navbar-custom {
   background-color: #161b22 !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
@@ -37,6 +45,23 @@ body {
   border-top-right-radius: 0.75rem !important;
 }
 
+/* Deployment Cards */
+.deploy-card {
+  background-color: #0d1117;
+  transition: all 0.2s ease-in-out;
+}
+
+.deploy-card:hover {
+  background-color: #161b22;
+  border-color: #6e7681 !important;
+  transform: translateY(-2px);
+}
+
+.deploy-card.active {
+  background-color: #161b22;
+  box-shadow: 0 0 12px rgba(255, 193, 7, 0.2);
+}
+
 .upload-card {
   background: linear-gradient(145deg, #161b22 0%, #1c2128 100%);
   border: 1px solid #30363d !important;
@@ -54,6 +79,11 @@ body {
   background-color: #0d1117;
   transition: all 0.2s ease-in-out;
   cursor: pointer;
+}
+
+.drop-zone:hover {
+  border-color: #ffc107 !important;
+  background-color: #161b22;
 }
 
 .drop-zone.dragover {
