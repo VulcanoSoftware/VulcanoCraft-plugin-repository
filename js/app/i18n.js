@@ -112,7 +112,7 @@ class I18n {
         const currentFlag = document.getElementById('currentLanguageFlag');
         const currentText = document.getElementById('currentLanguageText');
         if (currentFlag) {
-            currentFlag.src = this.currentLang === 'en' ? 'images/flags/uk.png' : 'images/flags/netherlands.png';
+            currentFlag.src = this.currentLang === 'en' ? 'images/flags/en.png' : 'images/flags/nl.png';
             currentFlag.alt = this.currentLang.toUpperCase();
         }
         if (currentText) {
