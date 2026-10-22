@@ -1,30 +1,126 @@
-/* Custom styles for VulcanoCraft GitHub Pages Configurator */
+/* Custom styles for VulcanoCraft Production Configurator */
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background-color: #121212 !important;
+  background-color: #0f1216 !important;
+  color: #e2e8f0;
+}
+
+.max-w-700 {
+  max-width: 700px;
 }
 
 .fs-7 {
   font-size: 0.85rem;
 }
 
-pre {
-  white-space: pre-wrap;
-  word-wrap: break-word;
+.navbar-custom {
+  background-color: #161b22 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-.form-control:focus {
-  background-color: #1b1e22;
-  color: #ffffff;
-  border-color: #0dcaf0;
-  box-shadow: 0 0 0 0.25rem rgba(13, 202, 240, 0.25);
+.text-gradient {
+  background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.card {
+.bg-dark-card {
+  background-color: #161b22 !important;
+  border-color: #30363d !important;
+  border-radius: 0.75rem;
+}
+
+.bg-dark-header {
+  background-color: #21262d !important;
+  border-color: #30363d !important;
+  border-top-left-radius: 0.75rem !important;
+  border-top-right-radius: 0.75rem !important;
+}
+
+.upload-card {
+  background: linear-gradient(145deg, #161b22 0%, #1c2128 100%);
+  border: 1px solid #30363d !important;
+}
+
+.upload-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+}
+
+.drop-zone {
+  background-color: #0d1117;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.drop-zone.dragover {
+  background-color: rgba(255, 193, 7, 0.1);
+  border-color: #ffc107 !important;
+  color: #ffc107 !important;
+}
+
+.form-control, .form-select {
+  background-color: #0d1117 !important;
+  border-color: #30363d !important;
+  color: #e2e8f0 !important;
+  padding: 0.6rem 0.8rem;
   border-radius: 0.5rem;
+}
+
+.form-control:focus, .form-select:focus {
+  background-color: #0d1117 !important;
+  color: #ffffff !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 0 0.25rem rgba(56, 189, 248, 0.2);
+}
+
+.btn-gen-secret {
+  border-color: #30363d;
 }
 
 .btn-gen-secret:hover {
   background-color: #ffc107;
-  color: #000;
+  color: #000000 !important;
+  border-color: #ffc107;
+}
+
+.code-preview {
+  max-height: 520px;
+  min-height: 360px;
+  border: none;
+  background-color: #090d11 !important;
+  color: #38bdf8 !important;
+  line-height: 1.5;
+  font-size: 0.875rem;
+}
+
+/* Scrollbar styling */
+.code-preview::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.code-preview::-webkit-scrollbar-track {
+  background: #0d1117;
+}
+
+.code-preview::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 4px;
+}
+
+.code-preview::-webkit-scrollbar-thumb:hover {
+  background: #484f58;
+}
+
+.form-check-input:checked {
+  background-color: #198754;
+  border-color: #198754;
+}
+
+.footer {
+  background-color: #161b22 !important;
 }
