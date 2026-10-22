@@ -10,12 +10,14 @@ class I18n {
         if (!this._fetchPromise) {
             this._fetchPromise = (async () => {
                 try {
-                    const [nlRes, enRes, deRes] = await Promise.all([
-                        fetch('/lang/nl.json').then(r => r.ok ? r.json() : {}),
-                        fetch('/lang/en.json').then(r => r.ok ? r.json() : {}),
-                        fetch('/lang/de.json').then(r => r.ok ? r.json() : {})
-                    ]);
-                    this.translations = { nl: nlRes, en: enRes, de: deRes };
+                    const langs = ['nl', 'en', 'de', 'fr', 'el', 'es', 'it', 'pt', 'pl', 'tr'];
+                    const results = await Promise.all(
+                        langs.map(l => fetch(`/lang/${l}.json`).then(r => r.ok ? r.json() : {}))
+                    );
+                    this.translations = {};
+                    langs.forEach((l, idx) => {
+                        this.translations[l] = results[idx];
+                    });
                 } catch (err) {
                     console.error('Failed to load translations from JSON:', err);
                 }
@@ -117,7 +119,12 @@ class I18n {
             currentFlag.alt = this.currentLang.toUpperCase();
         }
         if (currentText) {
-            const translatedWord = this.currentLang === 'de' ? 'Sprache' : (this.currentLang === 'en' ? 'language' : 'taal');
+            const langWords = {
+                nl: 'taal', en: 'language', de: 'Sprache', fr: 'langue',
+                el: 'γλώσσα', es: 'idioma', it: 'lingua', pt: 'idioma',
+                pl: 'język', tr: 'dil'
+            };
+            const translatedWord = langWords[this.currentLang] || 'language';
             currentText.textContent = `language / ${translatedWord}`;
         }
 

@@ -1232,7 +1232,7 @@ def update_user_language():
     username = session.get('user')
     data = request.get_json() or {}
     lang = data.get('language', 'nl')
-    if lang not in ['nl', 'en', 'de']:
+    if lang not in ['nl', 'en', 'de', 'fr', 'el', 'es', 'it', 'pt', 'pl', 'tr']:
         return jsonify({'error': 'Ongeldige taal'}), 400
 
     try:
