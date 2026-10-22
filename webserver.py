@@ -81,8 +81,6 @@ def run_migrations():
     except Exception as e:
         print(f"Fout bij uitvoeren van migraties: {e}")
 
-run_migrations()
-
 def load_plugins():
     """Laad de plugins data"""
     try:
@@ -352,6 +350,8 @@ def load_server_categories():
         return categories
     except Exception:
         return []
+
+run_migrations()
     
 def save_server_categories(categories):
     """Sla server categorieën op"""
@@ -397,6 +397,14 @@ def serve_js_from_folder(filename):
         return send_file(f'js/{filename}', mimetype='application/javascript')
     except FileNotFoundError:
         return "JavaScript file not found", 404
+
+@app.route('/lang/<path:filename>')
+def serve_lang(filename):
+    """Serveer taalbestanden uit de lang map"""
+    try:
+        return send_file(f'lang/{filename}', mimetype='application/json')
+    except FileNotFoundError:
+        return "Language file not found", 404
     
 @app.route('/css/<path:filename>')
 def serve_css_from_folder(filename):

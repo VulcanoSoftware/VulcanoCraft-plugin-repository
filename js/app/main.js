@@ -13,14 +13,15 @@ class App {
     }
 
     async init() {
+        await i18n.init();
         document.getElementById('currentYear').textContent = new Date().getFullYear();
 
         this.authStatus = await Auth.checkStatus();
 
         if (this.authStatus.logged_in && this.authStatus.language) {
-            i18n.setLanguage(this.authStatus.language, false);
+            await i18n.setLanguage(this.authStatus.language, false);
         } else {
-            i18n.applyTranslations();
+            await i18n.applyTranslations();
         }
 
         this.filters = new Filters((filterParams, resetPage) => {

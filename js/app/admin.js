@@ -53,14 +53,15 @@ class AdminPage {
     }
 
     async init() {
+        await i18n.init();
         this._setupEventListeners();
         try {
             const data = await ApiAdmin.checkSession();
             if (data.logged_in && data.language) {
-                i18n.setLanguage(data.language, false);
+                await i18n.setLanguage(data.language, false);
             } else {
                 const savedLang = localStorage.getItem('user_language') || 'nl';
-                i18n.setLanguage(savedLang, false);
+                await i18n.setLanguage(savedLang, false);
             }
 
             if (this.adminLoadingState) this.adminLoadingState.style.display = 'none';
@@ -76,7 +77,7 @@ class AdminPage {
         } catch (error) {
             if (this.adminLoadingState) this.adminLoadingState.style.display = 'none';
             const savedLang = localStorage.getItem('user_language') || 'nl';
-            i18n.setLanguage(savedLang, false);
+            await i18n.setLanguage(savedLang, false);
             this._showLoginForm();
         }
     }
