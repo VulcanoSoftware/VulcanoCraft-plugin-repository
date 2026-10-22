@@ -13,7 +13,6 @@ on:
       - synchronize
       - reopened
       - closed
-      - draft
     paths:
       - 'config_generator/**'
       - '.github/workflows/deploy-pages.yml'
