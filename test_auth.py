@@ -200,6 +200,7 @@ class TestAuthArgon2(unittest.TestCase):
         self.assertTrue(data.get('success'))
 
         expected_calls = [
+            call(['git', 'stash'], capture_output=True, text=True, timeout=60),
             call(['git', 'fetch', 'origin', 'main'], capture_output=True, text=True, timeout=60),
             call(['git', 'checkout', '-B', 'main', 'origin/main'], capture_output=True, text=True, timeout=60),
             call(['git', 'reset', '--hard', 'origin/main'], capture_output=True, text=True, timeout=60),

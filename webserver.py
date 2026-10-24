@@ -1071,6 +1071,7 @@ def admin_apply_update():
     """Download en pas de nieuwste update van GitHub main branch toe."""
     try:
         git_cmds = [
+            ['git', 'stash'],
             ['git', 'fetch', 'origin', 'main'],
             ['git', 'checkout', '-B', 'main', 'origin/main'],
             ['git', 'reset', '--hard', 'origin/main']
