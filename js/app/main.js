@@ -449,13 +449,13 @@ class App {
 
         const langMenu = document.getElementById('languageDropdownMenu');
         if (langMenu) {
-            langMenu.addEventListener('click', (e) => {
+            langMenu.addEventListener('click', async (e) => {
                 const langItem = e.target.closest('[data-lang]');
                 if (langItem) {
                     e.preventDefault();
                     const selectedLang = langItem.getAttribute('data-lang');
                     if (selectedLang) {
-                        i18n.setLanguage(selectedLang, this.authStatus.logged_in);
+                        await i18n.setLanguage(selectedLang, this.authStatus.logged_in);
                         this.loadAndRenderPlugins(this.filters.getFilterParams());
                     }
                 }

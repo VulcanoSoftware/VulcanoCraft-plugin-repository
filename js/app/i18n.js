@@ -33,7 +33,9 @@ class I18n {
 
     async setLanguage(lang, saveToAccount = false) {
         await this.init();
-        if (!this.translations[lang]) lang = 'nl';
+        if (!this.translations[lang] || Object.keys(this.translations[lang]).length === 0) {
+            lang = 'nl';
+        }
         this.currentLang = lang;
         localStorage.setItem('user_language', lang);
         document.documentElement.lang = lang;
