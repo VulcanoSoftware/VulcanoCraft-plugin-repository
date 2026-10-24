@@ -43,7 +43,8 @@ class ChangePasswordPage {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    i18n.applyTranslations();
+document.addEventListener('DOMContentLoaded', async () => {
+    await i18n.init();
+    await i18n.applyTranslations();
     new ChangePasswordPage();
 });

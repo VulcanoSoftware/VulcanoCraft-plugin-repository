@@ -13,14 +13,15 @@ class App {
     }
 
     async init() {
+        await i18n.init();
         document.getElementById('currentYear').textContent = new Date().getFullYear();
 
         this.authStatus = await Auth.checkStatus();
 
         if (this.authStatus.logged_in && this.authStatus.language) {
-            i18n.setLanguage(this.authStatus.language, false);
+            await i18n.setLanguage(this.authStatus.language, false);
         } else {
-            i18n.applyTranslations();
+            await i18n.applyTranslations();
         }
 
         this.filters = new Filters((filterParams, resetPage) => {
@@ -446,22 +447,18 @@ class App {
             });
         }
 
-        const langNlBtn = document.getElementById('langSelectNl');
-        const langEnBtn = document.getElementById('langSelectEn');
-
-        if (langNlBtn) {
-            langNlBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                i18n.setLanguage('nl', this.authStatus.logged_in);
-                this.loadAndRenderPlugins(this.filters.getFilterParams());
-            });
-        }
-
-        if (langEnBtn) {
-            langEnBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                i18n.setLanguage('en', this.authStatus.logged_in);
-                this.loadAndRenderPlugins(this.filters.getFilterParams());
+        const langMenu = document.getElementById('languageDropdownMenu');
+        if (langMenu) {
+            langMenu.addEventListener('click', (e) => {
+                const langItem = e.target.closest('[data-lang]');
+                if (langItem) {
+                    e.preventDefault();
+                    const selectedLang = langItem.getAttribute('data-lang');
+                    if (selectedLang) {
+                        i18n.setLanguage(selectedLang, this.authStatus.logged_in);
+                        this.loadAndRenderPlugins(this.filters.getFilterParams());
+                    }
+                }
             });
         }
 
