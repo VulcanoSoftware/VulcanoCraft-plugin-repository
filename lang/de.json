@@ -194,6 +194,8 @@
     "modal.manual_version_placeholder": "z.B. 2.4.1 (1.21.6)",
     "modal.pin_version_help": "Wenn eine Version angeheftet ist, wird sie in der Übersicht angezeigt. Wenn eine neuere Version verfügbar ist, erscheint ein Hinweis auf der Plugin-Karte.",
     "modal.unpin_version": "Version lösen",
+    "modal.show_game_versions": "Spielversionen anzeigen",
+    "modal.supported_game_versions": "Unterstützte Spielversionen:",
     "modal.add_title": "Plugin hinzufügen",
     "modal.single_url": "Einzelne URL",
     "modal.bulk_urls": "Mehrere URLs (Masse)",

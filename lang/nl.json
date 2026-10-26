@@ -194,6 +194,8 @@
     "modal.manual_version_placeholder": "Bijv. 2.4.1 (1.21.6)",
     "modal.pin_version_help": "Wanneer een versie is gepind, wordt deze getoond in het overzicht. Als er een nieuwere versie beschikbaar is, verschijnt er een melding op de plugin kaart.",
     "modal.unpin_version": "Versie Loskoppelen",
+    "modal.show_game_versions": "Toon ingame versies",
+    "modal.supported_game_versions": "Ondersteunde ingame versies:",
     "modal.add_title": "Plugin toevoegen",
     "modal.single_url": "Enkele URL",
     "modal.bulk_urls": "Meerdere URL's (Bulk)",

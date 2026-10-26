@@ -150,27 +150,104 @@ function _populatePinModalHeader(plugin, manualInputEl) {
     if (manualInputEl) manualInputEl.value = plugin.pinned_version || '';
 }
 
+function _groupVersionsByPluginVersion(versionsArray) {
+    const groups = [];
+    const map = new Map();
+
+    (versionsArray || []).forEach(item => {
+        const str = String(item).trim();
+        if (!str) return;
+        const match = str.match(/^(.+?)\s*\((.+?)\)$/);
+        let pVer = str;
+        let gVer = null;
+        if (match) {
+            pVer = match[1].trim();
+            gVer = match[2].trim();
+        }
+
+        if (!map.has(pVer)) {
+            const groupObj = { pluginVersion: pVer, gameVersions: [] };
+            map.set(pVer, groupObj);
+            groups.push(groupObj);
+        }
+
+        if (gVer && !map.get(pVer).gameVersions.includes(gVer)) {
+            map.get(pVer).gameVersions.push(gVer);
+        }
+    });
+
+    return groups;
+}
+
 function _renderPinModalVersionList(versionsListEl, versionsArray, state, manualInputEl) {
     if (!versionsListEl) return;
-    if (!versionsArray || versionsArray.length === 0) {
+    if (!state.expanded) state.expanded = {};
+
+    const groups = _groupVersionsByPluginVersion(versionsArray);
+    if (groups.length === 0) {
         versionsListEl.innerHTML = `<div class="small text-muted p-2">${i18n.t('common.no_versions')}</div>`;
         return;
     }
 
     let html = '';
-    versionsArray.forEach(ver => {
-        const isActive = (state.selectedVersion === ver) ? 'active' : '';
+    groups.forEach(group => {
+        const pVer = group.pluginVersion;
+        const isPluginActive = (state.selectedVersion === pVer || state.selectedVersion.startsWith(`${pVer} (`));
+        const isExpanded = !!state.expanded[pVer];
+
         html += `
-            <button type="button" class="version-item-btn ${isActive}" data-version="${ver}">
-                <span><i class="fas fa-tag me-2"></i>${ver}</span>
-                ${isActive ? '<i class="fas fa-check"></i>' : ''}
-            </button>`;
+            <div class="version-group-item mb-2 p-2 border rounded bg-white">
+                <div class="d-flex align-items-center justify-content-between gap-2">
+                    <button type="button" class="version-item-btn mb-0 flex-grow-1 ${isPluginActive ? 'active' : ''}" data-version="${pVer}">
+                        <span><i class="fas fa-tag me-2"></i><strong>${pVer}</strong></span>
+                        ${isPluginActive ? '<i class="fas fa-check"></i>' : ''}
+                    </button>
+                    ${group.gameVersions.length > 0 ? `
+                        <button type="button" class="btn btn-sm btn-outline-secondary toggle-game-versions-btn text-nowrap" data-pver="${pVer}">
+                            <i class="fas fa-gamepad me-1 text-info"></i><span data-i18n="modal.show_game_versions">${i18n.t('modal.show_game_versions') || 'Toon ingame versies'}</span>
+                            <i class="fas fa-chevron-${isExpanded ? 'up' : 'down'} ms-1 small"></i>
+                        </button>
+                    ` : ''}
+                </div>
+                ${group.gameVersions.length > 0 ? `
+                    <div class="game-versions-collapse mt-2 p-2 rounded bg-light border" style="display: ${isExpanded ? 'block' : 'none'};">
+                        <div class="small text-muted mb-1 font-weight-bold" data-i18n="modal.supported_game_versions">${i18n.t('modal.supported_game_versions') || 'Ondersteunde ingame versies:'}</div>
+                        <div class="d-flex flex-wrap gap-1">
+                            ${group.gameVersions.map(gv => {
+                                const fullVer = `${pVer} (${gv})`;
+                                const isGvActive = (state.selectedVersion === fullVer);
+                                return `<span class="version-badge version-badge-sm ${isGvActive ? 'active-badge' : ''}" data-fullversion="${fullVer}">${gv}</span>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+            </div>`;
     });
     versionsListEl.innerHTML = html;
 
     versionsListEl.querySelectorAll('.version-item-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const pickedVer = btn.dataset.version;
+            state.selectedVersion = pickedVer;
+            if (manualInputEl) {
+                manualInputEl.value = pickedVer;
+            }
+            _renderPinModalVersionList(versionsListEl, versionsArray, state, manualInputEl);
+        });
+    });
+
+    versionsListEl.querySelectorAll('.toggle-game-versions-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const pVer = btn.dataset.pver;
+            state.expanded[pVer] = !state.expanded[pVer];
+            _renderPinModalVersionList(versionsListEl, versionsArray, state, manualInputEl);
+        });
+    });
+
+    versionsListEl.querySelectorAll('.version-badge[data-fullversion]').forEach(badge => {
+        badge.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const pickedVer = badge.dataset.fullversion;
             state.selectedVersion = pickedVer;
             if (manualInputEl) {
                 manualInputEl.value = pickedVer;

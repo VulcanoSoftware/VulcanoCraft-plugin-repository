@@ -194,6 +194,8 @@
     "modal.manual_version_placeholder": "e.g. 2.4.1 (1.21.6)",
     "modal.pin_version_help": "When a version is pinned, it is shown in the overview. If a newer version is available, an alert will appear on the plugin card.",
     "modal.unpin_version": "Unpin Version",
+    "modal.show_game_versions": "Show game versions",
+    "modal.supported_game_versions": "Supported game versions:",
     "modal.add_title": "Add Plugin",
     "modal.single_url": "Single URL",
     "modal.bulk_urls": "Multiple URLs (Bulk)",
