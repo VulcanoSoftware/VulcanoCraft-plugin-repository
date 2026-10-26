@@ -170,20 +170,10 @@ function _renderPinModalVersionList(versionsListEl, versionsArray, state, manual
 
     versionsListEl.querySelectorAll('.version-item-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            const pickedGameVer = btn.dataset.version;
-            state.selectedVersion = pickedGameVer;
+            const pickedVer = btn.dataset.version;
+            state.selectedVersion = pickedVer;
             if (manualInputEl) {
-                const currentInput = manualInputEl.value.trim();
-                if (currentInput) {
-                    const match = currentInput.match(/^(.*?)\s*\(([^)]+)\)$/);
-                    if (match) {
-                        manualInputEl.value = `${match[1].trim()} (${pickedGameVer})`;
-                    } else {
-                        manualInputEl.value = `${currentInput} (${pickedGameVer})`;
-                    }
-                } else {
-                    manualInputEl.value = pickedGameVer;
-                }
+                manualInputEl.value = pickedVer;
             }
             _renderPinModalVersionList(versionsListEl, versionsArray, state, manualInputEl);
         });

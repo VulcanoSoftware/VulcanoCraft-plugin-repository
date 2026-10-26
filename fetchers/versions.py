@@ -18,22 +18,27 @@ def get_modrinth_server_game_versions(slug):
         server_platforms = {"purpur", "paper", "spigot", "bukkit", "neoforge"}
         platform_priority = {"purpur": 5, "paper": 4, "spigot": 3, "bukkit": 2, "neoforge": 1}
 
-        game_versions_dict = {}
+        versions_set = set()
 
         for v in data:
             loaders = [loader.lower() for loader in v.get("loaders", [])]
             relevant_loaders = [loader for loader in loaders if loader in server_platforms]
             if not relevant_loaders:
                 continue
-            best_loader = max(relevant_loaders, key=lambda loader: platform_priority[loader])
-            for gv in v.get("game_versions", []):
-                if gv in game_versions_dict:
-                    if platform_priority[best_loader] > platform_priority[game_versions_dict[gv]]:
-                        game_versions_dict[gv] = best_loader
-                else:
-                    game_versions_dict[gv] = best_loader
 
-        return sorted(game_versions_dict.keys())
+            ver_num = (v.get("version_number") or "").strip().lstrip('v')
+            game_vers = v.get("game_versions", [])
+
+            if ver_num and game_vers:
+                for gv in game_vers:
+                    versions_set.add(f"{ver_num} ({gv})")
+            elif ver_num:
+                versions_set.add(ver_num)
+            elif game_vers:
+                for gv in game_vers:
+                    versions_set.add(gv)
+
+        return sorted(versions_set) if versions_set else None
     except Exception:
         return None
 
@@ -63,7 +68,7 @@ def get_hangar_game_versions(combined_slug):
     try:
         limit = 25
         offset = 0
-        game_versions = set()
+        versions_set = set()
         
         while True:
             url = f"https://hangar.papermc.io/api/v1/projects/{combined_slug}/versions?limit={limit}&offset={offset}"
@@ -77,10 +82,21 @@ def get_hangar_game_versions(combined_slug):
                 break
                 
             for v in data["result"]:
+                ver_name = (v.get("name") or "").strip().lstrip('v')
                 platform_deps = v.get("platformDependencies", {})
-                for platform_name, versions in platform_deps.items():
-                    for version in versions:
-                        game_versions.add(version)
+                game_vers = set()
+                for platform_name, vers in platform_deps.items():
+                    for ver in vers:
+                        game_vers.add(ver)
+
+                if ver_name and game_vers:
+                    for gv in game_vers:
+                        versions_set.add(f"{ver_name} ({gv})")
+                elif ver_name:
+                    versions_set.add(ver_name)
+                elif game_vers:
+                    for gv in game_vers:
+                        versions_set.add(gv)
             
             pagination = data.get("pagination", {})
             if offset + limit >= pagination.get("count", 0):
@@ -88,7 +104,7 @@ def get_hangar_game_versions(combined_slug):
                 
             offset += limit
         
-        return sorted(game_versions)
+        return sorted(versions_set) if versions_set else None
     except Exception:
         return None
 
@@ -137,9 +153,14 @@ def get_bukkitdev_game_versions(slug):
             return []
         versions = set()
         for f in files:
+            file_name = (f.get("name") or "").strip()
             gv = f.get("gameVersion")
-            if gv and re.match(r'^1\.\d+(\.\d+)?$', gv):
+            if gv and file_name:
+                versions.add(f"{file_name} ({gv})")
+            elif gv:
                 versions.add(gv)
+            elif file_name:
+                versions.add(file_name)
         return sorted(versions) if versions else []
     except Exception:
         return []
@@ -180,8 +201,11 @@ def get_curseforge_game_versions(url):
         versions = set()
         for mod in data['data']:
             for version in mod.get('latestFilesIndexes', []):
+                file_name = (version.get('filename') or version.get('name') or '').strip()
                 game_version = version.get('gameVersion')
-                if game_version and re.match(r'^1\.\d+(\.\d+)?$', game_version):
+                if file_name and game_version:
+                    versions.add(f"{file_name} ({game_version})")
+                elif game_version and re.match(r'^1\.\d+(\.\d+)?$', game_version):
                     versions.add(game_version)
         
         return sorted(versions) if versions else []
