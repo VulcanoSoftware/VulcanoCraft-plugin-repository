@@ -66,6 +66,48 @@ class UI {
             </div>`;
     }
 
+    _parseVersion(v) {
+        if (!v) return [];
+        const clean = String(v).replace(/^v/i, '').trim();
+        return clean.split(/[-+.]/).map(p => {
+            const n = parseInt(p, 10);
+            return isNaN(n) ? p : n;
+        });
+    }
+
+    _isNewerVersion(latest, pinned) {
+        if (!latest || !pinned || latest === pinned) return false;
+        const p1 = this._parseVersion(latest);
+        const p2 = this._parseVersion(pinned);
+        const len = Math.max(p1.length, p2.length);
+        for (let i = 0; i < len; i++) {
+            const a = p1[i] !== undefined ? p1[i] : 0;
+            const b = p2[i] !== undefined ? p2[i] : 0;
+            if (typeof a === 'number' && typeof b === 'number') {
+                if (a > b) return true;
+                if (a < b) return false;
+            } else {
+                const cmp = String(a).localeCompare(String(b));
+                if (cmp > 0) return true;
+                if (cmp < 0) return false;
+            }
+        }
+        return false;
+    }
+
+    _getLatestVersion(versionsString) {
+        if (!versionsString) return null;
+        const versions = versionsString.split(' ').filter(v => v.trim());
+        if (versions.length === 0) return null;
+
+        const sorted = versions.sort((a, b) => {
+            if (this._isNewerVersion(a, b)) return 1;
+            if (this._isNewerVersion(b, a)) return -1;
+            return 0;
+        });
+        return sorted[sorted.length - 1];
+    }
+
     _createPluginCard(plugin, authStatus, currentUser) {
         const { logged_in, role } = authStatus;
         const formattedVersions = this._formatVersions(plugin.versions || '');
@@ -74,11 +116,33 @@ class UI {
         const domain = this._getDomainFromUrl(plugin.url || '');
         const ownerInfo = plugin.owner ? `<small class="text-muted ms-2">${i18n.t('common.by')} ${plugin.owner}</small>` : '';
         const canDelete = logged_in && (role === 'admin' || role === 'co-admin' || plugin.owner === currentUser);
+        const canPin = logged_in && (role === 'admin' || role === 'co-admin' || plugin.owner === currentUser);
         const titleText = plugin.title || i18n.t('common.no_title');
         const firstLetter = (titleText)[0].toUpperCase();
         const iconHtml = plugin.icon
             ? `<img src="${plugin.icon}" alt="${titleText} icon" class="plugin-icon me-3" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="plugin-icon-letter me-3" style="display:none;">${firstLetter}</div>`
             : `<div class="plugin-icon-letter me-3">${firstLetter}</div>`;
+
+        let pinnedBadgeHtml = '';
+        let updateWarningBadgeHtml = '';
+
+        const latestVersion = this._getLatestVersion(plugin.versions || '');
+
+        if (plugin.pinned_version) {
+            pinnedBadgeHtml = `<span class="pinned-badge" title="${i18n.t('common.pinned')}"><i class="fas fa-thumbtack"></i> ${i18n.t('common.pinned')}: ${plugin.pinned_version}</span>`;
+
+            if (latestVersion && this._isNewerVersion(latestVersion, plugin.pinned_version)) {
+                updateWarningBadgeHtml = `<span class="update-available-badge update-badge-click" data-pinned="${plugin.pinned_version}" data-latest="${latestVersion}" title="${i18n.t('common.update_available')}"><i class="fas fa-arrow-alt-circle-up"></i> ${i18n.t('common.update_available')}</span>`;
+            }
+        }
+
+        const pinBtnLabel = plugin.pinned_version ? i18n.t('common.change_pinned_version') : i18n.t('common.pin_version');
+        const isPinnedClass = plugin.pinned_version ? 'is-pinned' : '';
+        const pinBtnHtml = canPin
+            ? `<button class="btn-pin ${isPinnedClass} pin-version-btn" data-url="${plugin.url || ''}" title="${pinBtnLabel}">
+                <i class="fas fa-thumbtack"></i><span>${pinBtnLabel}</span>
+               </button>`
+            : '';
 
         return `
             <div class="col-12 mb-4 plugin-card" style="animation: fadeIn 0.6s ease-out both;">
@@ -90,8 +154,11 @@ class UI {
                                 <h5 class="card-title mb-0">${titleText}${ownerInfo}</h5>
                             </div>
                         </div>
-                        <div>
+                        <div class="d-flex align-items-center flex-wrap gap-1">
                             <span class="domain-badge">${domain}</span>
+                            ${pinnedBadgeHtml}
+                            ${updateWarningBadgeHtml}
+                            ${pinBtnHtml}
                             ${canDelete ? `
                                 <button class="btn btn-delete ms-2 delete-btn" data-url="${plugin.url}" data-title="${plugin.title}" data-category-context="${plugin._categoryContext || ''}">
                                     <img src="images/delete-icon.png" class="btn-icon" alt="${i18n.t('common.delete')}">

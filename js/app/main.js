@@ -1,6 +1,6 @@
 import API from './api.js';
 import UI from './ui.js';
-import Modals, { showAlertModal, showConfirmModal } from './modals.js';
+import Modals, { showAlertModal, showConfirmModal, showPinVersionModal } from './modals.js';
 import Filters from './filters.js';
 import Auth from './auth.js';
 import i18n from './i18n.js';
@@ -53,6 +53,7 @@ class App {
             };
 
             const data = await API.getPlugins(params);
+            this.lastLoadedPlugins = data.plugins || [];
 
             if (data.all_versions) UI.populateVersionFilter(data.all_versions);
             if (data.all_loaders) UI.populateLoaderFilter(data.all_loaders);
@@ -483,14 +484,45 @@ class App {
             await this.loadAndRenderPlugins(this.filters.getFilterParams());
         });
 
-        // Event delegation for delete buttons
-        UI.pluginsContainer.addEventListener('click', (event) => {
+        // Event delegation for delete, pin, and update-badge buttons
+        UI.pluginsContainer.addEventListener('click', async (event) => {
             const deleteButton = event.target.closest('.delete-btn');
             if (deleteButton) {
                 const url = deleteButton.dataset.url;
                 const title = deleteButton.dataset.title;
                 const categoryContext = deleteButton.dataset.categoryContext || '';
                 Modals.showDeleteModal(url, title, categoryContext);
+                return;
+            }
+
+            const pinButton = event.target.closest('.pin-version-btn');
+            if (pinButton) {
+                const url = pinButton.dataset.url;
+                const plugin = this.lastLoadedPlugins ? this.lastLoadedPlugins.find(p => p.url === url) : { url };
+                if (plugin) {
+                    const result = await showPinVersionModal(plugin);
+                    if (result) {
+                        const msg = result.action === 'save' ? i18n.t('success.version_pinned') : i18n.t('success.version_unpinned');
+                        UI.showSuccessMessage(msg);
+                        await this.loadAndRenderPlugins(this.filters.getFilterParams());
+                    }
+                }
+                return;
+            }
+
+            const updateBadge = event.target.closest('.update-badge-click');
+            if (updateBadge) {
+                const pinned = updateBadge.dataset.pinned;
+                const latest = updateBadge.dataset.latest;
+                showAlertModal(
+                    `<div class="text-center p-2">
+                        <i class="fas fa-arrow-alt-circle-up text-danger fa-3x mb-3"></i>
+                        <h5>${i18n.t('common.update_available')}</h5>
+                        <p class="lead mb-0"><code>${pinned}</code> &rarr; <strong class="text-success">${latest}</strong></p>
+                    </div>`,
+                    i18n.t('common.update_available'),
+                    'fas fa-info-circle text-info'
+                );
             }
         });
     }

@@ -1700,6 +1700,52 @@ def clear_plugins():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/plugin/pin_version', methods=['POST'])
+@require_login
+def pin_plugin_version():
+    """Pin of unpin een specifieke versie van een plugin"""
+    try:
+        data = request.get_json(silent=True) or {}
+        url = sanitize_str(data.get('url', ''))
+        pinned_version = data.get('pinned_version')
+        if pinned_version is not None:
+            pinned_version = sanitize_str(pinned_version)
+
+        if not url:
+            return jsonify({'error': 'Geen URL opgegeven'}), 400
+
+        user = get_current_user()
+        username = session['user']
+        user_role = user.get('role') if user else 'user'
+
+        # Zoek plugin in database
+        plugin = db.plugins.find_one({"url": url, "owner": username})
+        if not plugin:
+            if user_role in ['admin', 'co-admin']:
+                plugin = db.plugins.find_one({"url": url})
+
+        if not plugin:
+            return jsonify({'error': 'Plugin niet gevonden'}), 404
+
+        # Controleer rechten
+        if plugin.get('owner') != username and user_role not in ['admin', 'co-admin']:
+            return jsonify({'error': 'Geen rechten om deze plugin te bewerken'}), 403
+
+        filter_query = {"url": url} if user_role in ['admin', 'co-admin'] else {"url": url, "owner": username}
+
+        if pinned_version:
+            db.plugins.update_many(filter_query, {"$set": {"pinned_version": pinned_version}})
+        else:
+            db.plugins.update_many(filter_query, {"$unset": {"pinned_version": ""}})
+
+        return jsonify({
+            'success': True,
+            'url': url,
+            'pinned_version': pinned_version if pinned_version else None
+        })
+    except Exception as e:
+        return jsonify({'error': f'Fout bij pinnen van versie: {str(e)}'}), 500
+
 @app.route('/delete_plugin', methods=['POST'])
 @require_login
 def delete_plugin():

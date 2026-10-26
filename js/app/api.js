@@ -95,6 +95,18 @@ class API {
             body: JSON.stringify({ categories }),
         });
     }
+
+    pinVersion(url, pinnedVersion) {
+        return this._fetch('/api/plugin/pin_version', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url, pinned_version: pinnedVersion }),
+        });
+    }
+
+    pinPluginVersion(url, pinnedVersion) {
+        return this.pinVersion(url, pinnedVersion);
+    }
 }
 
 export default new API();

@@ -81,6 +81,184 @@ export function showAlertModal(message, title = null, iconClass = 'fas fa-info-c
     });
 }
 
+function ensurePinVersionModalExists() {
+    let modalEl = document.getElementById('pinVersionModal');
+    if (!modalEl) {
+        modalEl = document.createElement('div');
+        modalEl.className = 'modal fade';
+        modalEl.id = 'pinVersionModal';
+        modalEl.tabIndex = -1;
+        modalEl.setAttribute('aria-hidden', 'true');
+        modalEl.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-dark text-white">
+                        <h5 class="modal-title" id="pinVersionModalTitle">
+                            <i class="fas fa-thumbtack me-2 text-warning"></i><span data-i18n="modal.pin_version_title">${i18n.t('modal.pin_version_title')}</span>
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="mb-3 d-flex align-items-center gap-2">
+                            <img id="pinModalPluginIcon" src="images/server-icon.png" class="plugin-icon me-2" style="width: 42px; height: 42px;" alt="icon">
+                            <div>
+                                <h6 id="pinModalPluginTitle" class="mb-0 font-weight-bold">Plugin Title</h6>
+                                <small id="pinModalPluginAuthor" class="text-muted"></small>
+                            </div>
+                        </div>
+                        <p class="small text-muted mb-3" data-i18n="modal.pin_version_help">${i18n.t('modal.pin_version_help')}</p>
+
+                        <div id="pinModalLoading" class="text-center py-3" style="display: none;">
+                            <img src="images/loading-icon.gif" class="loading-icon mb-2" alt="Loading">
+                            <div class="small text-muted" data-i18n="common.loading">${i18n.t('common.loading')}</div>
+                        </div>
+
+                        <div id="pinModalVersionContent">
+                            <label class="form-label font-weight-bold" data-i18n="modal.select_version">${i18n.t('modal.select_version')}</label>
+                            <div id="pinModalVersionsList" class="mb-3" style="max-height: 220px; overflow-y: auto;"></div>
+
+                            <div class="mb-3">
+                                <label class="form-label small text-muted">Of voer handmatig een versie in:</label>
+                                <input type="text" id="pinModalManualVersionInput" class="form-control form-control-sm" placeholder="Bijv. v1.2.3">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-outline-danger btn-sm me-auto" id="pinModalUnpinBtn">
+                            <i class="fas fa-unlink me-1"></i><span data-i18n="modal.unpin_version">${i18n.t('modal.unpin_version')}</span>
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" data-i18n="common.cancel">${i18n.t('common.cancel')}</button>
+                        <button type="button" class="btn btn-primary btn-sm" id="pinModalSaveBtn">
+                            <i class="fas fa-save me-1"></i><span data-i18n="common.confirm">${i18n.t('common.confirm')}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+        document.body.appendChild(modalEl);
+    }
+    return modalEl;
+}
+
+export function showPinVersionModal(plugin) {
+    return new Promise((resolve) => {
+        const modalEl = ensurePinVersionModalExists();
+        const iconEl = document.getElementById('pinModalPluginIcon');
+        const titleEl = document.getElementById('pinModalPluginTitle');
+        const authorEl = document.getElementById('pinModalPluginAuthor');
+        const loadingEl = document.getElementById('pinModalLoading');
+        const versionsListEl = document.getElementById('pinModalVersionsList');
+        const manualInputEl = document.getElementById('pinModalManualVersionInput');
+        const saveBtn = document.getElementById('pinModalSaveBtn');
+        const unpinBtn = document.getElementById('pinModalUnpinBtn');
+
+        if (titleEl) titleEl.textContent = plugin.title || i18n.t('common.no_title');
+        if (authorEl) authorEl.textContent = plugin.author ? `${i18n.t('common.by')} ${plugin.author}` : '';
+        if (iconEl) iconEl.src = plugin.icon || 'images/server-icon.png';
+        if (manualInputEl) manualInputEl.value = plugin.pinned_version || '';
+
+        let selectedVersion = plugin.pinned_version || '';
+
+        const renderVersions = (versionsArray) => {
+            if (!versionsListEl) return;
+            if (!versionsArray || versionsArray.length === 0) {
+                versionsListEl.innerHTML = `<div class="small text-muted p-2">${i18n.t('common.no_versions')}</div>`;
+                return;
+            }
+
+            let html = '';
+            versionsArray.forEach(ver => {
+                const isActive = (selectedVersion === ver) ? 'active' : '';
+                html += `
+                    <button type="button" class="version-item-btn ${isActive}" data-version="${ver}">
+                        <span><i class="fas fa-tag me-2"></i>${ver}</span>
+                        ${isActive ? '<i class="fas fa-check"></i>' : ''}
+                    </button>`;
+            });
+            versionsListEl.innerHTML = html;
+
+            versionsListEl.querySelectorAll('.version-item-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    selectedVersion = btn.dataset.version;
+                    if (manualInputEl) manualInputEl.value = selectedVersion;
+                    renderVersions(versionsArray);
+                });
+            });
+        };
+
+        // Extract available versions from plugin object or fetch dynamically if needed
+        let versionsList = [];
+        if (plugin.versions) {
+            versionsList = plugin.versions.split(/\s+/).filter(Boolean);
+        }
+
+        if (loadingEl) loadingEl.style.display = 'block';
+        if (versionsListEl) versionsListEl.style.display = 'none';
+
+        // Dynamically fetch latest plugin info if possible
+        API.fetchPlugin(plugin.url).then(fetched => {
+            if (fetched && fetched.versions) {
+                const fetchedVers = fetched.versions.split(/\s+/).filter(Boolean);
+                if (fetchedVers.length > 0) {
+                    versionsList = Array.from(new Set([...fetchedVers, ...versionsList]));
+                }
+            }
+        }).catch(err => {
+            console.warn('Failed to dynamically fetch plugin versions for pin modal:', err);
+        }).finally(() => {
+            if (loadingEl) loadingEl.style.display = 'none';
+            if (versionsListEl) versionsListEl.style.display = 'block';
+            renderVersions(versionsList);
+        });
+
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+        let actionResult = null; // { action: 'save'|'unpin', version: string }
+
+        const handleSave = async () => {
+            const finalVersion = (manualInputEl && manualInputEl.value.trim()) ? manualInputEl.value.trim() : selectedVersion;
+            if (!finalVersion) return;
+
+            try {
+                const res = await API.pinPluginVersion(plugin.url, finalVersion);
+                if (res.success) {
+                    actionResult = { action: 'save', version: finalVersion };
+                    modal.hide();
+                } else {
+                    showAlertModal(res.error || i18n.t('common.error'), i18n.t('common.error'));
+                }
+            } catch (err) {
+                showAlertModal(err.message, i18n.t('common.error'));
+            }
+        };
+
+        const handleUnpin = async () => {
+            try {
+                const res = await API.pinPluginVersion(plugin.url, null);
+                if (res.success) {
+                    actionResult = { action: 'unpin', version: null };
+                    modal.hide();
+                } else {
+                    showAlertModal(res.error || i18n.t('common.error'), i18n.t('common.error'));
+                }
+            } catch (err) {
+                showAlertModal(err.message, i18n.t('common.error'));
+            }
+        };
+
+        const onHide = () => {
+            if (saveBtn) saveBtn.removeEventListener('click', handleSave);
+            if (unpinBtn) unpinBtn.removeEventListener('click', handleUnpin);
+            modalEl.removeEventListener('hidden.bs.modal', onHide);
+            resolve(actionResult);
+        };
+
+        if (saveBtn) saveBtn.addEventListener('click', handleSave);
+        if (unpinBtn) unpinBtn.addEventListener('click', handleUnpin);
+        modalEl.addEventListener('hidden.bs.modal', onHide);
+        modal.show();
+    });
+}
+
 export function showConfirmModal({ title = null, message, confirmText = null, confirmClass = 'btn-danger', iconClass = 'fas fa-question-circle text-warning' }) {
     return new Promise((resolve) => {
         const modalEl = ensureConfirmModalExists();
