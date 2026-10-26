@@ -190,6 +190,8 @@
     "modal.pin_version_title": "Version anheften",
     "modal.select_version": "Version zum Anheften auswählen",
     "modal.no_pinned_version": "Keine angeheftete Version (lösen)",
+    "modal.manual_version_label": "Plugin- und/oder Ingame-Version eingeben:",
+    "modal.manual_version_placeholder": "z.B. 2.4.1 (1.21.6)",
     "modal.pin_version_help": "Wenn eine Version angeheftet ist, wird sie in der Übersicht angezeigt. Wenn eine neuere Version verfügbar ist, erscheint ein Hinweis auf der Plugin-Karte.",
     "modal.unpin_version": "Version lösen",
     "modal.add_title": "Plugin hinzufügen",

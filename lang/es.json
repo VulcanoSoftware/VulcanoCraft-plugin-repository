@@ -190,6 +190,8 @@
     "modal.pin_version_title": "Fijar Versión",
     "modal.select_version": "Seleccionar versión para fijar",
     "modal.no_pinned_version": "Sin versión fijada (desfijar)",
+    "modal.manual_version_label": "Introduzca versión de plugin y/o del juego:",
+    "modal.manual_version_placeholder": "ej. 2.4.1 (1.21.6)",
     "modal.pin_version_help": "Cuando se fija una versión, se muestra en la vista general. Si hay una versión más nueva disponible, aparecerá una alerta en la tarjeta del plugin.",
     "modal.unpin_version": "Desfijar Versión",
     "modal.add_title": "Añadir Plugin",

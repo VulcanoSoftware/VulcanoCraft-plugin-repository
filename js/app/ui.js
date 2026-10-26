@@ -75,24 +75,56 @@ class UI {
         });
     }
 
-    _isNewerVersion(latest, pinned) {
-        if (!latest || !pinned || latest === pinned) return false;
-        const p1 = this._parseVersion(latest);
-        const p2 = this._parseVersion(pinned);
+    _compareParsedVersions(p1, p2) {
         const len = Math.max(p1.length, p2.length);
         for (let i = 0; i < len; i++) {
             const a = p1[i] !== undefined ? p1[i] : 0;
             const b = p2[i] !== undefined ? p2[i] : 0;
             if (typeof a === 'number' && typeof b === 'number') {
-                if (a > b) return true;
-                if (a < b) return false;
+                if (a > b) return 1;
+                if (a < b) return -1;
             } else {
                 const cmp = String(a).localeCompare(String(b));
-                if (cmp > 0) return true;
-                if (cmp < 0) return false;
+                if (cmp > 0) return 1;
+                if (cmp < 0) return -1;
             }
         }
-        return false;
+        return 0;
+    }
+
+    _isNewerVersion(latest, pinned) {
+        if (!latest || !pinned || latest === pinned) return false;
+
+        const pinnedMatch = String(pinned).match(/^(.*?)\s*\(([^)]+)\)$/);
+        const latestMatch = String(latest).match(/^(.*?)\s*\(([^)]+)\)$/);
+
+        let pinnedPlugin = pinned;
+        let pinnedGame = null;
+        if (pinnedMatch) {
+            pinnedPlugin = pinnedMatch[1].trim();
+            pinnedGame = pinnedMatch[2].trim();
+        }
+
+        let latestPlugin = latest;
+        let latestGame = null;
+        if (latestMatch) {
+            latestPlugin = latestMatch[1].trim();
+            latestGame = latestMatch[2].trim();
+        }
+
+        if (latestGame && pinnedGame) {
+            if (this._compareParsedVersions(this._parseVersion(latestPlugin), this._parseVersion(pinnedPlugin)) > 0) return true;
+            return this._compareParsedVersions(this._parseVersion(latestGame), this._parseVersion(pinnedGame)) > 0;
+        }
+
+        if (pinnedGame && !latestMatch) {
+            const cmpGame = this._compareParsedVersions(this._parseVersion(latest), this._parseVersion(pinnedGame));
+            if (cmpGame > 0) return true;
+            if (cmpGame < 0) return false;
+            return this._compareParsedVersions(this._parseVersion(latest), this._parseVersion(pinnedPlugin)) > 0;
+        }
+
+        return this._compareParsedVersions(this._parseVersion(latestPlugin), this._parseVersion(pinnedPlugin)) > 0;
     }
 
     _getLatestVersion(versionsString) {

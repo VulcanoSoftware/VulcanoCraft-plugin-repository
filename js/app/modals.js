@@ -118,8 +118,8 @@ function ensurePinVersionModalExists() {
                             <div id="pinModalVersionsList" class="mb-3" style="max-height: 220px; overflow-y: auto;"></div>
 
                             <div class="mb-3">
-                                <label class="form-label small text-muted">Of voer handmatig een versie in:</label>
-                                <input type="text" id="pinModalManualVersionInput" class="form-control form-control-sm" placeholder="Bijv. v1.2.3">
+                                <label class="form-label small text-muted" data-i18n="modal.manual_version_label">${i18n.t('modal.manual_version_label') || 'Voer plugin en/of ingame versie in:'}</label>
+                                <input type="text" id="pinModalManualVersionInput" class="form-control form-control-sm" placeholder="${i18n.t('modal.manual_version_placeholder') || 'Bijv. 2.4.1 (1.21.6)'}" data-i18n-placeholder="modal.manual_version_placeholder">
                             </div>
                         </div>
                     </div>
@@ -178,8 +178,22 @@ export function showPinVersionModal(plugin) {
 
             versionsListEl.querySelectorAll('.version-item-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    selectedVersion = btn.dataset.version;
-                    if (manualInputEl) manualInputEl.value = selectedVersion;
+                    const pickedGameVer = btn.dataset.version;
+                    selectedVersion = pickedGameVer;
+                    if (manualInputEl) {
+                        const currentInput = manualInputEl.value.trim();
+                        if (currentInput) {
+                            const match = currentInput.match(/^(.*?)\s*\(([^)]+)\)$/);
+                            if (match) {
+                                const pluginPart = match[1].trim();
+                                manualInputEl.value = `${pluginPart} (${pickedGameVer})`;
+                            } else {
+                                manualInputEl.value = `${currentInput} (${pickedGameVer})`;
+                            }
+                        } else {
+                            manualInputEl.value = pickedGameVer;
+                        }
+                    }
                     renderVersions(versionsArray);
                 });
             });

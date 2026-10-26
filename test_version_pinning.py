@@ -65,6 +65,20 @@ class TestVersionPinning(unittest.TestCase):
         plugin = db.plugins.find_one({'url': 'https://modrinth.com/plugin/test-plugin'})
         self.assertEqual(plugin.get('pinned_version'), '1.0.0')
 
+    def test_pin_version_with_ingame_version_format(self):
+        self.login('owner_user', 'password123')
+        res = self.client.post('/api/plugin/pin_version', json={
+            'url': 'https://modrinth.com/plugin/test-plugin',
+            'pinned_version': '2.4.1 (1.21.6)'
+        })
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertTrue(data.get('success'))
+        self.assertEqual(data.get('pinned_version'), '2.4.1 (1.21.6)')
+
+        plugin = db.plugins.find_one({'url': 'https://modrinth.com/plugin/test-plugin'})
+        self.assertEqual(plugin.get('pinned_version'), '2.4.1 (1.21.6)')
+
     def test_unpin_version_owner_success(self):
         db.plugins.update_one({'url': 'https://modrinth.com/plugin/test-plugin'}, {'$set': {'pinned_version': '1.0.0'}})
         self.login('owner_user', 'password123')

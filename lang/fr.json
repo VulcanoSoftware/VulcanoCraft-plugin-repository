@@ -190,6 +190,8 @@
     "modal.pin_version_title": "Epingler la version",
     "modal.select_version": "Sélectionner la version à épingler",
     "modal.no_pinned_version": "Aucune version épinglée (désépingler)",
+    "modal.manual_version_label": "Saisir la version du plugin et/ou la version en jeu :",
+    "modal.manual_version_placeholder": "ex. 2.4.1 (1.21.6)",
     "modal.pin_version_help": "Lorsqu'une version est épinglée, elle apparaît dans l'aperçu. Si une version plus récente est disponible, une alerte s'affiche sur la carte du plugin.",
     "modal.unpin_version": "Désépingler la version",
     "modal.add_title": "Ajouter un plugin",
