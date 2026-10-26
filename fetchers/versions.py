@@ -10,7 +10,8 @@ CURSEFORGE_API_KEY = os.environ.get("CURSEFORGE_API_KEY")
 
 # -------- MODRINTH --------
 def _parse_modrinth_pin_versions(data, server_platforms):
-    versions_set = set()
+    versions_list = []
+    seen = set()
     for v in data:
         loaders = [loader.lower() for loader in v.get("loaders", [])]
         if not any(loader in server_platforms for loader in loaders):
@@ -19,13 +20,20 @@ def _parse_modrinth_pin_versions(data, server_platforms):
         game_vers = v.get("game_versions", [])
         if ver_num and game_vers:
             for gv in game_vers:
-                versions_set.add(f"{ver_num} ({gv})")
+                entry = f"{ver_num} ({gv})"
+                if entry not in seen:
+                    seen.add(entry)
+                    versions_list.append(entry)
         elif ver_num:
-            versions_set.add(ver_num)
+            if ver_num not in seen:
+                seen.add(ver_num)
+                versions_list.append(ver_num)
         elif game_vers:
             for gv in game_vers:
-                versions_set.add(gv)
-    return sorted(versions_set) if versions_set else []
+                if gv not in seen:
+                    seen.add(gv)
+                    versions_list.append(gv)
+    return versions_list
 
 def _parse_modrinth_game_versions(data, server_platforms, platform_priority):
     game_versions_dict = {}
@@ -85,7 +93,8 @@ def get_hangar_game_versions(combined_slug, pin_format=False):
     try:
         limit = 25
         offset = 0
-        game_versions = set()
+        versions_list = []
+        seen = set()
         
         while True:
             url = f"https://hangar.papermc.io/api/v1/projects/{combined_slug}/versions?limit={limit}&offset={offset}"
@@ -101,21 +110,33 @@ def get_hangar_game_versions(combined_slug, pin_format=False):
             for v in data["result"]:
                 ver_name = (v.get("name") or "").strip().lstrip('v')
                 platform_deps = v.get("platformDependencies", {})
-                gv_list = set()
+                gv_list = []
                 for platform_name, versions in platform_deps.items():
                     for version in versions:
-                        gv_list.add(version)
+                        if version not in gv_list:
+                            gv_list.append(version)
 
                 if pin_format:
                     if ver_name and gv_list:
                         for gv in gv_list:
-                            game_versions.add(f"{ver_name} ({gv})")
+                            entry = f"{ver_name} ({gv})"
+                            if entry not in seen:
+                                seen.add(entry)
+                                versions_list.append(entry)
                     elif ver_name:
-                        game_versions.add(ver_name)
+                        if ver_name not in seen:
+                            seen.add(ver_name)
+                            versions_list.append(ver_name)
                     elif gv_list:
-                        game_versions.update(gv_list)
+                        for gv in gv_list:
+                            if gv not in seen:
+                                seen.add(gv)
+                                versions_list.append(gv)
                 else:
-                    game_versions.update(gv_list)
+                    for gv in gv_list:
+                        if gv not in seen:
+                            seen.add(gv)
+                            versions_list.append(gv)
             
             pagination = data.get("pagination", {})
             if offset + limit >= pagination.get("count", 0):
@@ -123,7 +144,9 @@ def get_hangar_game_versions(combined_slug, pin_format=False):
                 
             offset += limit
         
-        return sorted(game_versions)
+        if not pin_format:
+            return sorted(versions_list)
+        return versions_list
     except Exception:
         return None
 
@@ -170,42 +193,64 @@ def get_bukkitdev_game_versions(slug, pin_format=False):
         files = files_response.json()
         if not isinstance(files, list):
             return []
-        versions = set()
+        # Sort files descending by id to get newest releases first
+        files = sorted(files, key=lambda f: f.get("id", 0), reverse=True)
+        versions_list = []
+        seen = set()
         for f in files:
             file_name = (f.get("name") or "").strip()
             gv = f.get("gameVersion")
             if pin_format:
+                entry = ""
                 if file_name and gv:
-                    versions.add(f"{file_name} ({gv})")
+                    entry = f"{file_name} ({gv})"
                 elif file_name:
-                    versions.add(file_name)
+                    entry = file_name
                 elif gv:
-                    versions.add(gv)
+                    entry = gv
+                if entry and entry not in seen:
+                    seen.add(entry)
+                    versions_list.append(entry)
             else:
                 if gv and re.match(r'^1\.\d+(\.\d+)?$', gv):
-                    versions.add(gv)
-        return sorted(versions) if versions else []
+                    if gv not in seen:
+                        seen.add(gv)
+                        versions_list.append(gv)
+        if not pin_format:
+            return sorted(versions_list)
+        return versions_list
     except Exception:
         return []
 
 # -------- CURSEFORGE --------
 def _parse_curseforge_versions(mod_data, pin_format):
-    versions = set()
+    versions_list = []
+    seen = set()
     for mod in mod_data:
-        for version in mod.get('latestFilesIndexes', []):
+        indexes = mod.get('latestFilesIndexes', [])
+        indexes = sorted(indexes, key=lambda x: x.get('fileId', 0), reverse=True)
+        for version in indexes:
             file_name = (version.get('filename') or version.get('name') or '').strip()
             game_version = version.get('gameVersion')
             if pin_format:
+                entry = ""
                 if file_name and game_version:
-                    versions.add(f"{file_name} ({game_version})")
+                    entry = f"{file_name} ({game_version})"
                 elif file_name:
-                    versions.add(file_name)
+                    entry = file_name
                 elif game_version:
-                    versions.add(game_version)
+                    entry = game_version
+                if entry and entry not in seen:
+                    seen.add(entry)
+                    versions_list.append(entry)
             else:
                 if game_version and re.match(r'^1\.\d+(\.\d+)?$', game_version):
-                    versions.add(game_version)
-    return sorted(versions) if versions else []
+                    if game_version not in seen:
+                        seen.add(game_version)
+                        versions_list.append(game_version)
+    if not pin_format:
+        return sorted(versions_list)
+    return versions_list
 
 def get_curseforge_game_versions(url, pin_format=False):
     try:
