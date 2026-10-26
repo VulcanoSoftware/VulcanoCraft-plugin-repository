@@ -181,33 +181,23 @@ function _renderPinModalVersionList(versionsListEl, versionsArray, state, manual
 }
 
 function _fetchPinModalVersions(plugin, state, loadingEl, versionsListEl, manualInputEl) {
-    let versionsList = plugin.versions ? plugin.versions.split(/\s+/).filter(Boolean) : [];
-
     if (loadingEl) loadingEl.style.display = 'block';
     if (versionsListEl) versionsListEl.style.display = 'none';
 
-    const onComplete = (list) => {
+    API.fetchPinModalVersions(plugin.url).then(res => {
+        let list = (res && res.versions && res.versions.length > 0) ? res.versions : [];
+        if (list.length === 0 && plugin.versions) {
+            list = plugin.versions.split(/\s+/).filter(Boolean);
+        }
+        _renderPinModalVersionList(versionsListEl, list, state, manualInputEl);
+    }).catch(err => {
+        console.warn('Failed to fetch pin modal versions:', err);
+        const fallback = plugin.versions ? plugin.versions.split(/\s+/).filter(Boolean) : [];
+        _renderPinModalVersionList(versionsListEl, fallback, state, manualInputEl);
+    }).finally(() => {
         if (loadingEl) loadingEl.style.display = 'none';
         if (versionsListEl) versionsListEl.style.display = 'block';
-        _renderPinModalVersionList(versionsListEl, list, state, manualInputEl);
-    };
-
-    if (typeof API.fetchPlugin === 'function') {
-        API.fetchPlugin(plugin.url).then(fetched => {
-            if (fetched && fetched.versions) {
-                const fetchedVers = fetched.versions.split(/\s+/).filter(Boolean);
-                if (fetchedVers.length > 0) {
-                    versionsList = Array.from(new Set([...fetchedVers, ...versionsList]));
-                }
-            }
-        }).catch(err => {
-            console.warn('Failed to dynamically fetch plugin versions for pin modal:', err);
-        }).finally(() => {
-            onComplete(versionsList);
-        });
-    } else {
-        onComplete(versionsList);
-    }
+    });
 }
 
 export function showPinVersionModal(plugin) {

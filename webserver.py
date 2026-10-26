@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, send_file, session
 import os
 import math
+import json
 import json as json_module
 import subprocess
 import sys
@@ -1603,6 +1604,34 @@ def admin_update_plugin_details(url):
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/plugin/pin_versions', methods=['POST'])
+def fetch_pin_versions():
+    """Haal gedetailleerde plugin + ingame versies op voor de pin version modal."""
+    try:
+        data = request.get_json() or {}
+        url = data.get('url')
+        if not url:
+            return jsonify({'error': 'Geen URL opgegeven'}), 400
+
+        venv_python = os.path.join('.venv', 'bin', 'python')
+        python_executable = venv_python if os.path.exists(venv_python) else sys.executable
+
+        result = subprocess.run(
+            [python_executable, 'fetchers/versions.py', '--pin-versions', url],
+            capture_output=True,
+            text=True,
+            check=True,
+            env=os.environ.copy()
+        )
+        out = result.stdout.strip()
+        try:
+            versions = json_module.loads(out) if out else []
+        except Exception:
+            versions = out.splitlines() if out else []
+        return jsonify({'versions': versions})
+    except Exception as e:
+        return jsonify({'versions': [], 'error': str(e)})
 
 @app.route('/fetch_plugin', methods=['POST'])
 def fetch_plugin():

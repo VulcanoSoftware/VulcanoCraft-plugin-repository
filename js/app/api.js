@@ -107,6 +107,14 @@ class API {
     pinPluginVersion(url, pinnedVersion) {
         return this.pinVersion(url, pinnedVersion);
     }
+
+    fetchPinModalVersions(url) {
+        return this._fetch('/api/plugin/pin_versions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url }),
+        });
+    }
 }
 
 export default new API();
