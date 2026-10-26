@@ -139,105 +139,107 @@ function ensurePinVersionModalExists() {
     return modalEl;
 }
 
+function _populatePinModalHeader(plugin, manualInputEl) {
+    const iconEl = document.getElementById('pinModalPluginIcon');
+    const titleEl = document.getElementById('pinModalPluginTitle');
+    const authorEl = document.getElementById('pinModalPluginAuthor');
+
+    if (titleEl) titleEl.textContent = plugin.title || i18n.t('common.no_title');
+    if (authorEl) authorEl.textContent = plugin.author ? `${i18n.t('common.by')} ${plugin.author}` : '';
+    if (iconEl) iconEl.src = plugin.icon || 'images/server-icon.png';
+    if (manualInputEl) manualInputEl.value = plugin.pinned_version || '';
+}
+
+function _renderPinModalVersionList(versionsListEl, versionsArray, state, manualInputEl) {
+    if (!versionsListEl) return;
+    if (!versionsArray || versionsArray.length === 0) {
+        versionsListEl.innerHTML = `<div class="small text-muted p-2">${i18n.t('common.no_versions')}</div>`;
+        return;
+    }
+
+    let html = '';
+    versionsArray.forEach(ver => {
+        const isActive = (state.selectedVersion === ver) ? 'active' : '';
+        html += `
+            <button type="button" class="version-item-btn ${isActive}" data-version="${ver}">
+                <span><i class="fas fa-tag me-2"></i>${ver}</span>
+                ${isActive ? '<i class="fas fa-check"></i>' : ''}
+            </button>`;
+    });
+    versionsListEl.innerHTML = html;
+
+    versionsListEl.querySelectorAll('.version-item-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const pickedGameVer = btn.dataset.version;
+            state.selectedVersion = pickedGameVer;
+            if (manualInputEl) {
+                const currentInput = manualInputEl.value.trim();
+                if (currentInput) {
+                    const match = currentInput.match(/^(.*?)\s*\(([^)]+)\)$/);
+                    if (match) {
+                        manualInputEl.value = `${match[1].trim()} (${pickedGameVer})`;
+                    } else {
+                        manualInputEl.value = `${currentInput} (${pickedGameVer})`;
+                    }
+                } else {
+                    manualInputEl.value = pickedGameVer;
+                }
+            }
+            _renderPinModalVersionList(versionsListEl, versionsArray, state, manualInputEl);
+        });
+    });
+}
+
+function _fetchPinModalVersions(plugin, state, loadingEl, versionsListEl, manualInputEl) {
+    let versionsList = plugin.versions ? plugin.versions.split(/\s+/).filter(Boolean) : [];
+
+    if (loadingEl) loadingEl.style.display = 'block';
+    if (versionsListEl) versionsListEl.style.display = 'none';
+
+    const onComplete = (list) => {
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (versionsListEl) versionsListEl.style.display = 'block';
+        _renderPinModalVersionList(versionsListEl, list, state, manualInputEl);
+    };
+
+    if (typeof API.fetchPlugin === 'function') {
+        API.fetchPlugin(plugin.url).then(fetched => {
+            if (fetched && fetched.versions) {
+                const fetchedVers = fetched.versions.split(/\s+/).filter(Boolean);
+                if (fetchedVers.length > 0) {
+                    versionsList = Array.from(new Set([...fetchedVers, ...versionsList]));
+                }
+            }
+        }).catch(err => {
+            console.warn('Failed to dynamically fetch plugin versions for pin modal:', err);
+        }).finally(() => {
+            onComplete(versionsList);
+        });
+    } else {
+        onComplete(versionsList);
+    }
+}
+
 export function showPinVersionModal(plugin) {
     return new Promise((resolve) => {
         const modalEl = ensurePinVersionModalExists();
-        const iconEl = document.getElementById('pinModalPluginIcon');
-        const titleEl = document.getElementById('pinModalPluginTitle');
-        const authorEl = document.getElementById('pinModalPluginAuthor');
         const loadingEl = document.getElementById('pinModalLoading');
         const versionsListEl = document.getElementById('pinModalVersionsList');
         const manualInputEl = document.getElementById('pinModalManualVersionInput');
         const saveBtn = document.getElementById('pinModalSaveBtn');
         const unpinBtn = document.getElementById('pinModalUnpinBtn');
 
-        if (titleEl) titleEl.textContent = plugin.title || i18n.t('common.no_title');
-        if (authorEl) authorEl.textContent = plugin.author ? `${i18n.t('common.by')} ${plugin.author}` : '';
-        if (iconEl) iconEl.src = plugin.icon || 'images/server-icon.png';
-        if (manualInputEl) manualInputEl.value = plugin.pinned_version || '';
+        _populatePinModalHeader(plugin, manualInputEl);
 
-        let selectedVersion = plugin.pinned_version || '';
-
-        const renderVersions = (versionsArray) => {
-            if (!versionsListEl) return;
-            if (!versionsArray || versionsArray.length === 0) {
-                versionsListEl.innerHTML = `<div class="small text-muted p-2">${i18n.t('common.no_versions')}</div>`;
-                return;
-            }
-
-            let html = '';
-            versionsArray.forEach(ver => {
-                const isActive = (selectedVersion === ver) ? 'active' : '';
-                html += `
-                    <button type="button" class="version-item-btn ${isActive}" data-version="${ver}">
-                        <span><i class="fas fa-tag me-2"></i>${ver}</span>
-                        ${isActive ? '<i class="fas fa-check"></i>' : ''}
-                    </button>`;
-            });
-            versionsListEl.innerHTML = html;
-
-            versionsListEl.querySelectorAll('.version-item-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const pickedGameVer = btn.dataset.version;
-                    selectedVersion = pickedGameVer;
-                    if (manualInputEl) {
-                        const currentInput = manualInputEl.value.trim();
-                        if (currentInput) {
-                            const match = currentInput.match(/^(.*?)\s*\(([^)]+)\)$/);
-                            if (match) {
-                                const pluginPart = match[1].trim();
-                                manualInputEl.value = `${pluginPart} (${pickedGameVer})`;
-                            } else {
-                                manualInputEl.value = `${currentInput} (${pickedGameVer})`;
-                            }
-                        } else {
-                            manualInputEl.value = pickedGameVer;
-                        }
-                    }
-                    renderVersions(versionsArray);
-                });
-            });
-        };
-
-        // Extract available versions from plugin object or fetch dynamically if needed
-        let versionsList = [];
-        if (plugin.versions) {
-            versionsList = plugin.versions.split(/\s+/).filter(Boolean);
-        }
-
-        if (loadingEl) loadingEl.style.display = 'block';
-        if (versionsListEl) versionsListEl.style.display = 'none';
-
-        // Dynamically fetch latest plugin info if possible
-        if (typeof API.fetchPlugin === 'function') {
-            API.fetchPlugin(plugin.url).then(fetched => {
-                if (fetched && fetched.versions) {
-                    const fetchedVers = fetched.versions.split(/\s+/).filter(Boolean);
-                    if (fetchedVers.length > 0) {
-                        versionsList = Array.from(new Set([...fetchedVers, ...versionsList]));
-                    }
-                }
-            }).catch(err => {
-                console.warn('Failed to dynamically fetch plugin versions for pin modal:', err);
-            }).finally(() => {
-                if (loadingEl) loadingEl.style.display = 'none';
-                if (versionsListEl) versionsListEl.style.display = 'block';
-                renderVersions(versionsList);
-            });
-        } else {
-            if (loadingEl) loadingEl.style.display = 'none';
-            if (versionsListEl) versionsListEl.style.display = 'block';
-            renderVersions(versionsList);
-        }
+        const state = { selectedVersion: plugin.pinned_version || '' };
+        _fetchPinModalVersions(plugin, state, loadingEl, versionsListEl, manualInputEl);
 
         const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-
-        let actionResult = null; // { action: 'save'|'unpin', version: string }
+        let actionResult = null;
 
         const handleSave = async () => {
-            const finalVersion = (manualInputEl && manualInputEl.value.trim()) ? manualInputEl.value.trim() : selectedVersion;
+            const finalVersion = (manualInputEl && manualInputEl.value.trim()) ? manualInputEl.value.trim() : state.selectedVersion;
             if (!finalVersion) return;
-
             try {
                 const res = await API.pinPluginVersion(plugin.url, finalVersion);
                 if (res.success) {
