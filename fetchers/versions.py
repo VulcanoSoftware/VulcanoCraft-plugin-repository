@@ -9,6 +9,40 @@ from urllib.parse import urlparse
 CURSEFORGE_API_KEY = os.environ.get("CURSEFORGE_API_KEY")
 
 # -------- MODRINTH --------
+def _parse_modrinth_pin_versions(data, server_platforms):
+    versions_set = set()
+    for v in data:
+        loaders = [loader.lower() for loader in v.get("loaders", [])]
+        if not any(loader in server_platforms for loader in loaders):
+            continue
+        ver_num = (v.get("version_number") or "").strip().lstrip('v')
+        game_vers = v.get("game_versions", [])
+        if ver_num and game_vers:
+            for gv in game_vers:
+                versions_set.add(f"{ver_num} ({gv})")
+        elif ver_num:
+            versions_set.add(ver_num)
+        elif game_vers:
+            for gv in game_vers:
+                versions_set.add(gv)
+    return sorted(versions_set) if versions_set else []
+
+def _parse_modrinth_game_versions(data, server_platforms, platform_priority):
+    game_versions_dict = {}
+    for v in data:
+        loaders = [loader.lower() for loader in v.get("loaders", [])]
+        relevant_loaders = [loader for loader in loaders if loader in server_platforms]
+        if not relevant_loaders:
+            continue
+        best_loader = max(relevant_loaders, key=lambda loader: platform_priority[loader])
+        for gv in v.get("game_versions", []):
+            if gv in game_versions_dict:
+                if platform_priority[best_loader] > platform_priority[game_versions_dict[gv]]:
+                    game_versions_dict[gv] = best_loader
+            else:
+                game_versions_dict[gv] = best_loader
+    return sorted(game_versions_dict.keys())
+
 def get_modrinth_server_game_versions(slug, pin_format=False):
     try:
         url = f"https://api.modrinth.com/v2/project/{slug}/version"
@@ -20,40 +54,8 @@ def get_modrinth_server_game_versions(slug, pin_format=False):
         platform_priority = {"purpur": 5, "paper": 4, "spigot": 3, "bukkit": 2, "neoforge": 1}
 
         if pin_format:
-            versions_set = set()
-            for v in data:
-                loaders = [loader.lower() for loader in v.get("loaders", [])]
-                relevant_loaders = [loader for loader in loaders if loader in server_platforms]
-                if not relevant_loaders:
-                    continue
-                ver_num = (v.get("version_number") or "").strip().lstrip('v')
-                game_vers = v.get("game_versions", [])
-                if ver_num and game_vers:
-                    for gv in game_vers:
-                        versions_set.add(f"{ver_num} ({gv})")
-                elif ver_num:
-                    versions_set.add(ver_num)
-                elif game_vers:
-                    for gv in game_vers:
-                        versions_set.add(gv)
-            return sorted(versions_set) if versions_set else []
-
-        game_versions_dict = {}
-
-        for v in data:
-            loaders = [loader.lower() for loader in v.get("loaders", [])]
-            relevant_loaders = [loader for loader in loaders if loader in server_platforms]
-            if not relevant_loaders:
-                continue
-            best_loader = max(relevant_loaders, key=lambda loader: platform_priority[loader])
-            for gv in v.get("game_versions", []):
-                if gv in game_versions_dict:
-                    if platform_priority[best_loader] > platform_priority[game_versions_dict[gv]]:
-                        game_versions_dict[gv] = best_loader
-                else:
-                    game_versions_dict[gv] = best_loader
-
-        return sorted(game_versions_dict.keys())
+            return _parse_modrinth_pin_versions(data, server_platforms)
+        return _parse_modrinth_game_versions(data, server_platforms, platform_priority)
     except Exception:
         return None
 
@@ -187,6 +189,24 @@ def get_bukkitdev_game_versions(slug, pin_format=False):
         return []
 
 # -------- CURSEFORGE --------
+def _parse_curseforge_versions(mod_data, pin_format):
+    versions = set()
+    for mod in mod_data:
+        for version in mod.get('latestFilesIndexes', []):
+            file_name = (version.get('filename') or version.get('name') or '').strip()
+            game_version = version.get('gameVersion')
+            if pin_format:
+                if file_name and game_version:
+                    versions.add(f"{file_name} ({game_version})")
+                elif file_name:
+                    versions.add(file_name)
+                elif game_version:
+                    versions.add(game_version)
+            else:
+                if game_version and re.match(r'^1\.\d+(\.\d+)?$', game_version):
+                    versions.add(game_version)
+    return sorted(versions) if versions else []
+
 def get_curseforge_game_versions(url, pin_format=False):
     try:
         parsed = urlparse(url)
@@ -205,12 +225,7 @@ def get_curseforge_game_versions(url, pin_format=False):
             return []
         
         api_url = f"https://api.curseforge.com/v1/mods/search?gameId=432&slug={project_slug}&classId={class_id}"
-        
-        headers = {
-            'Accept': 'application/json',
-            'x-api-key': CURSEFORGE_API_KEY or ''
-        }
-        
+        headers = {'Accept': 'application/json', 'x-api-key': CURSEFORGE_API_KEY or ''}
         response = requests.get(api_url, headers=headers)
         if response.status_code != 200:
             return []
@@ -219,23 +234,7 @@ def get_curseforge_game_versions(url, pin_format=False):
         if not data.get('data'):
             return []
         
-        versions = set()
-        for mod in data['data']:
-            for version in mod.get('latestFilesIndexes', []):
-                file_name = (version.get('filename') or version.get('name') or '').strip()
-                game_version = version.get('gameVersion')
-                if pin_format:
-                    if file_name and game_version:
-                        versions.add(f"{file_name} ({game_version})")
-                    elif file_name:
-                        versions.add(file_name)
-                    elif game_version:
-                        versions.add(game_version)
-                else:
-                    if game_version and re.match(r'^1\.\d+(\.\d+)?$', game_version):
-                        versions.add(game_version)
-        
-        return sorted(versions) if versions else []
+        return _parse_curseforge_versions(data['data'], pin_format)
     except Exception:
         return []
 
@@ -300,54 +299,55 @@ def detect_platform(url):
         return None, None
 
 # -------- MAIN --------
+def _fetch_platform_versions(platform, identifier, pin_format):
+    if platform == "modrinth":
+        return get_modrinth_server_game_versions(identifier, pin_format=pin_format)
+    if platform == "spigot":
+        return get_spigot_game_versions(identifier)
+    if platform == "hangar":
+        return get_hangar_game_versions(identifier, pin_format=pin_format)
+    if platform == "curseforge":
+        return get_curseforge_game_versions(identifier, pin_format=pin_format)
+    if platform == "bukkitdev":
+        return get_bukkitdev_game_versions(identifier, pin_format=pin_format)
+    if platform == "github":
+        return get_github_game_versions(identifier)
+    if platform == "planetminecraft":
+        return get_planetminecraft_game_versions(identifier)
+    return None
+
+def _output_game_versions(game_versions, is_pin_format):
+    if game_versions is None:
+        if is_pin_format:
+            print("[]")
+        else:
+            print("", file=sys.stderr)
+        sys.exit(1)
+    if game_versions:
+        if is_pin_format:
+            print(json.dumps(game_versions))
+        else:
+            print(" ".join(game_versions))
+    else:
+        if is_pin_format:
+            print("[]")
+        else:
+            print("")
+
 def main():
     parser = argparse.ArgumentParser(description="Print supported Minecraft versions of a plugin")
     parser.add_argument("url", nargs="?", help="Plugin URL from Modrinth, SpigotMC, or Hangar")
     parser.add_argument("--pin-versions", action="store_true", help="Format output as PluginVersion (GameVersion)")
     args = parser.parse_args()
 
-    if not args.url:
-        args.url = input("Geef een plugin URL op: ").strip()
-
-    platform, identifier = detect_platform(args.url)
+    url = args.url or input("Geef een plugin URL op: ").strip()
+    platform, identifier = detect_platform(url)
     if not platform:
         print("ongeldige url", file=sys.stderr)
         sys.exit(1)
 
-    if platform == "modrinth":
-        game_versions = get_modrinth_server_game_versions(identifier, pin_format=args.pin_versions)
-    elif platform == "spigot":
-        game_versions = get_spigot_game_versions(identifier)
-    elif platform == "hangar":
-        game_versions = get_hangar_game_versions(identifier, pin_format=args.pin_versions)
-    elif platform == "curseforge":
-        game_versions = get_curseforge_game_versions(identifier, pin_format=args.pin_versions)
-    elif platform == "bukkitdev":
-        game_versions = get_bukkitdev_game_versions(identifier, pin_format=args.pin_versions)
-    elif platform == "github":
-        game_versions = get_github_game_versions(identifier)
-    elif platform == "planetminecraft":
-        game_versions = get_planetminecraft_game_versions(identifier)
-    else:
-        print("ongeldige url", file=sys.stderr)
-        sys.exit(1)
-
-    if game_versions is None:
-        if args.pin_versions:
-            print("[]")
-        else:
-            print("", file=sys.stderr)
-        sys.exit(1)
-    elif game_versions:
-        if args.pin_versions:
-            print(json.dumps(game_versions))
-        else:
-            print(" ".join(game_versions))
-    else:
-        if args.pin_versions:
-            print("[]")
-        else:
-            print("")
+    game_versions = _fetch_platform_versions(platform, identifier, args.pin_versions)
+    _output_game_versions(game_versions, args.pin_versions)
 
 if __name__ == "__main__":
     main()
