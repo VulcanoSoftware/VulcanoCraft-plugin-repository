@@ -753,6 +753,55 @@ body {
   margin-top: 1rem;
 }
 
+/* Pin Modal Version Picker Styling */
+#pinVersionModal .version-group-item {
+  transition: all 0.2s ease-in-out;
+  border-color: #e3e8ee !important;
+}
+
+#pinVersionModal .version-group-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-color: #cbd5e1 !important;
+}
+
+#pinVersionModal .version-item-btn {
+  background: transparent;
+  border: none;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  color: #334155;
+}
+
+#pinVersionModal .version-item-btn:hover {
+  background-color: #f1f5f9;
+}
+
+#pinVersionModal .version-item-btn.active {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  font-weight: 600;
+}
+
+#pinVersionModal .game-versions-collapse {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+#pinModalVersionsList::-webkit-scrollbar {
+  width: 6px;
+}
+
+#pinModalVersionsList::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 4px;
+}
+
 /* Pinned version badge */
 .pinned-badge {
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);

@@ -512,12 +512,28 @@ class App {
 
             const updateBadge = event.target.closest('.update-badge-click');
             if (updateBadge) {
-                const pinned = updateBadge.dataset.pinned;
-                const latest = updateBadge.dataset.latest;
+                const url = updateBadge.dataset.url;
+                let pinned = updateBadge.dataset.pinned;
+                let latest = updateBadge.dataset.latest;
+
+                if (url && latest && !latest.includes('(')) {
+                    try {
+                        const res = await API.fetchPinModalVersions(url);
+                        if (res && res.versions && res.versions.length > 0) {
+                            const matchingFullVersion = res.versions.find(v => v === latest || v.startsWith(`${latest} `) || v.startsWith(`${latest}(`));
+                            if (matchingFullVersion) {
+                                latest = matchingFullVersion;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Failed to fetch full latest version pairing:', e);
+                    }
+                }
+
                 showAlertModal(
                     `<div class="text-center p-2">
                         <i class="fas fa-arrow-alt-circle-up text-danger fa-3x mb-3"></i>
-                        <h5>${i18n.t('common.update_available')}</h5>
+                        <h5 class="mb-3">${i18n.t('common.update_available')}</h5>
                         <p class="lead mb-0"><code>${pinned}</code> &rarr; <strong class="text-success">${latest}</strong></p>
                     </div>`,
                     i18n.t('common.update_available'),

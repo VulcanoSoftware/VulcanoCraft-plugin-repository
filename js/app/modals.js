@@ -90,36 +90,36 @@ function ensurePinVersionModalExists() {
         modalEl.tabIndex = -1;
         modalEl.setAttribute('aria-hidden', 'true');
         modalEl.innerHTML = `
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header bg-dark text-white">
-                        <h5 class="modal-title" id="pinVersionModalTitle">
-                            <i class="fas fa-thumbtack me-2 text-warning"></i><span data-i18n="modal.pin_version_title">${i18n.t('modal.pin_version_title')}</span>
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content shadow-lg border-0 rounded-3">
+                    <div class="modal-header bg-dark text-white px-4 py-3">
+                        <h5 class="modal-title d-flex align-items-center gap-2" id="pinVersionModalTitle">
+                            <i class="fas fa-thumbtack text-warning fs-5"></i><span data-i18n="modal.pin_version_title">${i18n.t('modal.pin_version_title')}</span>
                         </h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body p-4">
-                        <div class="mb-3 d-flex align-items-center gap-2">
-                            <img id="pinModalPluginIcon" src="images/server-icon.png" class="plugin-icon me-2" style="width: 42px; height: 42px;" alt="icon">
-                            <div>
-                                <h6 id="pinModalPluginTitle" class="mb-0 font-weight-bold">Plugin Title</h6>
-                                <small id="pinModalPluginAuthor" class="text-muted"></small>
+                        <div class="mb-3 p-3 bg-light rounded border d-flex align-items-center gap-3">
+                            <img id="pinModalPluginIcon" src="images/server-icon.png" class="plugin-icon flex-shrink-0" style="width: 48px; height: 48px; object-fit: contain;" alt="icon">
+                            <div class="min-w-0">
+                                <h5 id="pinModalPluginTitle" class="mb-1 fw-bold text-dark text-truncate">Plugin Title</h5>
+                                <small id="pinModalPluginAuthor" class="text-muted d-block text-truncate"></small>
                             </div>
                         </div>
                         <p class="small text-muted mb-3" data-i18n="modal.pin_version_help">${i18n.t('modal.pin_version_help')}</p>
 
-                        <div id="pinModalLoading" class="text-center py-3" style="display: none;">
+                        <div id="pinModalLoading" class="text-center py-4" style="display: none;">
                             <img src="images/loading-icon.gif" class="loading-icon mb-2" alt="Loading">
                             <div class="small text-muted" data-i18n="common.loading">${i18n.t('common.loading')}</div>
                         </div>
 
                         <div id="pinModalVersionContent">
                             <label class="form-label font-weight-bold" data-i18n="modal.select_version">${i18n.t('modal.select_version')}</label>
-                            <div id="pinModalVersionsList" class="mb-3" style="max-height: 220px; overflow-y: auto;"></div>
+                            <div id="pinModalVersionsList" class="mb-3 pe-1" style="max-height: 320px; overflow-y: auto;"></div>
 
-                            <div class="mb-3">
-                                <label class="form-label small text-muted" data-i18n="modal.manual_version_label">${i18n.t('modal.manual_version_label') || 'Voer plugin en/of ingame versie in:'}</label>
-                                <input type="text" id="pinModalManualVersionInput" class="form-control form-control-sm" placeholder="${i18n.t('modal.manual_version_placeholder') || 'Bijv. 2.4.1 (1.21.6)'}" data-i18n-placeholder="modal.manual_version_placeholder">
+                            <div class="p-3 bg-light rounded border">
+                                <label class="form-label small fw-bold text-dark mb-1" data-i18n="modal.manual_version_label">${i18n.t('modal.manual_version_label') || 'Voer plugin en/of ingame versie in:'}</label>
+                                <input type="text" id="pinModalManualVersionInput" class="form-control" placeholder="${i18n.t('modal.manual_version_placeholder') || 'Bijv. 2.4.1 (1.21.6)'}" data-i18n-placeholder="modal.manual_version_placeholder">
                             </div>
                         </div>
                     </div>
