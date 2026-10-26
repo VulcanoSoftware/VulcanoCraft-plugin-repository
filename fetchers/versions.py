@@ -9,6 +9,16 @@ from urllib.parse import urlparse
 CURSEFORGE_API_KEY = os.environ.get("CURSEFORGE_API_KEY")
 
 # -------- MODRINTH --------
+def _process_modrinth_pin_entry(ver_num, game_vers, seen, versions_list):
+    if ver_num and game_vers:
+        for gv in game_vers:
+            _append_unique(f"{ver_num} ({gv})", seen, versions_list)
+    elif ver_num:
+        _append_unique(ver_num, seen, versions_list)
+    elif game_vers:
+        for gv in game_vers:
+            _append_unique(gv, seen, versions_list)
+
 def _parse_modrinth_pin_versions(data, server_platforms):
     versions_list = []
     seen = set()
@@ -18,21 +28,7 @@ def _parse_modrinth_pin_versions(data, server_platforms):
             continue
         ver_num = (v.get("version_number") or "").strip().lstrip('v')
         game_vers = v.get("game_versions", [])
-        if ver_num and game_vers:
-            for gv in game_vers:
-                entry = f"{ver_num} ({gv})"
-                if entry not in seen:
-                    seen.add(entry)
-                    versions_list.append(entry)
-        elif ver_num:
-            if ver_num not in seen:
-                seen.add(ver_num)
-                versions_list.append(ver_num)
-        elif game_vers:
-            for gv in game_vers:
-                if gv not in seen:
-                    seen.add(gv)
-                    versions_list.append(gv)
+        _process_modrinth_pin_entry(ver_num, game_vers, seen, versions_list)
     return versions_list
 
 def _parse_modrinth_game_versions(data, server_platforms, platform_priority):
@@ -89,36 +85,38 @@ def get_spigot_game_versions(url):
         return None
 
 # -------- HANGAR --------
-def _process_hangar_version(v, pin_format, seen, versions_list):
-    ver_name = (v.get("name") or "").strip().lstrip('v')
-    platform_deps = v.get("platformDependencies", {})
+def _append_unique(entry, seen, versions_list):
+    if entry and entry not in seen:
+        seen.add(entry)
+        versions_list.append(entry)
+
+def _extract_hangar_deps(platform_deps):
     gv_list = []
-    for platform_name, versions in platform_deps.items():
+    for versions in platform_deps.values():
         for version in versions:
             if version not in gv_list:
                 gv_list.append(version)
+    return gv_list
+
+def _process_hangar_pin_version(ver_name, gv_list, seen, versions_list):
+    if ver_name and gv_list:
+        for gv in gv_list:
+            _append_unique(f"{ver_name} ({gv})", seen, versions_list)
+    elif ver_name:
+        _append_unique(ver_name, seen, versions_list)
+    elif gv_list:
+        for gv in gv_list:
+            _append_unique(gv, seen, versions_list)
+
+def _process_hangar_version(v, pin_format, seen, versions_list):
+    ver_name = (v.get("name") or "").strip().lstrip('v')
+    gv_list = _extract_hangar_deps(v.get("platformDependencies", {}))
 
     if pin_format:
-        if ver_name and gv_list:
-            for gv in gv_list:
-                entry = f"{ver_name} ({gv})"
-                if entry not in seen:
-                    seen.add(entry)
-                    versions_list.append(entry)
-        elif ver_name:
-            if ver_name not in seen:
-                seen.add(ver_name)
-                versions_list.append(ver_name)
-        elif gv_list:
-            for gv in gv_list:
-                if gv not in seen:
-                    seen.add(gv)
-                    versions_list.append(gv)
+        _process_hangar_pin_version(ver_name, gv_list, seen, versions_list)
     else:
         for gv in gv_list:
-            if gv not in seen:
-                seen.add(gv)
-                versions_list.append(gv)
+            _append_unique(gv, seen, versions_list)
 
 def get_hangar_game_versions(combined_slug, pin_format=False):
     try:
@@ -228,6 +226,22 @@ def get_bukkitdev_game_versions(slug, pin_format=False):
         return []
 
 # -------- CURSEFORGE --------
+def _process_curseforge_file_index(version, pin_format, seen, versions_list):
+    file_name = (version.get('filename') or version.get('name') or '').strip()
+    game_version = version.get('gameVersion')
+    if pin_format:
+        entry = ""
+        if file_name and game_version:
+            entry = f"{file_name} ({game_version})"
+        elif file_name:
+            entry = file_name
+        elif game_version:
+            entry = game_version
+        _append_unique(entry, seen, versions_list)
+    else:
+        if game_version and re.match(r'^1\.\d+(\.\d+)?$', game_version):
+            _append_unique(game_version, seen, versions_list)
+
 def _parse_curseforge_versions(mod_data, pin_format):
     versions_list = []
     seen = set()
@@ -235,24 +249,7 @@ def _parse_curseforge_versions(mod_data, pin_format):
         indexes = mod.get('latestFilesIndexes', [])
         indexes = sorted(indexes, key=lambda x: x.get('fileId', 0), reverse=True)
         for version in indexes:
-            file_name = (version.get('filename') or version.get('name') or '').strip()
-            game_version = version.get('gameVersion')
-            if pin_format:
-                entry = ""
-                if file_name and game_version:
-                    entry = f"{file_name} ({game_version})"
-                elif file_name:
-                    entry = file_name
-                elif game_version:
-                    entry = game_version
-                if entry and entry not in seen:
-                    seen.add(entry)
-                    versions_list.append(entry)
-            else:
-                if game_version and re.match(r'^1\.\d+(\.\d+)?$', game_version):
-                    if game_version not in seen:
-                        seen.add(game_version)
-                        versions_list.append(game_version)
+            _process_curseforge_file_index(version, pin_format, seen, versions_list)
     if not pin_format:
         return sorted(versions_list)
     return versions_list
