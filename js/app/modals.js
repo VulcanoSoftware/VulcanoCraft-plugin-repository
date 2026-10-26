@@ -185,7 +185,7 @@ function _renderPinModalVersionList(versionsListEl, versionsArray, state, manual
 
     const groups = _groupVersionsByPluginVersion(versionsArray);
     if (groups.length === 0) {
-        versionsListEl.innerHTML = `<div class="small text-muted p-2">${i18n.t('common.no_versions')}</div>`;
+        versionsListEl.innerHTML = `<div class="small text-muted p-3 text-center bg-light rounded-3 border">${i18n.t('common.no_versions')}</div>`;
         return;
     }
 
@@ -196,27 +196,35 @@ function _renderPinModalVersionList(versionsListEl, versionsArray, state, manual
         const isExpanded = !!state.expanded[pVer];
 
         html += `
-            <div class="version-group-item mb-2 p-2 border rounded bg-white">
-                <div class="d-flex align-items-center justify-content-between gap-2">
-                    <button type="button" class="version-item-btn mb-0 flex-grow-1 ${isPluginActive ? 'active' : ''}" data-version="${pVer}">
-                        <span><i class="fas fa-tag me-2"></i><strong>${pVer}</strong></span>
-                        ${isPluginActive ? '<i class="fas fa-check"></i>' : ''}
+            <div class="version-group-card mb-2 p-3 border rounded-3 bg-white shadow-sm ${isPluginActive ? 'active-group-card' : ''}">
+                <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                    <button type="button" class="version-item-btn border-0 rounded-3 p-2 mb-0 flex-grow-1 text-start d-flex align-items-center justify-content-between ${isPluginActive ? 'active' : ''}" data-version="${pVer}">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-tag ${isPluginActive ? 'text-white' : 'text-primary'}"></i>
+                            <span class="fw-bold fs-6">${pVer}</span>
+                        </div>
+                        ${isPluginActive ? '<span class="badge bg-white text-primary fw-bold ms-2"><i class="fas fa-check me-1"></i>Geselecteerd</span>' : '<span class="text-muted small">Pinnen</span>'}
                     </button>
                     ${group.gameVersions.length > 0 ? `
-                        <button type="button" class="btn btn-sm btn-outline-secondary toggle-game-versions-btn text-nowrap" data-pver="${pVer}">
-                            <i class="fas fa-gamepad me-1 text-info"></i><span data-i18n="modal.show_game_versions">${i18n.t('modal.show_game_versions') || 'Toon ingame versies'}</span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary toggle-game-versions-btn text-nowrap rounded-pill px-3 ms-auto" data-pver="${pVer}">
+                            <i class="fas fa-gamepad me-1 text-info"></i><span>${i18n.t('modal.show_game_versions') || 'Ingame versies'} (${group.gameVersions.length})</span>
                             <i class="fas fa-chevron-${isExpanded ? 'up' : 'down'} ms-1 small"></i>
                         </button>
                     ` : ''}
                 </div>
                 ${group.gameVersions.length > 0 ? `
-                    <div class="game-versions-collapse mt-2 p-2 rounded bg-light border" style="display: ${isExpanded ? 'block' : 'none'};">
-                        <div class="small text-muted mb-1 font-weight-bold" data-i18n="modal.supported_game_versions">${i18n.t('modal.supported_game_versions') || 'Ondersteunde ingame versies:'}</div>
-                        <div class="d-flex flex-wrap gap-1">
+                    <div class="game-versions-collapse mt-3 p-3 rounded-3 border" style="display: ${isExpanded ? 'block' : 'none'}; background: #f8fafc;">
+                        <div class="small text-muted mb-2 fw-bold d-flex align-items-center gap-1">
+                            <i class="fas fa-cubes text-primary"></i>
+                            <span>${i18n.t('modal.supported_game_versions') || 'Ondersteunde ingame versies:'}</span>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
                             ${group.gameVersions.map(gv => {
                                 const fullVer = `${pVer} (${gv})`;
                                 const isGvActive = (state.selectedVersion === fullVer);
-                                return `<span class="version-badge version-badge-sm ${isGvActive ? 'active-badge' : ''}" data-fullversion="${fullVer}">${gv}</span>`;
+                                return `<button type="button" class="btn btn-sm ${isGvActive ? 'btn-primary shadow-sm fw-bold' : 'btn-outline-dark'} version-badge-pill" data-fullversion="${fullVer}">
+                                    <i class="fas fa-gamepad me-1 small"></i>${gv}
+                                </button>`;
                             }).join('')}
                         </div>
                     </div>
@@ -244,7 +252,7 @@ function _renderPinModalVersionList(versionsListEl, versionsArray, state, manual
         });
     });
 
-    versionsListEl.querySelectorAll('.version-badge[data-fullversion]').forEach(badge => {
+    versionsListEl.querySelectorAll('.version-badge-pill[data-fullversion]').forEach(badge => {
         badge.addEventListener('click', (e) => {
             e.stopPropagation();
             const pickedVer = badge.dataset.fullversion;

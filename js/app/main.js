@@ -513,31 +513,51 @@ class App {
             const updateBadge = event.target.closest('.update-badge-click');
             if (updateBadge) {
                 const url = updateBadge.dataset.url;
-                let pinned = updateBadge.dataset.pinned;
-                let latest = updateBadge.dataset.latest;
+                let pinned = updateBadge.dataset.pinned || '';
+                let latest = updateBadge.dataset.latest || '';
 
-                if (url && latest && !latest.includes('(')) {
+                if (url) {
                     try {
                         const res = await API.fetchPinModalVersions(url);
                         if (res && res.versions && res.versions.length > 0) {
-                            const matchingFullVersion = res.versions.find(v => v === latest || v.startsWith(`${latest} `) || v.startsWith(`${latest}(`));
-                            if (matchingFullVersion) {
-                                latest = matchingFullVersion;
+                            const pinnedMatch = res.versions.find(v => v === pinned || v.startsWith(`${pinned} `) || v.startsWith(`${pinned}(`));
+                            if (pinnedMatch) {
+                                pinned = pinnedMatch;
+                            }
+
+                            const latestMatch = res.versions.find(v => v === latest || v.startsWith(`${latest} `) || v.startsWith(`${latest}(`));
+                            if (latestMatch) {
+                                latest = latestMatch;
+                            } else if (res.versions[0]) {
+                                latest = res.versions[0];
                             }
                         }
                     } catch (e) {
-                        console.warn('Failed to fetch full latest version pairing:', e);
+                        console.warn('Failed to fetch full version pairings for update modal:', e);
                     }
                 }
 
                 showAlertModal(
-                    `<div class="text-center p-2">
-                        <i class="fas fa-arrow-alt-circle-up text-danger fa-3x mb-3"></i>
-                        <h5 class="mb-3">${i18n.t('common.update_available')}</h5>
-                        <p class="lead mb-0"><code>${pinned}</code> &rarr; <strong class="text-success">${latest}</strong></p>
+                    `<div class="text-center py-3 px-2">
+                        <div class="update-modal-icon-circle mx-auto mb-3">
+                            <i class="fas fa-arrow-alt-circle-up text-danger fa-3x"></i>
+                        </div>
+                        <h4 class="fw-bold text-dark mb-3">${i18n.t('common.update_available')}</h4>
+                        <div class="d-flex align-items-center justify-content-center flex-wrap gap-3 p-3 rounded-3 bg-light border shadow-sm">
+                            <div class="text-center min-w-0">
+                                <small class="text-muted d-block fw-bold mb-1">${i18n.t('common.pinned')}</small>
+                                <span class="badge bg-warning text-dark fs-6 px-3 py-2 fw-bold text-wrap">${pinned}</span>
+                            </div>
+                            <i class="fas fa-arrow-right text-muted fs-4 d-none d-sm-inline-block"></i>
+                            <i class="fas fa-arrow-down text-muted fs-4 d-inline-block d-sm-none"></i>
+                            <div class="text-center min-w-0">
+                                <small class="text-muted d-block fw-bold mb-1">${i18n.t('common.latest') || 'Nieuwste'}</small>
+                                <span class="badge bg-success fs-6 px-3 py-2 fw-bold text-wrap">${latest}</span>
+                            </div>
+                        </div>
                     </div>`,
                     i18n.t('common.update_available'),
-                    'fas fa-info-circle text-info'
+                    'fas fa-arrow-alt-circle-up text-danger'
                 );
             }
         });
