@@ -89,6 +89,37 @@ def get_spigot_game_versions(url):
         return None
 
 # -------- HANGAR --------
+def _process_hangar_version(v, pin_format, seen, versions_list):
+    ver_name = (v.get("name") or "").strip().lstrip('v')
+    platform_deps = v.get("platformDependencies", {})
+    gv_list = []
+    for platform_name, versions in platform_deps.items():
+        for version in versions:
+            if version not in gv_list:
+                gv_list.append(version)
+
+    if pin_format:
+        if ver_name and gv_list:
+            for gv in gv_list:
+                entry = f"{ver_name} ({gv})"
+                if entry not in seen:
+                    seen.add(entry)
+                    versions_list.append(entry)
+        elif ver_name:
+            if ver_name not in seen:
+                seen.add(ver_name)
+                versions_list.append(ver_name)
+        elif gv_list:
+            for gv in gv_list:
+                if gv not in seen:
+                    seen.add(gv)
+                    versions_list.append(gv)
+    else:
+        for gv in gv_list:
+            if gv not in seen:
+                seen.add(gv)
+                versions_list.append(gv)
+
 def get_hangar_game_versions(combined_slug, pin_format=False):
     try:
         limit = 25
@@ -103,40 +134,11 @@ def get_hangar_game_versions(combined_slug, pin_format=False):
             response.raise_for_status()
                 
             data = response.json()
-            
             if not data.get("result"):
                 break
                 
             for v in data["result"]:
-                ver_name = (v.get("name") or "").strip().lstrip('v')
-                platform_deps = v.get("platformDependencies", {})
-                gv_list = []
-                for platform_name, versions in platform_deps.items():
-                    for version in versions:
-                        if version not in gv_list:
-                            gv_list.append(version)
-
-                if pin_format:
-                    if ver_name and gv_list:
-                        for gv in gv_list:
-                            entry = f"{ver_name} ({gv})"
-                            if entry not in seen:
-                                seen.add(entry)
-                                versions_list.append(entry)
-                    elif ver_name:
-                        if ver_name not in seen:
-                            seen.add(ver_name)
-                            versions_list.append(ver_name)
-                    elif gv_list:
-                        for gv in gv_list:
-                            if gv not in seen:
-                                seen.add(gv)
-                                versions_list.append(gv)
-                else:
-                    for gv in gv_list:
-                        if gv not in seen:
-                            seen.add(gv)
-                            versions_list.append(gv)
+                _process_hangar_version(v, pin_format, seen, versions_list)
             
             pagination = data.get("pagination", {})
             if offset + limit >= pagination.get("count", 0):
@@ -178,6 +180,26 @@ def _get_servermods_project(slug):
         return None
 
 # -------- BUKKITDEV / SERVERMODS --------
+def _process_bukkitdev_file(f, pin_format, seen, versions_list):
+    file_name = (f.get("name") or "").strip()
+    gv = f.get("gameVersion")
+    if pin_format:
+        entry = ""
+        if file_name and gv:
+            entry = f"{file_name} ({gv})"
+        elif file_name:
+            entry = file_name
+        elif gv:
+            entry = gv
+        if entry and entry not in seen:
+            seen.add(entry)
+            versions_list.append(entry)
+    else:
+        if gv and re.match(r'^1\.\d+(\.\d+)?$', gv):
+            if gv not in seen:
+                seen.add(gv)
+                versions_list.append(gv)
+
 def get_bukkitdev_game_versions(slug, pin_format=False):
     try:
         project = _get_servermods_project(slug)
@@ -198,24 +220,7 @@ def get_bukkitdev_game_versions(slug, pin_format=False):
         versions_list = []
         seen = set()
         for f in files:
-            file_name = (f.get("name") or "").strip()
-            gv = f.get("gameVersion")
-            if pin_format:
-                entry = ""
-                if file_name and gv:
-                    entry = f"{file_name} ({gv})"
-                elif file_name:
-                    entry = file_name
-                elif gv:
-                    entry = gv
-                if entry and entry not in seen:
-                    seen.add(entry)
-                    versions_list.append(entry)
-            else:
-                if gv and re.match(r'^1\.\d+(\.\d+)?$', gv):
-                    if gv not in seen:
-                        seen.add(gv)
-                        versions_list.append(gv)
+            _process_bukkitdev_file(f, pin_format, seen, versions_list)
         if not pin_format:
             return sorted(versions_list)
         return versions_list
