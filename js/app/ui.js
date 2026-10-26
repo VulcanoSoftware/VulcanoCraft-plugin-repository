@@ -156,7 +156,7 @@ class UI {
 
             const latestVersion = this._getLatestVersion(plugin.versions || '');
             if (latestVersion && this._isNewerVersion(latestVersion, plugin.pinned_version)) {
-                updateWarningBadgeHtml = `<span class="update-available-badge update-badge-click" data-url="${plugin.url || ''}" data-pinned="${plugin.pinned_version}" data-latest="${latestVersion}" title="${i18n.t('common.update_available')}"><i class="fas fa-arrow-alt-circle-up"></i> ${i18n.t('common.update_available')}</span>`;
+                updateWarningBadgeHtml = `<span class="update-available-badge update-badge-click" data-url="${plugin.url || ''}" data-pinned="${plugin.pinned_version}" data-latest="${latestVersion}" title="${i18n.t('common.update_available')}"><i class="fas fa-arrow-alt-circle-up me-1"></i>${i18n.t('common.update_available')}<span class="update-version-tag ms-1">${latestVersion}</span></span>`;
             }
         }
         return { pinnedBadgeHtml, updateWarningBadgeHtml };

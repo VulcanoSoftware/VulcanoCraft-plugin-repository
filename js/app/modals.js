@@ -91,7 +91,7 @@ function ensurePinVersionModalExists() {
         modalEl.setAttribute('aria-hidden', 'true');
         modalEl.innerHTML = `
             <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content shadow-lg border-0 rounded-3">
+                <div class="modal-content shadow-lg border-0 rounded-4 overflow-hidden">
                     <div class="modal-header bg-dark text-white px-4 py-3">
                         <h5 class="modal-title d-flex align-items-center gap-2" id="pinVersionModalTitle">
                             <i class="fas fa-thumbtack text-warning fs-5"></i><span data-i18n="modal.pin_version_title">${i18n.t('modal.pin_version_title')}</span>
@@ -99,8 +99,8 @@ function ensurePinVersionModalExists() {
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body p-4">
-                        <div class="mb-3 p-3 bg-light rounded border d-flex align-items-center gap-3">
-                            <img id="pinModalPluginIcon" src="images/server-icon.png" class="plugin-icon flex-shrink-0" style="width: 48px; height: 48px; object-fit: contain;" alt="icon">
+                        <div class="mb-3 p-3 rounded-3 border d-flex align-items-center gap-3 shadow-sm" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
+                            <img id="pinModalPluginIcon" src="images/server-icon.png" class="plugin-icon flex-shrink-0" style="width: 52px; height: 52px; object-fit: contain;" alt="icon">
                             <div class="min-w-0">
                                 <h5 id="pinModalPluginTitle" class="mb-1 fw-bold text-dark text-truncate">Plugin Title</h5>
                                 <small id="pinModalPluginAuthor" class="text-muted d-block text-truncate"></small>
@@ -114,21 +114,21 @@ function ensurePinVersionModalExists() {
                         </div>
 
                         <div id="pinModalVersionContent">
-                            <label class="form-label font-weight-bold" data-i18n="modal.select_version">${i18n.t('modal.select_version')}</label>
+                            <label class="form-label fw-bold text-dark mb-2" data-i18n="modal.select_version">${i18n.t('modal.select_version')}</label>
                             <div id="pinModalVersionsList" class="mb-3 pe-1" style="max-height: 320px; overflow-y: auto;"></div>
 
-                            <div class="p-3 bg-light rounded border">
+                            <div class="p-3 rounded-3 border shadow-sm" style="background: #f8fafc;">
                                 <label class="form-label small fw-bold text-dark mb-1" data-i18n="modal.manual_version_label">${i18n.t('modal.manual_version_label') || 'Voer plugin en/of ingame versie in:'}</label>
                                 <input type="text" id="pinModalManualVersionInput" class="form-control" placeholder="${i18n.t('modal.manual_version_placeholder') || 'Bijv. 2.4.1 (1.21.6)'}" data-i18n-placeholder="modal.manual_version_placeholder">
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer bg-light">
-                        <button type="button" class="btn btn-outline-danger btn-sm me-auto" id="pinModalUnpinBtn">
+                    <div class="modal-footer bg-light px-4 py-3">
+                        <button type="button" class="btn btn-outline-danger me-auto" id="pinModalUnpinBtn">
                             <i class="fas fa-unlink me-1"></i><span data-i18n="modal.unpin_version">${i18n.t('modal.unpin_version')}</span>
                         </button>
-                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" data-i18n="common.cancel">${i18n.t('common.cancel')}</button>
-                        <button type="button" class="btn btn-primary btn-sm" id="pinModalSaveBtn">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="common.cancel">${i18n.t('common.cancel')}</button>
+                        <button type="button" class="btn btn-primary" id="pinModalSaveBtn">
                             <i class="fas fa-save me-1"></i><span data-i18n="common.confirm">${i18n.t('common.confirm')}</span>
                         </button>
                     </div>
