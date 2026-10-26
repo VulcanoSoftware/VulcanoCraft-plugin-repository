@@ -108,6 +108,37 @@ class UI {
         return sorted[sorted.length - 1];
     }
 
+    _renderPluginIcon(iconUrl, titleText) {
+        const firstLetter = (titleText || 'P')[0].toUpperCase();
+        return iconUrl
+            ? `<img src="${iconUrl}" alt="${titleText} icon" class="plugin-icon me-3" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="plugin-icon-letter me-3" style="display:none;">${firstLetter}</div>`
+            : `<div class="plugin-icon-letter me-3">${firstLetter}</div>`;
+    }
+
+    _renderPinAndUpdateBadges(plugin) {
+        let pinnedBadgeHtml = '';
+        let updateWarningBadgeHtml = '';
+
+        if (plugin.pinned_version) {
+            pinnedBadgeHtml = `<span class="pinned-badge" title="${i18n.t('common.pinned')}"><i class="fas fa-thumbtack"></i> ${i18n.t('common.pinned')}: ${plugin.pinned_version}</span>`;
+
+            const latestVersion = this._getLatestVersion(plugin.versions || '');
+            if (latestVersion && this._isNewerVersion(latestVersion, plugin.pinned_version)) {
+                updateWarningBadgeHtml = `<span class="update-available-badge update-badge-click" data-pinned="${plugin.pinned_version}" data-latest="${latestVersion}" title="${i18n.t('common.update_available')}"><i class="fas fa-arrow-alt-circle-up"></i> ${i18n.t('common.update_available')}</span>`;
+            }
+        }
+        return { pinnedBadgeHtml, updateWarningBadgeHtml };
+    }
+
+    _renderPinButton(canPin, pluginUrl, pinnedVersion) {
+        if (!canPin) return '';
+        const pinBtnLabel = pinnedVersion ? i18n.t('common.change_pinned_version') : i18n.t('common.pin_version');
+        const isPinnedClass = pinnedVersion ? 'is-pinned' : '';
+        return `<button class="btn-pin ${isPinnedClass} pin-version-btn" data-url="${pluginUrl || ''}" title="${pinBtnLabel}">
+                <i class="fas fa-thumbtack"></i><span>${pinBtnLabel}</span>
+               </button>`;
+    }
+
     _createPluginCard(plugin, authStatus, currentUser) {
         const { logged_in, role } = authStatus;
         const formattedVersions = this._formatVersions(plugin.versions || '');
@@ -118,31 +149,9 @@ class UI {
         const canDelete = logged_in && (role === 'admin' || role === 'co-admin' || plugin.owner === currentUser);
         const canPin = logged_in && (role === 'admin' || role === 'co-admin' || plugin.owner === currentUser);
         const titleText = plugin.title || i18n.t('common.no_title');
-        const firstLetter = (titleText)[0].toUpperCase();
-        const iconHtml = plugin.icon
-            ? `<img src="${plugin.icon}" alt="${titleText} icon" class="plugin-icon me-3" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="plugin-icon-letter me-3" style="display:none;">${firstLetter}</div>`
-            : `<div class="plugin-icon-letter me-3">${firstLetter}</div>`;
-
-        let pinnedBadgeHtml = '';
-        let updateWarningBadgeHtml = '';
-
-        const latestVersion = this._getLatestVersion(plugin.versions || '');
-
-        if (plugin.pinned_version) {
-            pinnedBadgeHtml = `<span class="pinned-badge" title="${i18n.t('common.pinned')}"><i class="fas fa-thumbtack"></i> ${i18n.t('common.pinned')}: ${plugin.pinned_version}</span>`;
-
-            if (latestVersion && this._isNewerVersion(latestVersion, plugin.pinned_version)) {
-                updateWarningBadgeHtml = `<span class="update-available-badge update-badge-click" data-pinned="${plugin.pinned_version}" data-latest="${latestVersion}" title="${i18n.t('common.update_available')}"><i class="fas fa-arrow-alt-circle-up"></i> ${i18n.t('common.update_available')}</span>`;
-            }
-        }
-
-        const pinBtnLabel = plugin.pinned_version ? i18n.t('common.change_pinned_version') : i18n.t('common.pin_version');
-        const isPinnedClass = plugin.pinned_version ? 'is-pinned' : '';
-        const pinBtnHtml = canPin
-            ? `<button class="btn-pin ${isPinnedClass} pin-version-btn" data-url="${plugin.url || ''}" title="${pinBtnLabel}">
-                <i class="fas fa-thumbtack"></i><span>${pinBtnLabel}</span>
-               </button>`
-            : '';
+        const iconHtml = this._renderPluginIcon(plugin.icon, titleText);
+        const { pinnedBadgeHtml, updateWarningBadgeHtml } = this._renderPinAndUpdateBadges(plugin);
+        const pinBtnHtml = this._renderPinButton(canPin, plugin.url, plugin.pinned_version);
 
         return `
             <div class="col-12 mb-4 plugin-card" style="animation: fadeIn 0.6s ease-out both;">

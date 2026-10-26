@@ -195,20 +195,26 @@ export function showPinVersionModal(plugin) {
         if (versionsListEl) versionsListEl.style.display = 'none';
 
         // Dynamically fetch latest plugin info if possible
-        API.fetchPlugin(plugin.url).then(fetched => {
-            if (fetched && fetched.versions) {
-                const fetchedVers = fetched.versions.split(/\s+/).filter(Boolean);
-                if (fetchedVers.length > 0) {
-                    versionsList = Array.from(new Set([...fetchedVers, ...versionsList]));
+        if (typeof API.fetchPlugin === 'function') {
+            API.fetchPlugin(plugin.url).then(fetched => {
+                if (fetched && fetched.versions) {
+                    const fetchedVers = fetched.versions.split(/\s+/).filter(Boolean);
+                    if (fetchedVers.length > 0) {
+                        versionsList = Array.from(new Set([...fetchedVers, ...versionsList]));
+                    }
                 }
-            }
-        }).catch(err => {
-            console.warn('Failed to dynamically fetch plugin versions for pin modal:', err);
-        }).finally(() => {
+            }).catch(err => {
+                console.warn('Failed to dynamically fetch plugin versions for pin modal:', err);
+            }).finally(() => {
+                if (loadingEl) loadingEl.style.display = 'none';
+                if (versionsListEl) versionsListEl.style.display = 'block';
+                renderVersions(versionsList);
+            });
+        } else {
             if (loadingEl) loadingEl.style.display = 'none';
             if (versionsListEl) versionsListEl.style.display = 'block';
             renderVersions(versionsList);
-        });
+        }
 
         const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
 
