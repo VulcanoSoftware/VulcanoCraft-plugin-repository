@@ -66,6 +66,111 @@ class UI {
             </div>`;
     }
 
+    _parseVersion(v) {
+        if (!v) return [];
+        const clean = String(v).replace(/^v/i, '').trim();
+        return clean.split(/[-+.]/).map(p => {
+            const n = parseInt(p, 10);
+            return isNaN(n) ? p : n;
+        });
+    }
+
+    _compareParsedVersions(p1, p2) {
+        const len = Math.max(p1.length, p2.length);
+        for (let i = 0; i < len; i++) {
+            const a = p1[i] !== undefined ? p1[i] : 0;
+            const b = p2[i] !== undefined ? p2[i] : 0;
+            if (typeof a === 'number' && typeof b === 'number') {
+                if (a > b) return 1;
+                if (a < b) return -1;
+            } else {
+                const cmp = String(a).localeCompare(String(b));
+                if (cmp > 0) return 1;
+                if (cmp < 0) return -1;
+            }
+        }
+        return 0;
+    }
+
+    _isNewerVersion(latest, pinned) {
+        if (!latest || !pinned || latest === pinned) return false;
+
+        const pinnedMatch = String(pinned).match(/^(.*?)\s*\(([^)]+)\)$/);
+        const latestMatch = String(latest).match(/^(.*?)\s*\(([^)]+)\)$/);
+
+        let pinnedPlugin = pinned;
+        let pinnedGame = null;
+        if (pinnedMatch) {
+            pinnedPlugin = pinnedMatch[1].trim();
+            pinnedGame = pinnedMatch[2].trim();
+        }
+
+        let latestPlugin = latest;
+        let latestGame = null;
+        if (latestMatch) {
+            latestPlugin = latestMatch[1].trim();
+            latestGame = latestMatch[2].trim();
+        }
+
+        if (latestGame && pinnedGame) {
+            if (this._compareParsedVersions(this._parseVersion(latestPlugin), this._parseVersion(pinnedPlugin)) > 0) return true;
+            return this._compareParsedVersions(this._parseVersion(latestGame), this._parseVersion(pinnedGame)) > 0;
+        }
+
+        if (pinnedGame && !latestMatch) {
+            const cmpGame = this._compareParsedVersions(this._parseVersion(latest), this._parseVersion(pinnedGame));
+            if (cmpGame > 0) return true;
+            if (cmpGame < 0) return false;
+            return this._compareParsedVersions(this._parseVersion(latest), this._parseVersion(pinnedPlugin)) > 0;
+        }
+
+        return this._compareParsedVersions(this._parseVersion(latestPlugin), this._parseVersion(pinnedPlugin)) > 0;
+    }
+
+    _getLatestVersion(versionsString) {
+        if (!versionsString) return null;
+        const versions = versionsString.split(' ').filter(v => v.trim());
+        if (versions.length === 0) return null;
+
+        const sorted = versions.sort((a, b) => {
+            if (this._isNewerVersion(a, b)) return 1;
+            if (this._isNewerVersion(b, a)) return -1;
+            return 0;
+        });
+        return sorted[sorted.length - 1];
+    }
+
+    _renderPluginIcon(iconUrl, titleText) {
+        const firstLetter = (titleText || 'P')[0].toUpperCase();
+        return iconUrl
+            ? `<img src="${iconUrl}" alt="${titleText} icon" class="plugin-icon me-3" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="plugin-icon-letter me-3" style="display:none;">${firstLetter}</div>`
+            : `<div class="plugin-icon-letter me-3">${firstLetter}</div>`;
+    }
+
+    _renderPinAndUpdateBadges(plugin) {
+        let pinnedBadgeHtml = '';
+        let updateWarningBadgeHtml = '';
+
+        if (plugin.pinned_version) {
+            pinnedBadgeHtml = `<span class="pinned-badge" title="${i18n.t('common.pinned')}"><i class="fas fa-thumbtack"></i> ${i18n.t('common.pinned')}: ${plugin.pinned_version}</span>`;
+
+            const latestVersion = this._getLatestVersion(plugin.versions || '');
+            if (latestVersion && this._isNewerVersion(latestVersion, plugin.pinned_version)) {
+                updateWarningBadgeHtml = `<span class="update-available-badge update-badge-click" data-url="${plugin.url || ''}" data-pinned="${plugin.pinned_version}" data-latest="${latestVersion}" title="${i18n.t('common.update_available')}"><i class="fas fa-arrow-alt-circle-up me-1"></i>${i18n.t('common.update_available')}</span>`;
+            }
+        }
+        return { pinnedBadgeHtml, updateWarningBadgeHtml };
+    }
+
+    _renderPinButton(canPin, pluginUrl, pinnedVersion) {
+        if (!canPin) return '';
+        const pinBtnLabel = pinnedVersion ? i18n.t('common.change_pinned_version') : i18n.t('common.pin_version');
+        const isPinnedClass = pinnedVersion ? 'is-pinned' : '';
+        return `<button class="btn-pin ${isPinnedClass} pin-version-btn" data-url="${pluginUrl || ''}" title="${pinBtnLabel}">
+                <i class="fas fa-thumbtack"></i><span>${pinBtnLabel}</span>
+               </button>`;
+    }
+
     _createPluginCard(plugin, authStatus, currentUser) {
         const { logged_in, role } = authStatus;
         const formattedVersions = this._formatVersions(plugin.versions || '');
@@ -74,11 +179,11 @@ class UI {
         const domain = this._getDomainFromUrl(plugin.url || '');
         const ownerInfo = plugin.owner ? `<small class="text-muted ms-2">${i18n.t('common.by')} ${plugin.owner}</small>` : '';
         const canDelete = logged_in && (role === 'admin' || role === 'co-admin' || plugin.owner === currentUser);
+        const canPin = logged_in && (role === 'admin' || role === 'co-admin' || plugin.owner === currentUser);
         const titleText = plugin.title || i18n.t('common.no_title');
-        const firstLetter = (titleText)[0].toUpperCase();
-        const iconHtml = plugin.icon
-            ? `<img src="${plugin.icon}" alt="${titleText} icon" class="plugin-icon me-3" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="plugin-icon-letter me-3" style="display:none;">${firstLetter}</div>`
-            : `<div class="plugin-icon-letter me-3">${firstLetter}</div>`;
+        const iconHtml = this._renderPluginIcon(plugin.icon, titleText);
+        const { pinnedBadgeHtml, updateWarningBadgeHtml } = this._renderPinAndUpdateBadges(plugin);
+        const pinBtnHtml = this._renderPinButton(canPin, plugin.url, plugin.pinned_version);
 
         return `
             <div class="col-12 mb-4 plugin-card" style="animation: fadeIn 0.6s ease-out both;">
@@ -90,8 +195,11 @@ class UI {
                                 <h5 class="card-title mb-0">${titleText}${ownerInfo}</h5>
                             </div>
                         </div>
-                        <div>
+                        <div class="d-flex align-items-center flex-wrap gap-1">
                             <span class="domain-badge">${domain}</span>
+                            ${pinnedBadgeHtml}
+                            ${updateWarningBadgeHtml}
+                            ${pinBtnHtml}
                             ${canDelete ? `
                                 <button class="btn btn-delete ms-2 delete-btn" data-url="${plugin.url}" data-title="${plugin.title}" data-category-context="${plugin._categoryContext || ''}">
                                     <img src="images/delete-icon.png" class="btn-icon" alt="${i18n.t('common.delete')}">

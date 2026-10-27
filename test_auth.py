@@ -637,5 +637,73 @@ class TestAuthArgon2(unittest.TestCase):
 
         db.users.delete_many({"username": "admin_token_user"})
 
+    def test_pin_plugin_version(self):
+        db.users.delete_many({"username": "pin_owner"})
+        db.users.delete_many({"username": "pin_other"})
+        db.plugins.delete_many({"url": "https://spigotmc.org/resources/pin_test"})
+
+        db.users.insert_one({
+            'username': 'pin_owner',
+            'password': hash_password('pass123'),
+            'role': 'user'
+        })
+        db.users.insert_one({
+            'username': 'pin_other',
+            'password': hash_password('pass123'),
+            'role': 'user'
+        })
+        db.plugins.insert_one({
+            'title': 'Pin Test Plugin',
+            'url': 'https://spigotmc.org/resources/pin_test',
+            'owner': 'pin_owner',
+            'versions': '1.18.2 1.19 1.20.1'
+        })
+
+        # Test unauthenticated request -> 401
+        unauth_resp = self.app.post('/api/plugin/pin_version', json={
+            'url': 'https://spigotmc.org/resources/pin_test',
+            'pinned_version': '1.19'
+        })
+        self.assertEqual(unauth_resp.status_code, 401)
+
+        # Test unauthorized user (not owner) -> 404 or 403
+        with self.app.session_transaction() as sess:
+            sess['user'] = 'pin_other'
+
+        other_resp = self.app.post('/api/plugin/pin_version', json={
+            'url': 'https://spigotmc.org/resources/pin_test',
+            'pinned_version': '1.19'
+        })
+        self.assertIn(other_resp.status_code, [403, 404])
+
+        # Test owner pinning a version -> 200
+        with self.app.session_transaction() as sess:
+            sess['user'] = 'pin_owner'
+
+        pin_resp = self.app.post('/api/plugin/pin_version', json={
+            'url': 'https://spigotmc.org/resources/pin_test',
+            'pinned_version': '1.19'
+        })
+        self.assertEqual(pin_resp.status_code, 200)
+        data = pin_resp.get_json()
+        self.assertTrue(data.get('success'))
+        self.assertEqual(data.get('pinned_version'), '1.19')
+
+        plugin_db = db.plugins.find_one({"url": "https://spigotmc.org/resources/pin_test"})
+        self.assertEqual(plugin_db.get('pinned_version'), '1.19')
+
+        # Test unpinning version (pinned_version = None or '')
+        unpin_resp = self.app.post('/api/plugin/pin_version', json={
+            'url': 'https://spigotmc.org/resources/pin_test',
+            'pinned_version': None
+        })
+        self.assertEqual(unpin_resp.status_code, 200)
+        plugin_db_unpinned = db.plugins.find_one({"url": "https://spigotmc.org/resources/pin_test"})
+        self.assertNotIn('pinned_version', plugin_db_unpinned)
+
+        db.users.delete_many({"username": "pin_owner"})
+        db.users.delete_many({"username": "pin_other"})
+        db.plugins.delete_many({"url": "https://spigotmc.org/resources/pin_test"})
+
 if __name__ == '__main__':
     unittest.main()

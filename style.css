@@ -753,6 +753,217 @@ body {
   margin-top: 1rem;
 }
 
+/* Pin Modal Version Picker Styling */
+.version-group-card {
+  transition: all 0.25s ease-in-out;
+  border-color: #e2e8f0 !important;
+  border-width: 1px !important;
+}
+
+.version-group-card:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08) !important;
+  border-color: #cbd5e1 !important;
+  transform: translateY(-1px);
+}
+
+.version-group-card.active-group-card {
+  border-color: #3b82f6 !important;
+  background: #f0f9ff !important;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.15) !important;
+}
+
+#pinVersionModal .version-item-btn {
+  background: #f8fafc;
+  color: #1e293b;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+#pinVersionModal .version-item-btn:hover {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+#pinVersionModal .version-item-btn.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.version-badge-pill {
+  border-radius: 20px !important;
+  padding: 0.3rem 0.8rem !important;
+  font-size: 0.85rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.version-badge-pill:hover {
+  transform: scale(1.05);
+}
+
+.update-modal-icon-circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #fef2f2;
+  border: 2px solid #fca5a5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.2);
+}
+
+#pinModalVersionsList::-webkit-scrollbar {
+  width: 6px;
+}
+
+#pinModalVersionsList::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 4px;
+}
+
+/* Pinned version badge */
+.pinned-badge {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 15px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow: 0 3px 10px rgba(217, 119, 6, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.3rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.pinned-badge:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 18px rgba(217, 119, 6, 0.45);
+}
+
+/* Update Available badge */
+.update-available-badge {
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  color: white;
+  padding: 0.45rem 0.9rem;
+  border-radius: 15px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.3rem;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  animation: pulseUpdate 2.5s infinite ease-in-out;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.update-version-tag {
+  background: rgba(255, 255, 255, 0.95);
+  color: #dc2626;
+  padding: 0.1rem 0.45rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.update-available-badge:hover {
+  transform: translateY(-2px) scale(1.06);
+  box-shadow: 0 8px 22px rgba(239, 68, 68, 0.6);
+  background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
+}
+
+@keyframes pulseUpdate {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+  }
+}
+
+/* Pin Action Button */
+.btn-pin {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white !important;
+  border: none;
+  border-radius: 10px;
+  padding: 0.4rem 0.8rem;
+  font-weight: 600;
+  font-size: 0.88rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  box-shadow: 0 3px 10px rgba(59, 130, 246, 0.3);
+  transition: all 0.25s ease;
+}
+
+.btn-pin:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.45);
+}
+
+.btn-pin.is-pinned {
+  background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
+  box-shadow: 0 3px 10px rgba(245, 158, 11, 0.3);
+}
+
+.btn-pin.is-pinned:hover {
+  background: linear-gradient(135deg, #d97706 0%, #92400e 100%);
+}
+
+/* Version selection modal GUI styling */
+.version-badge-sm {
+  padding: 0.3rem 0.75rem !important;
+  font-size: 0.85rem !important;
+  margin: 0.15rem !important;
+}
+
+.version-badge.active-badge {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.5) !important;
+  border: 1px solid #ffffff;
+}
+
+.version-item-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #1e293b;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  margin-bottom: 0.5rem;
+  text-align: left;
+}
+
+.version-item-btn:hover {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+  transform: translateX(4px);
+}
+
+.version-item-btn.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
 /* Cyber-Glass Language Dropdown Component */
 .cyber-lang-btn {
   background: rgba(15, 23, 42, 0.9) !important;

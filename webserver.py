@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, send_file, session
 import os
 import math
+import json
 import json as json_module
 import subprocess
 import sys
@@ -1604,6 +1605,34 @@ def admin_update_plugin_details(url):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/plugin/pin_versions', methods=['POST'])
+def fetch_pin_versions():
+    """Haal gedetailleerde plugin + ingame versies op voor de pin version modal."""
+    try:
+        data = request.get_json() or {}
+        url = data.get('url')
+        if not url:
+            return jsonify({'error': 'Geen URL opgegeven'}), 400
+
+        venv_python = os.path.join('.venv', 'bin', 'python')
+        python_executable = venv_python if os.path.exists(venv_python) else sys.executable
+
+        result = subprocess.run(
+            [python_executable, 'fetchers/versions.py', '--pin-versions', url],
+            capture_output=True,
+            text=True,
+            check=True,
+            env=os.environ.copy()
+        )
+        out = result.stdout.strip()
+        try:
+            versions = json_module.loads(out) if out else []
+        except Exception:
+            versions = out.splitlines() if out else []
+        return jsonify({'versions': versions})
+    except Exception as e:
+        return jsonify({'versions': [], 'error': str(e)})
+
 @app.route('/fetch_plugin', methods=['POST'])
 def fetch_plugin():
     """Haal plugin data op voor een gegeven URL"""
@@ -1699,6 +1728,52 @@ def clear_plugins():
         return jsonify({'success': True, 'deleted_count': result.deleted_count})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/plugin/pin_version', methods=['POST'])
+@require_login
+def pin_plugin_version():
+    """Pin of unpin een specifieke versie van een plugin"""
+    try:
+        data = request.get_json(silent=True) or {}
+        url = sanitize_str(data.get('url', ''))
+        pinned_version = data.get('pinned_version')
+        if pinned_version is not None:
+            pinned_version = sanitize_str(pinned_version)
+
+        if not url:
+            return jsonify({'error': 'Geen URL opgegeven'}), 400
+
+        user = get_current_user()
+        username = session['user']
+        user_role = user.get('role') if user else 'user'
+
+        # Zoek plugin in database
+        plugin = db.plugins.find_one({"url": url, "owner": username})
+        if not plugin:
+            if user_role in ['admin', 'co-admin']:
+                plugin = db.plugins.find_one({"url": url})
+
+        if not plugin:
+            return jsonify({'error': 'Plugin niet gevonden'}), 404
+
+        # Controleer rechten
+        if plugin.get('owner') != username and user_role not in ['admin', 'co-admin']:
+            return jsonify({'error': 'Geen rechten om deze plugin te bewerken'}), 403
+
+        filter_query = {"url": url} if user_role in ['admin', 'co-admin'] else {"url": url, "owner": username}
+
+        if pinned_version:
+            db.plugins.update_many(filter_query, {"$set": {"pinned_version": pinned_version}})
+        else:
+            db.plugins.update_many(filter_query, {"$unset": {"pinned_version": ""}})
+
+        return jsonify({
+            'success': True,
+            'url': url,
+            'pinned_version': pinned_version if pinned_version else None
+        })
+    except Exception as e:
+        return jsonify({'error': f'Fout bij pinnen van versie: {str(e)}'}), 500
 
 @app.route('/delete_plugin', methods=['POST'])
 @require_login

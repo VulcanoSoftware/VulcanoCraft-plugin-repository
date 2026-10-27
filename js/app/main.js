@@ -1,6 +1,6 @@
 import API from './api.js';
 import UI from './ui.js';
-import Modals, { showAlertModal, showConfirmModal } from './modals.js';
+import Modals, { showAlertModal, showConfirmModal, showPinVersionModal } from './modals.js';
 import Filters from './filters.js';
 import Auth from './auth.js';
 import i18n from './i18n.js';
@@ -53,6 +53,7 @@ class App {
             };
 
             const data = await API.getPlugins(params);
+            this.lastLoadedPlugins = data.plugins || [];
 
             if (data.all_versions) UI.populateVersionFilter(data.all_versions);
             if (data.all_loaders) UI.populateLoaderFilter(data.all_loaders);
@@ -405,6 +406,13 @@ class App {
     }
 
     setupEventListeners() {
+        this._setupPaginationAndExportListeners();
+        this._setupImportListeners();
+        this._setupLanguageAndHomeListeners();
+        this._setupModalEventsAndDelegation();
+    }
+
+    _setupPaginationAndExportListeners() {
         if (UI.perPageSelect) {
             UI.perPageSelect.addEventListener('change', (e) => {
                 const parsed = parseInt(e.target.value, 10);
@@ -421,7 +429,9 @@ class App {
 
         const confirmExportBtn = document.getElementById('confirmExportBtn');
         if (confirmExportBtn) confirmExportBtn.addEventListener('click', () => this.executeExport());
+    }
 
+    _setupImportListeners() {
         const replaceBtn = document.getElementById('replaceTxtBtn');
         if (replaceBtn) replaceBtn.addEventListener('click', () => this.openImportModal(true));
 
@@ -446,7 +456,9 @@ class App {
                 }
             });
         }
+    }
 
+    _setupLanguageAndHomeListeners() {
         const langMenu = document.getElementById('languageDropdownMenu');
         if (langMenu) {
             langMenu.addEventListener('click', async (e) => {
@@ -470,8 +482,9 @@ class App {
                 this.handleClearCategoryPlugins(cat, count);
             });
         }
+    }
 
-        // Reload plugins when a plugin is successfully added or deleted
+    _setupModalEventsAndDelegation() {
         Modals.addModalEl.addEventListener('hidden.bs.modal', async () => {
             if (Modals.addSuccess) {
                 await this.loadAndRenderPlugins(this.filters.getFilterParams());
@@ -483,16 +496,92 @@ class App {
             await this.loadAndRenderPlugins(this.filters.getFilterParams());
         });
 
-        // Event delegation for delete buttons
-        UI.pluginsContainer.addEventListener('click', (event) => {
+        UI.pluginsContainer.addEventListener('click', async (event) => {
             const deleteButton = event.target.closest('.delete-btn');
             if (deleteButton) {
-                const url = deleteButton.dataset.url;
-                const title = deleteButton.dataset.title;
-                const categoryContext = deleteButton.dataset.categoryContext || '';
-                Modals.showDeleteModal(url, title, categoryContext);
+                this._handleDeleteBtnClick(deleteButton);
+                return;
+            }
+
+            const pinButton = event.target.closest('.pin-version-btn');
+            if (pinButton) {
+                await this._handlePinBtnClick(pinButton);
+                return;
+            }
+
+            const updateBadge = event.target.closest('.update-badge-click');
+            if (updateBadge) {
+                await this._handleUpdateBadgeClick(updateBadge);
             }
         });
+    }
+
+    _handleDeleteBtnClick(deleteButton) {
+        const url = deleteButton.dataset.url;
+        const title = deleteButton.dataset.title;
+        const categoryContext = deleteButton.dataset.categoryContext || '';
+        Modals.showDeleteModal(url, title, categoryContext);
+    }
+
+    async _handlePinBtnClick(pinButton) {
+        const url = pinButton.dataset.url;
+        const plugin = this.lastLoadedPlugins ? this.lastLoadedPlugins.find(p => p.url === url) : { url };
+        if (plugin) {
+            const result = await showPinVersionModal(plugin);
+            if (result) {
+                const msg = result.action === 'save' ? i18n.t('success.version_pinned') : i18n.t('success.version_unpinned');
+                UI.showSuccessMessage(msg);
+                await this.loadAndRenderPlugins(this.filters.getFilterParams());
+            }
+        }
+    }
+
+    async _handleUpdateBadgeClick(updateBadge) {
+        const url = updateBadge.dataset.url;
+        let pinned = updateBadge.dataset.pinned || '';
+        let latest = updateBadge.dataset.latest || '';
+
+        if (url) {
+            try {
+                const res = await API.fetchPinModalVersions(url);
+                if (res && res.versions && res.versions.length > 0) {
+                    const pinnedMatch = res.versions.find(v => v === pinned || v.startsWith(`${pinned} `) || v.startsWith(`${pinned}(`));
+                    if (pinnedMatch) pinned = pinnedMatch;
+
+                    const latestMatch = res.versions.find(v => v === latest || v.startsWith(`${latest} `) || v.startsWith(`${latest}(`));
+                    if (latestMatch) {
+                        latest = latestMatch;
+                    } else if (res.versions[0]) {
+                        latest = res.versions[0];
+                    }
+                }
+            } catch (e) {
+                console.warn('Failed to fetch full version pairings for update modal:', e);
+            }
+        }
+
+        showAlertModal(
+            `<div class="text-center py-3 px-2">
+                <div class="update-modal-icon-circle mx-auto mb-3">
+                    <i class="fas fa-arrow-alt-circle-up text-danger fa-3x"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-3">${i18n.t('common.update_available')}</h4>
+                <div class="d-flex align-items-center justify-content-center flex-wrap gap-3 p-3 rounded-3 bg-light border shadow-sm">
+                    <div class="text-center min-w-0">
+                        <small class="text-muted d-block fw-bold mb-1">${i18n.t('common.pinned')}</small>
+                        <span class="badge bg-warning text-dark fs-6 px-3 py-2 fw-bold text-wrap">${pinned}</span>
+                    </div>
+                    <i class="fas fa-arrow-right text-muted fs-4 d-none d-sm-inline-block"></i>
+                    <i class="fas fa-arrow-down text-muted fs-4 d-inline-block d-sm-none"></i>
+                    <div class="text-center min-w-0">
+                        <small class="text-muted d-block fw-bold mb-1">${i18n.t('common.latest') || 'Nieuwste'}</small>
+                        <span class="badge bg-success fs-6 px-3 py-2 fw-bold text-wrap">${latest}</span>
+                    </div>
+                </div>
+            </div>`,
+            i18n.t('common.update_available'),
+            'fas fa-arrow-alt-circle-up text-danger'
+        );
     }
 }
 
