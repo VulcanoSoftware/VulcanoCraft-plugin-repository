@@ -118,8 +118,8 @@ function ensurePinVersionModalExists() {
                             <div id="pinModalVersionsList" class="mb-3 pe-1" style="max-height: 320px; overflow-y: auto;"></div>
 
                             <div class="p-3 rounded-3 border shadow-sm" style="background: #f8fafc;">
-                                <label class="form-label small fw-bold text-dark mb-1" data-i18n="modal.manual_version_label">${i18n.t('modal.manual_version_label') || 'Voer plugin en/of ingame versie in:'}</label>
-                                <input type="text" id="pinModalManualVersionInput" class="form-control" placeholder="${i18n.t('modal.manual_version_placeholder') || 'Bijv. 2.4.1 (1.21.6)'}" data-i18n-placeholder="modal.manual_version_placeholder">
+                                <label class="form-label small fw-bold text-dark mb-1" data-i18n="modal.manual_version_label">${i18n.t('modal.manual_version_label')}</label>
+                                <input type="text" id="pinModalManualVersionInput" class="form-control" placeholder="${i18n.t('modal.manual_version_placeholder')}" data-i18n-placeholder="modal.manual_version_placeholder">
                             </div>
                         </div>
                     </div>
@@ -234,11 +234,11 @@ function _renderPinModalVersionList(versionsListEl, versionsArray, state, manual
                             <i class="fas fa-tag ${isPluginActive ? 'text-white' : 'text-primary'}"></i>
                             <span class="fw-bold fs-6">${pVer}</span>
                         </div>
-                        ${isPluginActive ? '<span class="badge bg-white text-primary fw-bold ms-2"><i class="fas fa-check me-1"></i>Geselecteerd</span>' : '<span class="text-muted small">Pinnen</span>'}
+                        ${isPluginActive ? `<span class="badge bg-white text-primary fw-bold ms-2"><i class="fas fa-check me-1"></i>${i18n.t('modal.selected')}</span>` : `<span class="text-muted small">${i18n.t('common.pin_version')}</span>`}
                     </button>
                     ${group.gameVersions.length > 0 ? `
                         <button type="button" class="btn btn-sm btn-outline-secondary toggle-game-versions-btn text-nowrap rounded-pill px-3 ms-auto" data-pver="${pVer}">
-                            <i class="fas fa-gamepad me-1 text-info"></i><span>${i18n.t('modal.show_game_versions') || 'Ingame versies'} (${group.gameVersions.length})</span>
+                            <i class="fas fa-gamepad me-1 text-info"></i><span>${i18n.t('modal.show_game_versions')} (${group.gameVersions.length})</span>
                             <i class="fas fa-chevron-${isExpanded ? 'up' : 'down'} ms-1 small"></i>
                         </button>
                     ` : ''}
@@ -247,7 +247,7 @@ function _renderPinModalVersionList(versionsListEl, versionsArray, state, manual
                     <div class="game-versions-collapse mt-3 p-3 rounded-3 border" style="display: ${isExpanded ? 'block' : 'none'}; background: #f8fafc;">
                         <div class="small text-muted mb-2 fw-bold d-flex align-items-center gap-1">
                             <i class="fas fa-cubes text-primary"></i>
-                            <span>${i18n.t('modal.supported_game_versions') || 'Ondersteunde ingame versies:'}</span>
+                            <span>${i18n.t('modal.supported_game_versions')}</span>
                         </div>
                         <div class="d-flex flex-wrap gap-2">
                             ${group.gameVersions.map(gv => {
