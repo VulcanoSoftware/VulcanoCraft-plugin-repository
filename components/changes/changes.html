@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plugin Wijzigingen - VulcanoCraft</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="../../style.css" rel="stylesheet">
+  </head>
+  <body>
+    <!-- Floating Background Elements -->
+    <div class="floating-bg">
+      <div class="floating-element el-1"></div>
+      <div class="floating-element el-2"></div>
+      <div class="floating-element el-3"></div>
+      <div class="floating-element el-4"></div>
+      <div class="floating-element el-5"></div>
+    </div>
+
+    <div class="container my-5">
+      <header class="text-center mb-5 position-relative">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+          <a href="/" class="btn btn-outline-light header-nav-btn">
+            <i class="fas fa-arrow-left me-1"></i> <span data-i18n="auth.back_to_home">Terug naar Home</span>
+          </a>
+          <h2 class="text-light fw-bold mb-0">
+            <i class="fas fa-history text-info me-2"></i><span data-i18n="changes.page_title">Plugin Wijzigingen Historie</span>
+          </h2>
+          <div></div>
+        </div>
+        <p class="lead text-light opacity-75" data-i18n="changes.page_subtitle">Bekijk alle updates en wijzigingen tussen twee gekozen datums</p>
+      </header>
+
+      <!-- Date Range Filter Card -->
+      <div class="card shadow-lg border-0 mb-4 filter-card">
+        <div class="card-body p-4">
+          <div class="row g-3 align-items-end mb-3">
+            <div class="col-md-4">
+              <label for="startDate" class="form-label text-light fw-bold">
+                <i class="fas fa-calendar-alt text-info me-1"></i> <span data-i18n="changes.start_date">Start Datum</span>
+              </label>
+              <input type="date" class="form-control" id="startDate">
+            </div>
+            <div class="col-md-4">
+              <label for="endDate" class="form-label text-light fw-bold">
+                <i class="fas fa-calendar-check text-info me-1"></i> <span data-i18n="changes.end_date">Eind Datum</span>
+              </label>
+              <input type="date" class="form-control" id="endDate">
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+              <button type="button" class="btn btn-primary w-100" id="fetchChangesBtn">
+                <i class="fas fa-search me-1"></i> <span data-i18n="changes.search_btn">Bekijk Wijzigingen</span>
+              </button>
+              <button type="button" class="btn btn-outline-secondary" id="resetDateFilterBtn" title="Reset datums">
+                <i class="fas fa-undo"></i>
+              </button>
+            </div>
+          </div>
+          <div class="d-flex justify-content-center flex-wrap gap-2 pt-2 border-top border-secondary">
+            <button class="btn btn-sm btn-outline-light quick-date-btn" data-days="0" data-i18n="changes.today">Vandaag</button>
+            <button class="btn btn-sm btn-outline-light quick-date-btn" data-days="7" data-i18n="changes.last_7_days">Laatste 7 Dagen</button>
+            <button class="btn btn-sm btn-outline-light quick-date-btn" data-days="30" data-i18n="changes.last_30_days">Laatste 30 Dagen</button>
+            <button class="btn btn-sm btn-outline-light quick-date-btn" data-days="ALL" data-i18n="changes.all_time">Alles</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Count & Summary Bar -->
+      <div class="d-flex justify-content-between align-items-center mb-3 text-light px-2" id="changesSummaryBar" style="display: none !important;">
+        <span class="badge bg-info text-dark fs-6" id="changesCountBadge">0 wijzigingen gevonden</span>
+        <small class="text-muted" id="changesDateRangeText"></small>
+      </div>
+
+      <!-- Changes List Container -->
+      <div id="changesContainer">
+        <div class="text-center text-light py-5">
+          <div class="spinner-border text-info mb-3" role="status"></div>
+          <p data-i18n="common.loading">Laden...</p>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="../../js/app/changes.js"></script>
+  </body>
+</html>

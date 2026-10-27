@@ -12,6 +12,8 @@ class AdminPage {
         this.logoutBtn = this.adminPanel ? this.adminPanel.querySelector('button') : null;
         this.adminLogoutBtn = document.getElementById('adminLogoutBtn');
         this.registrationToggle = document.getElementById('registrationToggle');
+        this.retentionDaysInput = document.getElementById('retentionDaysInput');
+        this.saveRetentionDaysBtn = document.getElementById('saveRetentionDaysBtn');
         this.usersGrid = document.getElementById('usersGrid');
         this.categoriesGrid = document.getElementById('categoriesGrid');
         this.pluginsGrid = document.getElementById('pluginsGrid');
@@ -98,6 +100,9 @@ class AdminPage {
         }
         if (this.registrationToggle) {
             this.registrationToggle.addEventListener('change', (e) => this._handleRegistrationToggle(e));
+        }
+        if (this.saveRetentionDaysBtn) {
+            this.saveRetentionDaysBtn.addEventListener('click', () => this._handleSaveRetentionDays());
         }
         if (this.addCategoryBtn) {
             this.addCategoryBtn.addEventListener('click', () => this._handleAddCategory());
@@ -627,6 +632,24 @@ class AdminPage {
     async _loadSettings() {
         const data = await ApiAdmin.getSettings();
         this.registrationToggle.checked = data.registration_enabled;
+        if (this.retentionDaysInput && data.retention_days !== undefined) {
+            this.retentionDaysInput.value = data.retention_days;
+        }
+    }
+
+    async _handleSaveRetentionDays() {
+        const days = parseInt(this.retentionDaysInput.value, 10);
+        if (isNaN(days) || days < 0) {
+            await showAlertModal('Ongeldig aantal dagen', i18n.t('common.error'), 'fas fa-exclamation-circle text-warning');
+            return;
+        }
+        try {
+            const currentSettings = await ApiAdmin.getSettings();
+            await ApiAdmin.updateSettings({ ...currentSettings, retention_days: days });
+            await showAlertModal('Bewaartermijn succesvol opgeslagen!', i18n.t('common.success'), 'fas fa-check-circle text-success');
+        } catch (error) {
+            await showAlertModal(i18n.t('admin.save_settings_error'), i18n.t('common.error'), 'fas fa-exclamation-triangle text-danger');
+        }
     }
 
     async _loadUsers(page) {
