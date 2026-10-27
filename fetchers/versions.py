@@ -345,23 +345,75 @@ def detect_platform(url):
     except Exception:
         return None, None
 
+# -------- SORTING PIN VERSIONS --------
+def _parse_version_key(v):
+    if not v:
+        return []
+    clean = re.sub(r'^[vV]', '', str(v)).strip()
+    parts = re.split(r'[-+.]', clean)
+    key = []
+    for p in parts:
+        if p.isdigit():
+            key.append((0, int(p)))
+        else:
+            key.append((1, p))
+    return key
+
+def _sort_pin_versions(versions_list):
+    if not versions_list:
+        return []
+    groups = []
+    group_map = {}
+    for item in versions_list:
+        match = re.match(r'^(.+?)\s*\((.+?)\)$', item)
+        if match:
+            p_ver = match.group(1).strip()
+            g_ver = match.group(2).strip()
+        else:
+            p_ver = item.strip()
+            g_ver = None
+
+        if p_ver not in group_map:
+            group_obj = {'p_ver': p_ver, 'g_vers': []}
+            group_map[p_ver] = group_obj
+            groups.append(group_obj)
+
+        if g_ver and g_ver not in group_map[p_ver]['g_vers']:
+            group_map[p_ver]['g_vers'].append(g_ver)
+
+    result = []
+    for grp in groups:
+        p_ver = grp['p_ver']
+        g_vers = grp['g_vers']
+        if g_vers:
+            sorted_g_vers = sorted(g_vers, key=_parse_version_key, reverse=True)
+            for gv in sorted_g_vers:
+                result.append(f"{p_ver} ({gv})")
+        else:
+            result.append(p_ver)
+    return result
+
 # -------- MAIN --------
 def _fetch_platform_versions(platform, identifier, pin_format):
+    res = None
     if platform == "modrinth":
-        return get_modrinth_server_game_versions(identifier, pin_format=pin_format)
-    if platform == "spigot":
-        return get_spigot_game_versions(identifier)
-    if platform == "hangar":
-        return get_hangar_game_versions(identifier, pin_format=pin_format)
-    if platform == "curseforge":
-        return get_curseforge_game_versions(identifier, pin_format=pin_format)
-    if platform == "bukkitdev":
-        return get_bukkitdev_game_versions(identifier, pin_format=pin_format)
-    if platform == "github":
-        return get_github_game_versions(identifier)
-    if platform == "planetminecraft":
-        return get_planetminecraft_game_versions(identifier)
-    return None
+        res = get_modrinth_server_game_versions(identifier, pin_format=pin_format)
+    elif platform == "spigot":
+        res = get_spigot_game_versions(identifier)
+    elif platform == "hangar":
+        res = get_hangar_game_versions(identifier, pin_format=pin_format)
+    elif platform == "curseforge":
+        res = get_curseforge_game_versions(identifier, pin_format=pin_format)
+    elif platform == "bukkitdev":
+        res = get_bukkitdev_game_versions(identifier, pin_format=pin_format)
+    elif platform == "github":
+        res = get_github_game_versions(identifier)
+    elif platform == "planetminecraft":
+        res = get_planetminecraft_game_versions(identifier)
+
+    if pin_format and isinstance(res, list):
+        return _sort_pin_versions(res)
+    return res
 
 def _output_game_versions(game_versions, is_pin_format):
     if game_versions is None:

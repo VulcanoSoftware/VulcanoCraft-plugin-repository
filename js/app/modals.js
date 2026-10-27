@@ -176,6 +176,37 @@ function _groupVersionsByPluginVersion(versionsArray) {
         }
     });
 
+    const parseVersionParts = (v) => {
+        const clean = String(v).replace(/^v/i, '').trim();
+        return clean.split(/[-+.]/).map(p => {
+            const n = parseInt(p, 10);
+            return isNaN(n) ? p : n;
+        });
+    };
+
+    const compareParsed = (p1, p2) => {
+        const len = Math.max(p1.length, p2.length);
+        for (let i = 0; i < len; i++) {
+            const a = p1[i] !== undefined ? p1[i] : 0;
+            const b = p2[i] !== undefined ? p2[i] : 0;
+            if (typeof a === 'number' && typeof b === 'number') {
+                if (a > b) return 1;
+                if (a < b) return -1;
+            } else {
+                const cmp = String(a).localeCompare(String(b));
+                if (cmp > 0) return 1;
+                if (cmp < 0) return -1;
+            }
+        }
+        return 0;
+    };
+
+    groups.forEach(group => {
+        if (group.gameVersions.length > 1) {
+            group.gameVersions.sort((a, b) => compareParsed(parseVersionParts(b), parseVersionParts(a)));
+        }
+    });
+
     return groups;
 }
 
