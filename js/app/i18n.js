@@ -130,6 +130,8 @@ class I18n {
             currentText.textContent = `language / ${translatedWord}`;
         }
 
+        this.sortLanguageMenu();
+
         document.querySelectorAll('#languageDropdownMenu .cyber-lang-item').forEach(item => {
             const isSelected = item.getAttribute('data-lang') === this.currentLang;
             const dot = item.querySelector('.active-pulse-dot');
@@ -141,6 +143,20 @@ class I18n {
                 if (dot) dot.style.display = 'none';
             }
         });
+    }
+
+    sortLanguageMenu() {
+        const menu = document.getElementById('languageDropdownMenu');
+        if (!menu) return;
+
+        const items = Array.from(menu.children);
+        items.sort((a, b) => {
+            const titleA = a.querySelector('.lang-title')?.textContent?.trim() || a.textContent.trim();
+            const titleB = b.querySelector('.lang-title')?.textContent?.trim() || b.textContent.trim();
+            return titleA.localeCompare(titleB);
+        });
+
+        items.forEach(item => menu.appendChild(item));
     }
 }
 
