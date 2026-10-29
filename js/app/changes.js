@@ -95,18 +95,19 @@ class ChangesPage {
         if (this.summaryBar) this.summaryBar.style.setProperty('display', 'flex', 'important');
         if (this.countBadge) {
             const count = changes.length;
-            this.countBadge.textContent = `${count} ${count === 1 ? 'wijziging' : 'wijzigingen'} gevonden`;
+            const changesLabel = count === 1 ? (i18n.t('changes.singular_found') || 'wijziging gevonden') : (i18n.t('changes.plural_found') || 'wijzigingen gevonden');
+            this.countBadge.textContent = `${count} ${changesLabel}`;
         }
 
         if (this.rangeText) {
             if (startDate && endDate) {
-                this.rangeText.textContent = `Periode: ${startDate} t/m ${endDate}`;
+                this.rangeText.textContent = i18n.t('changes.period_range', { start: startDate, end: endDate }) || `Periode: ${startDate} t/m ${endDate}`;
             } else if (startDate) {
-                this.rangeText.textContent = `Vanaf: ${startDate}`;
+                this.rangeText.textContent = i18n.t('changes.from_date', { start: startDate }) || `Vanaf: ${startDate}`;
             } else if (endDate) {
-                this.rangeText.textContent = `Tot: ${endDate}`;
+                this.rangeText.textContent = i18n.t('changes.to_date', { end: endDate }) || `Tot: ${endDate}`;
             } else {
-                this.rangeText.textContent = 'Alle bekende wijzigingen';
+                this.rangeText.textContent = i18n.t('changes.all_changes_range') || 'Alle bekende wijzigingen';
             }
         }
 
@@ -155,13 +156,13 @@ class ChangesPage {
         const details = item.details || '';
         const owner = item.owner ? `<small class="text-muted ms-2"><i class="fas fa-user me-1"></i>${item.owner}</small>` : '';
 
-        let actionBadge = `<span class="badge bg-info text-dark"><i class="fas fa-sync-alt me-1"></i>Update</span>`;
+        let actionBadge = `<span class="badge bg-info text-dark"><i class="fas fa-sync-alt me-1"></i>${i18n.t('changes.action_update') || 'Update'}</span>`;
         if (item.action === 'version_update') {
-            actionBadge = `<span class="badge bg-success"><i class="fas fa-arrow-up me-1"></i>Nieuwe Versie</span>`;
+            actionBadge = `<span class="badge bg-success"><i class="fas fa-arrow-up me-1"></i>${i18n.t('changes.action_new_version') || 'Nieuwe Versie'}</span>`;
         } else if (item.action === 'added') {
-            actionBadge = `<span class="badge bg-primary"><i class="fas fa-plus me-1"></i>Toegevoegd</span>`;
+            actionBadge = `<span class="badge bg-primary"><i class="fas fa-plus me-1"></i>${i18n.t('changes.action_added') || 'Toegevoegd'}</span>`;
         } else if (item.action === 'deleted') {
-            actionBadge = `<span class="badge bg-danger"><i class="fas fa-trash me-1"></i>Verwijderd</span>`;
+            actionBadge = `<span class="badge bg-danger"><i class="fas fa-trash me-1"></i>${i18n.t('changes.action_deleted') || 'Verwijderd'}</span>`;
         }
 
         return `
@@ -186,7 +187,7 @@ class ChangesPage {
                     </div>
                     <div class="card-footer bg-transparent d-flex justify-content-between align-items-center border-top border-secondary small text-muted">
                         <span><i class="far fa-clock me-1"></i>${timeStr}</span>
-                        ${item.url ? `<a href="${item.url}" target="_blank" class="text-info text-decoration-none"><i class="fas fa-external-link-alt me-1"></i>Bekijk</a>` : ''}
+                        ${item.url ? `<a href="${item.url}" target="_blank" class="text-info text-decoration-none"><i class="fas fa-external-link-alt me-1"></i>${i18n.t('common.view') || 'Bekijk'}</a>` : ''}
                     </div>
                 </div>
             </div>`;

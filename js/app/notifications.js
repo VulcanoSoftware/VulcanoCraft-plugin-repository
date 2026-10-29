@@ -19,6 +19,7 @@ class NotificationsPage {
 
     async init() {
         await i18n.init();
+        await i18n.applyTranslations();
         this.setupEventListeners();
         await this.loadNotifications();
     }
@@ -120,7 +121,7 @@ class NotificationsPage {
                                 <p class="card-text text-light opacity-90 mb-2">${this.escapeHtml(n.message || '')}</p>
                                 <div class="d-flex align-items-center gap-3 text-muted small">
                                     <span><i class="far fa-clock me-1"></i>${dateStr}</span>
-                                    ${n.url ? `<a href="${this.escapeHtml(n.url)}" target="_blank" rel="noopener noreferrer" class="text-info text-decoration-none"><i class="fas fa-external-link-alt me-1"></i>Bekijk Plugin</a>` : ''}
+                                    ${n.url ? `<a href="${this.escapeHtml(n.url)}" target="_blank" rel="noopener noreferrer" class="text-info text-decoration-none"><i class="fas fa-external-link-alt me-1"></i>${i18n.t('common.view_plugin') || 'Bekijk Plugin'}</a>` : ''}
                                 </div>
                             </div>
                         </div>
