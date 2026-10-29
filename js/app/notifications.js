@@ -90,10 +90,10 @@ class NotificationsPage {
 
         if (filtered.length === 0) {
             this.container.innerHTML = `
-                <div class="card shadow-lg border-0 filter-card p-5 text-center">
-                    <i class="fas fa-bell-slash text-muted mb-3" style="font-size: 3rem;"></i>
-                    <h5 class="text-light">${i18n.t('notifications.no_notifications') || 'Geen notificaties gevonden'}</h5>
-                    <p class="text-muted mb-0">${i18n.t('notifications.no_notifications_desc') || 'Er zijn geen notificaties in deze weergave.'}</p>
+                <div class="card shadow-lg border-0 dark-glass-card p-5 text-center">
+                    <i class="fas fa-bell-slash text-warning mb-3" style="font-size: 3rem;"></i>
+                    <h5 class="text-light fw-bold mb-2">${i18n.t('notifications.no_notifications') || 'Geen notificaties gevonden'}</h5>
+                    <p class="text-light opacity-90 mb-0 fs-6">${i18n.t('notifications.no_notifications_desc') || 'Er zijn geen notificaties in deze weergave.'}</p>
                 </div>`;
             return;
         }
