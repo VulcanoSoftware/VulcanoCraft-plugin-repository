@@ -92,24 +92,7 @@ class ChangesPage {
     }
 
     renderChanges(changes, startDate, endDate) {
-        if (this.summaryBar) this.summaryBar.style.setProperty('display', 'flex', 'important');
-        if (this.countBadge) {
-            const count = changes.length;
-            const changesLabel = count === 1 ? (i18n.t('changes.singular_found') || 'wijziging gevonden') : (i18n.t('changes.plural_found') || 'wijzigingen gevonden');
-            this.countBadge.textContent = `${count} ${changesLabel}`;
-        }
-
-        if (this.rangeText) {
-            if (startDate && endDate) {
-                this.rangeText.textContent = i18n.t('changes.period_range', { start: startDate, end: endDate }) || `Periode: ${startDate} t/m ${endDate}`;
-            } else if (startDate) {
-                this.rangeText.textContent = i18n.t('changes.from_date', { start: startDate }) || `Vanaf: ${startDate}`;
-            } else if (endDate) {
-                this.rangeText.textContent = i18n.t('changes.to_date', { end: endDate }) || `Tot: ${endDate}`;
-            } else {
-                this.rangeText.textContent = i18n.t('changes.all_changes_range') || 'Alle bekende wijzigingen';
-            }
-        }
+        this._updateSummaryBar(changes.length, startDate, endDate);
 
         if (changes.length === 0) {
             this.changesContainer.innerHTML = `
@@ -121,16 +104,7 @@ class ChangesPage {
             return;
         }
 
-        // Group changes by date
-        const grouped = new Map();
-        changes.forEach(c => {
-            const dateStr = c.date || (c.timestamp ? c.timestamp.split('T')[0] : 'Onbekend');
-            if (!grouped.has(dateStr)) {
-                grouped.set(dateStr, []);
-            }
-            grouped.get(dateStr).push(c);
-        });
-
+        const grouped = this._groupChangesByDate(changes);
         let html = '';
         for (const [dateStr, items] of grouped.entries()) {
             html += `
@@ -148,22 +122,67 @@ class ChangesPage {
         this.changesContainer.innerHTML = html;
     }
 
+    _updateSummaryBar(count, startDate, endDate) {
+        if (this.summaryBar) this.summaryBar.style.setProperty('display', 'flex', 'important');
+        if (this.countBadge) {
+            const changesLabel = count === 1 ? (i18n.t('changes.singular_found') || 'wijziging gevonden') : (i18n.t('changes.plural_found') || 'wijzigingen gevonden');
+            this.countBadge.textContent = `${count} ${changesLabel}`;
+        }
+
+        if (this.rangeText) {
+            if (startDate && endDate) {
+                this.rangeText.textContent = i18n.t('changes.period_range', { start: startDate, end: endDate }) || `Periode: ${startDate} t/m ${endDate}`;
+            } else if (startDate) {
+                this.rangeText.textContent = i18n.t('changes.from_date', { start: startDate }) || `Vanaf: ${startDate}`;
+            } else if (endDate) {
+                this.rangeText.textContent = i18n.t('changes.to_date', { end: endDate }) || `Tot: ${endDate}`;
+            } else {
+                this.rangeText.textContent = i18n.t('changes.all_changes_range') || 'Alle bekende wijzigingen';
+            }
+        }
+    }
+
+    _groupChangesByDate(changes) {
+        const grouped = new Map();
+        changes.forEach(c => {
+            const dateStr = c.date || (c.timestamp ? c.timestamp.split('T')[0] : 'Onbekend');
+            if (!grouped.has(dateStr)) {
+                grouped.set(dateStr, []);
+            }
+            grouped.get(dateStr).push(c);
+        });
+        return grouped;
+    }
+
+    _getChangeActionBadge(action) {
+        if (action === 'version_update') {
+            return `<span class="badge bg-success"><i class="fas fa-arrow-up me-1"></i>${i18n.t('changes.action_new_version') || 'Nieuwe Versie'}</span>`;
+        }
+        if (action === 'added') {
+            return `<span class="badge bg-primary"><i class="fas fa-plus me-1"></i>${i18n.t('changes.action_added') || 'Toegevoegd'}</span>`;
+        }
+        if (action === 'deleted') {
+            return `<span class="badge bg-danger"><i class="fas fa-trash me-1"></i>${i18n.t('changes.action_deleted') || 'Verwijderd'}</span>`;
+        }
+        return `<span class="badge bg-info text-dark"><i class="fas fa-sync-alt me-1"></i>${i18n.t('changes.action_update') || 'Update'}</span>`;
+    }
+
+    _renderVersionBadges(oldVer, newVer) {
+        if (!oldVer && !newVer) return '';
+        return `
+            <div class="d-flex align-items-center gap-2 mt-2 p-2 rounded bg-dark bg-opacity-50 border border-secondary small">
+                <span class="badge bg-secondary text-truncate" style="max-width: 110px;">${oldVer || '-'}</span>
+                <i class="fas fa-arrow-right text-info"></i>
+                <span class="badge bg-success text-truncate" style="max-width: 110px;">${newVer || '-'}</span>
+            </div>`;
+    }
+
     _createChangeCard(item) {
         const timeStr = item.timestamp ? new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
         const title = item.plugin_title || 'Plugin';
-        const oldVer = item.old_version || '';
-        const newVer = item.new_version || '';
-        const details = item.details || '';
         const owner = item.owner ? `<small class="text-muted ms-2"><i class="fas fa-user me-1"></i>${item.owner}</small>` : '';
-
-        let actionBadge = `<span class="badge bg-info text-dark"><i class="fas fa-sync-alt me-1"></i>${i18n.t('changes.action_update') || 'Update'}</span>`;
-        if (item.action === 'version_update') {
-            actionBadge = `<span class="badge bg-success"><i class="fas fa-arrow-up me-1"></i>${i18n.t('changes.action_new_version') || 'Nieuwe Versie'}</span>`;
-        } else if (item.action === 'added') {
-            actionBadge = `<span class="badge bg-primary"><i class="fas fa-plus me-1"></i>${i18n.t('changes.action_added') || 'Toegevoegd'}</span>`;
-        } else if (item.action === 'deleted') {
-            actionBadge = `<span class="badge bg-danger"><i class="fas fa-trash me-1"></i>${i18n.t('changes.action_deleted') || 'Verwijderd'}</span>`;
-        }
+        const actionBadge = this._getChangeActionBadge(item.action);
+        const versionBadges = this._renderVersionBadges(item.old_version, item.new_version);
 
         return `
             <div class="col-md-6 col-lg-4">
@@ -176,14 +195,8 @@ class ChangesPage {
                         ${actionBadge}
                     </div>
                     <div class="card-body">
-                        <div class="small text-light mb-2">${details}</div>
-                        ${(oldVer || newVer) ? `
-                            <div class="d-flex align-items-center gap-2 mt-2 p-2 rounded bg-dark bg-opacity-50 border border-secondary small">
-                                <span class="badge bg-secondary text-truncate" style="max-width: 110px;">${oldVer || '-'}</span>
-                                <i class="fas fa-arrow-right text-info"></i>
-                                <span class="badge bg-success text-truncate" style="max-width: 110px;">${newVer || '-'}</span>
-                            </div>
-                        ` : ''}
+                        <div class="small text-light mb-2">${item.details || ''}</div>
+                        ${versionBadges}
                     </div>
                     <div class="card-footer bg-transparent d-flex justify-content-between align-items-center border-top border-secondary small text-muted">
                         <span><i class="far fa-clock me-1"></i>${timeStr}</span>
