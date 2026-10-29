@@ -320,42 +320,6 @@
       </div>
     </div>
 
-    <!-- Discord Webhook Modal -->
-    <div class="modal fade" id="discordWebhookModal" tabindex="-1" aria-labelledby="discordWebhookModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="discordWebhookModalLabel">
-              <i class="fab fa-discord me-2 text-primary"></i><span data-i18n="discord.modal_title">Discord Webhook Instellingen</span>
-            </h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <p class="text-muted small" data-i18n="discord.intro">Configureer een Discord Webhook om automatisch meldingen te ontvangen bij plugin updates en wijzigingen.</p>
-            <div class="mb-3">
-              <label for="discordWebhookUrlInput" class="form-label fw-bold" data-i18n="discord.url_label">Discord Webhook URL</label>
-              <input type="url" class="form-control" id="discordWebhookUrlInput" placeholder="https://discord.com/api/webhooks/...">
-            </div>
-            <div class="form-check form-switch mb-3">
-              <input class="form-check-input" type="checkbox" id="discordWebhookEnabledSwitch">
-              <label class="form-check-label fw-semibold" for="discordWebhookEnabledSwitch" data-i18n="discord.enable_notifications">Discord notificaties inschakelen</label>
-            </div>
-            <div id="discordWebhookAlert" class="alert small" style="display: none;"></div>
-          </div>
-          <div class="modal-footer justify-content-between">
-            <button type="button" class="btn btn-outline-info" id="testDiscordWebhookBtn">
-              <i class="fas fa-paper-plane me-1"></i><span data-i18n="discord.test_btn">Test Webhook</span>
-            </button>
-            <div>
-              <button type="button" class="btn btn-secondary me-1" data-bs-dismiss="modal" data-i18n="common.cancel">Annuleren</button>
-              <button type="button" class="btn btn-primary" id="saveDiscordWebhookBtn">
-                <i class="fas fa-save me-1"></i><span data-i18n="common.save">Opslaan</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Categorie Leegmaken Modal -->
     <div class="modal fade" id="clearCategoryModal" tabindex="-1" aria-hidden="true">
@@ -575,9 +539,6 @@
           </div>
           <div id="userButtons" style="display: none !important" class="align-items-center flex-wrap gap-2">
             <span class="text-light me-2"><span data-i18n="nav.welcome">Welkom</span>, <span id="username"></span></span>
-            <button class="btn btn-info header-nav-btn me-1" id="discordWebhookBtn" type="button" title="Discord Webhook Instellingen" data-i18n-title="discord.title">
-              <i class="fab fa-discord me-1"></i><span data-i18n="nav.discord_webhook">Discord Webhook</span>
-            </button>
             <a class="btn btn-light header-nav-btn me-1" href="/change_password">
               <i class="fas fa-key me-1"></i><span data-i18n="nav.change_password">Wachtwoord Wijzigen</span>
             </a>

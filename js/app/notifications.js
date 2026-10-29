@@ -10,6 +10,7 @@ class NotificationsPage {
         this.totalBadge = document.getElementById('totalNotifCountBadge');
         this.filterAllBtn = document.getElementById('filterNotifAll');
         this.filterUnreadBtn = document.getElementById('filterNotifUnread');
+        this.discordBtn = document.getElementById('discordWebhookBtn');
 
         this.notifications = [];
         this.currentFilter = 'all';
@@ -20,8 +21,23 @@ class NotificationsPage {
     async init() {
         await i18n.init();
         await i18n.applyTranslations();
+        await this.checkAuthAndDiscordVisibility();
         this.setupEventListeners();
         await this.loadNotifications();
+    }
+
+    async checkAuthAndDiscordVisibility() {
+        if (!this.discordBtn) return;
+        try {
+            const authStatus = await API.getAuthStatus();
+            if (authStatus && authStatus.logged_in) {
+                this.discordBtn.style.setProperty('display', 'inline-block', 'important');
+            } else {
+                this.discordBtn.style.setProperty('display', 'none', 'important');
+            }
+        } catch (e) {
+            this.discordBtn.style.setProperty('display', 'none', 'important');
+        }
     }
 
     setupEventListeners() {
@@ -39,6 +55,109 @@ class NotificationsPage {
             this.filterUnreadBtn.addEventListener('click', () => {
                 this.setActiveFilter('unread');
             });
+        }
+
+        this.setupDiscordWebhookEvents();
+    }
+
+    setupDiscordWebhookEvents() {
+        if (this.discordBtn) {
+            this.discordBtn.addEventListener('click', async () => {
+                const modalEl = document.getElementById('discordWebhookModal');
+                if (!modalEl) return;
+                const alertEl = document.getElementById('discordWebhookAlert');
+                if (alertEl) alertEl.style.display = 'none';
+
+                try {
+                    const data = await API.getDiscordWebhook();
+                    const urlInput = document.getElementById('discordWebhookUrlInput');
+                    const enabledSwitch = document.getElementById('discordWebhookEnabledSwitch');
+                    if (urlInput) urlInput.value = data.webhook_url || '';
+                    if (enabledSwitch) enabledSwitch.checked = Boolean(data.enabled);
+                } catch (err) {
+                    console.error('Failed to load discord webhook data:', err);
+                }
+
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            });
+        }
+
+        const saveDiscordBtn = document.getElementById('saveDiscordWebhookBtn');
+        if (saveDiscordBtn) {
+            saveDiscordBtn.addEventListener('click', () => this.handleSaveDiscordWebhook());
+        }
+
+        const testDiscordBtn = document.getElementById('testDiscordWebhookBtn');
+        if (testDiscordBtn) {
+            testDiscordBtn.addEventListener('click', () => this.handleTestDiscordWebhook());
+        }
+    }
+
+    async handleSaveDiscordWebhook() {
+        const urlInput = document.getElementById('discordWebhookUrlInput');
+        const enabledSwitch = document.getElementById('discordWebhookEnabledSwitch');
+        const alertEl = document.getElementById('discordWebhookAlert');
+
+        const webhookUrl = urlInput ? urlInput.value.trim() : '';
+        const enabled = enabledSwitch ? enabledSwitch.checked : false;
+
+        try {
+            const res = await API.saveDiscordWebhook(webhookUrl, enabled);
+            if (res && res.success) {
+                if (alertEl) {
+                    alertEl.className = 'alert alert-success small mb-0 mt-2';
+                    alertEl.textContent = i18n.t('discord.save_success');
+                    alertEl.style.display = 'block';
+                }
+            } else {
+                if (alertEl) {
+                    alertEl.className = 'alert alert-danger small mb-0 mt-2';
+                    alertEl.textContent = res.error || i18n.t('discord.save_error');
+                    alertEl.style.display = 'block';
+                }
+            }
+        } catch (err) {
+            if (alertEl) {
+                alertEl.className = 'alert alert-danger small mb-0 mt-2';
+                alertEl.textContent = err.message;
+                alertEl.style.display = 'block';
+            }
+        }
+    }
+
+    async handleTestDiscordWebhook() {
+        const urlInput = document.getElementById('discordWebhookUrlInput');
+        const alertEl = document.getElementById('discordWebhookAlert');
+        const webhookUrl = urlInput ? urlInput.value.trim() : '';
+
+        if (alertEl) {
+            alertEl.className = 'alert alert-info small mb-0 mt-2';
+            alertEl.textContent = i18n.t('discord.testing');
+            alertEl.style.display = 'block';
+        }
+
+        try {
+            const res = await API.testDiscordWebhook(webhookUrl);
+            if (res && res.success) {
+                if (alertEl) {
+                    alertEl.className = 'alert alert-success small mb-0 mt-2';
+                    alertEl.textContent = res.message || i18n.t('discord.test_success');
+                    alertEl.style.display = 'block';
+                }
+            } else {
+                if (alertEl) {
+                    alertEl.className = 'alert alert-danger small mb-0 mt-2';
+                    alertEl.textContent = res.error || i18n.t('discord.test_failed');
+                    alertEl.style.display = 'block';
+                }
+            }
+        } catch (err) {
+            if (alertEl) {
+                alertEl.className = 'alert alert-danger small mb-0 mt-2';
+                alertEl.textContent = err.message;
+                alertEl.style.display = 'block';
+            }
         }
     }
 
