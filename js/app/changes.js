@@ -96,10 +96,10 @@ class ChangesPage {
 
         if (changes.length === 0) {
             this.changesContainer.innerHTML = `
-                <div class="card shadow-sm border-0 text-center p-5">
-                    <i class="fas fa-search text-muted fa-3x mb-3"></i>
-                    <h5 class="text-light" data-i18n="changes.no_changes">Geen wijzigingen gevonden voor deze periode</h5>
-                    <p class="text-muted mb-0" data-i18n="changes.no_changes_desc">Probeer een andere datumreeks of bekijk alle resultaten.</p>
+                <div class="card dark-glass-card border-0 text-center p-5">
+                    <i class="fas fa-search text-info fa-3x mb-3 opacity-75"></i>
+                    <h5 class="text-light fw-bold" data-i18n="changes.no_changes">Geen wijzigingen gevonden voor deze periode</h5>
+                    <p class="text-light opacity-75 mb-0" data-i18n="changes.no_changes_desc">Probeer een andere datumreeks of bekijk alle resultaten.</p>
                 </div>`;
             return;
         }
@@ -110,8 +110,8 @@ class ChangesPage {
             html += `
                 <div class="mb-4">
                     <div class="d-flex align-items-center mb-3">
-                        <span class="badge bg-primary fs-6 me-2"><i class="far fa-calendar-alt me-1"></i> ${dateStr}</span>
-                        <hr class="flex-grow-1 my-0 opacity-25">
+                        <span class="badge bg-info text-dark fs-6 fw-bold me-2"><i class="far fa-calendar-alt me-1"></i> ${dateStr}</span>
+                        <hr class="flex-grow-1 my-0 opacity-50 border-secondary">
                     </div>
                     <div class="row g-3">
                         ${items.map(item => this._createChangeCard(item)).join('')}
@@ -170,37 +170,37 @@ class ChangesPage {
     _renderVersionBadges(oldVer, newVer) {
         if (!oldVer && !newVer) return '';
         return `
-            <div class="d-flex align-items-center gap-2 mt-2 p-2 rounded bg-dark bg-opacity-50 border border-secondary small">
-                <span class="badge bg-secondary text-truncate" style="max-width: 110px;">${oldVer || '-'}</span>
+            <div class="d-flex align-items-center gap-2 mt-2 p-2 rounded bg-black bg-opacity-40 border border-secondary small">
+                <span class="badge bg-secondary text-light text-truncate border border-light border-opacity-25" style="max-width: 110px;">${oldVer || '-'}</span>
                 <i class="fas fa-arrow-right text-info"></i>
-                <span class="badge bg-success text-truncate" style="max-width: 110px;">${newVer || '-'}</span>
+                <span class="badge bg-success text-white fw-bold text-truncate" style="max-width: 110px;">${newVer || '-'}</span>
             </div>`;
     }
 
     _createChangeCard(item) {
         const timeStr = item.timestamp ? new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
         const title = item.plugin_title || 'Plugin';
-        const owner = item.owner ? `<small class="text-muted ms-2"><i class="fas fa-user me-1"></i>${item.owner}</small>` : '';
+        const owner = item.owner ? `<small class="text-light opacity-75 ms-2"><i class="fas fa-user me-1"></i>${item.owner}</small>` : '';
         const actionBadge = this._getChangeActionBadge(item.action);
         const versionBadges = this._renderVersionBadges(item.old_version, item.new_version);
 
         return `
             <div class="col-md-6 col-lg-4">
-                <div class="card h-100 shadow-sm border-0" style="background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1) !important;">
+                <div class="card h-100 shadow-sm border-0" style="background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.15) !important;">
                     <div class="card-header bg-transparent d-flex justify-content-between align-items-center border-bottom border-secondary">
                         <div class="d-flex align-items-center min-w-0 me-2">
-                            <h6 class="card-title text-light mb-0 text-truncate fw-bold">${title}</h6>
+                            <h6 class="card-title text-white mb-0 text-truncate fw-bold">${title}</h6>
                             ${owner}
                         </div>
                         ${actionBadge}
                     </div>
                     <div class="card-body">
-                        <div class="small text-light mb-2">${item.details || ''}</div>
+                        <div class="small text-light fw-medium mb-2">${item.details || ''}</div>
                         ${versionBadges}
                     </div>
-                    <div class="card-footer bg-transparent d-flex justify-content-between align-items-center border-top border-secondary small text-muted">
-                        <span><i class="far fa-clock me-1"></i>${timeStr}</span>
-                        ${item.url ? `<a href="${item.url}" target="_blank" class="text-info text-decoration-none"><i class="fas fa-external-link-alt me-1"></i>${i18n.t('common.view') || 'Bekijk'}</a>` : ''}
+                    <div class="card-footer bg-transparent d-flex justify-content-between align-items-center border-top border-secondary small text-light opacity-75">
+                        <span><i class="far fa-clock me-1 text-info"></i>${timeStr}</span>
+                        ${item.url ? `<a href="${item.url}" target="_blank" class="text-info fw-bold text-decoration-none"><i class="fas fa-external-link-alt me-1"></i>${i18n.t('common.view') || 'Bekijk'}</a>` : ''}
                     </div>
                 </div>
             </div>`;
