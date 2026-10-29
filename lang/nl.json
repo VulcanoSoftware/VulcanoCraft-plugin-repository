@@ -35,6 +35,7 @@
   "changes.start_date": "Start Datum",
   "changes.end_date": "Eind Datum",
   "changes.search_btn": "Bekijk Wijzigingen",
+  "changes.reset_dates": "Reset datums",
   "changes.today": "Vandaag",
   "changes.last_7_days": "Laatste 7 Dagen",
   "changes.last_30_days": "Laatste 30 Dagen",

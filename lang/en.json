@@ -35,6 +35,7 @@
   "changes.start_date": "Start Date",
   "changes.end_date": "End Date",
   "changes.search_btn": "View Changes",
+  "changes.reset_dates": "Reset dates",
   "changes.today": "Today",
   "changes.last_7_days": "Last 7 Days",
   "changes.last_30_days": "Last 30 Days",
