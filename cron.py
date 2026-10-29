@@ -3,7 +3,7 @@ import time
 import subprocess
 import os
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import requests
 from pymongo import MongoClient
 
@@ -32,7 +32,7 @@ def record_cron_status():
     """Sla de huidige datum/tijd op als last_fetched in settings"""
     try:
         db = get_db()
-        now_iso = datetime.now().isoformat()
+        now_iso = datetime.now(timezone.utc).isoformat()
         db.settings.update_one(
             {"_id": "cron_status"},
             {"$set": {"last_fetched": now_iso}},
@@ -100,7 +100,7 @@ def dispatch_discord_webhooks(title, message, url=None, old_version=None, new_ve
 
             u_name = user.get("username")
             if owner and u_name and owner != u_name:
-                pass
+                continue
 
             try:
                 res = requests.post(webhook_url, json=payload, timeout=5)

@@ -651,10 +651,14 @@ class UI {
         if (cronData && cronData.last_fetched) {
             try {
                 const date = new Date(cronData.last_fetched);
-                timeEl.textContent = date.toLocaleString(i18n.currentLang || 'nl', {
-                    year: 'numeric', month: 'short', day: 'numeric',
-                    hour: '2-digit', minute: '2-digit', second: '2-digit'
-                });
+                if (isNaN(date.getTime())) {
+                    timeEl.textContent = cronData.last_fetched;
+                } else {
+                    timeEl.textContent = date.toLocaleString(undefined, {
+                        year: 'numeric', month: 'short', day: 'numeric',
+                        hour: '2-digit', minute: '2-digit', second: '2-digit'
+                    });
+                }
             } catch (e) {
                 timeEl.textContent = cronData.last_fetched;
             }

@@ -48,9 +48,15 @@ class TestNotificationsAndChanges(unittest.TestCase):
 
         resp = self.app.get('/api/notifications')
         self.assertEqual(resp.status_code, 200)
-        notifs = resp.get_json()
+        data = resp.get_json()
+        notifs = data.get('notifications', [])
         self.assertEqual(len(notifs), 1)
         self.assertEqual(notifs[0]['plugin_title'], "EssentialsX")
+        self.assertEqual(data.get('unread_count'), 1)
+
+        # Test page route
+        resp_page = self.app.get('/notifications')
+        self.assertEqual(resp_page.status_code, 200)
 
         # Test clear notifications unauthenticated -> 401
         clear_unauth = self.app.post('/api/notifications/clear')
@@ -70,7 +76,7 @@ class TestNotificationsAndChanges(unittest.TestCase):
         self.assertTrue(clear_resp.get_json().get('success'))
 
         resp_after = self.app.get('/api/notifications')
-        self.assertEqual(len(resp_after.get_json()), 0)
+        self.assertEqual(len(resp_after.get_json().get('notifications', [])), 0)
 
     def test_changes_between_dates(self):
         # Insert test change records with different dates

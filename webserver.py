@@ -387,6 +387,11 @@ def changes_page():
     """Serveer de changes.html pagina"""
     return send_file('components/changes/changes.html')
 
+@app.route('/notifications')
+def notifications_page():
+    """Serveer de notifications.html pagina"""
+    return send_file('components/notifications/notifications.html')
+
 @app.route('/api/cron_status')
 def api_cron_status():
     """API endpoint die de laatste cron fetch timestamp retourneert"""
@@ -401,7 +406,11 @@ def api_get_notifications():
     """API endpoint voor het ophalen van recente notificaties"""
     try:
         notifications = list(db.notifications.find({}, {"_id": 0}).sort("timestamp", -1).limit(50))
-        return jsonify(notifications)
+        unread_count = db.notifications.count_documents({"read": {"$ne": True}})
+        return jsonify({
+            'notifications': notifications,
+            'unread_count': unread_count
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
