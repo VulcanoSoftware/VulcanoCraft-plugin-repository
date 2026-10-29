@@ -1,5 +1,6 @@
 import API from './api.js';
 import i18n from './i18n.js';
+import { showConfirmModal, showAlertModal } from './modals.js';
 
 class NotificationsPage {
     constructor() {
@@ -132,7 +133,15 @@ class NotificationsPage {
     }
 
     async handleClearAll() {
-        if (!confirm(i18n.t('notifications.confirm_clear') || 'Weet je zeker dat je alle notificaties wilt wissen?')) {
+        const confirmed = await showConfirmModal({
+            title: i18n.t('notifications.clear_all') || 'Notificaties Wissen',
+            message: i18n.t('notifications.confirm_clear') || 'Weet je zeker dat je alle notificaties wilt wissen?',
+            confirmText: i18n.t('notifications.clear_all') || 'Wissen',
+            confirmClass: 'btn-danger',
+            iconClass: 'fas fa-trash-alt text-danger'
+        });
+
+        if (!confirmed) {
             return;
         }
 
@@ -143,7 +152,7 @@ class NotificationsPage {
             this.renderNotifications();
         } catch (err) {
             console.error('Failed to clear notifications:', err);
-            alert(i18n.t('error.clear_notifications') || 'Fout bij het wissen van notificaties.');
+            await showAlertModal(i18n.t('error.clear_notifications') || 'Fout bij het wissen van notificaties.', i18n.t('common.error') || 'Fout', 'fas fa-exclamation-triangle text-danger');
         }
     }
 
