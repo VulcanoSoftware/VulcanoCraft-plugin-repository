@@ -68,12 +68,16 @@ class NotificationsPage {
                 const alertEl = document.getElementById('discordWebhookAlert');
                 if (alertEl) alertEl.style.display = 'none';
 
+                const deleteBtn = document.getElementById('deleteDiscordWebhookBtn');
                 try {
                     const data = await API.getDiscordWebhook();
                     const urlInput = document.getElementById('discordWebhookUrlInput');
                     const enabledSwitch = document.getElementById('discordWebhookEnabledSwitch');
                     if (urlInput) urlInput.value = data.webhook_url || '';
                     if (enabledSwitch) enabledSwitch.checked = Boolean(data.enabled);
+                    if (deleteBtn) {
+                        deleteBtn.style.display = data.webhook_url ? 'inline-block' : 'none';
+                    }
                 } catch (err) {
                     console.error('Failed to load discord webhook data:', err);
                 }
@@ -92,12 +96,18 @@ class NotificationsPage {
         if (testDiscordBtn) {
             testDiscordBtn.addEventListener('click', () => this.handleTestDiscordWebhook());
         }
+
+        const deleteDiscordBtn = document.getElementById('deleteDiscordWebhookBtn');
+        if (deleteDiscordBtn) {
+            deleteDiscordBtn.addEventListener('click', () => this.handleDeleteDiscordWebhook());
+        }
     }
 
     async handleSaveDiscordWebhook() {
         const urlInput = document.getElementById('discordWebhookUrlInput');
         const enabledSwitch = document.getElementById('discordWebhookEnabledSwitch');
         const alertEl = document.getElementById('discordWebhookAlert');
+        const deleteBtn = document.getElementById('deleteDiscordWebhookBtn');
 
         const webhookUrl = urlInput ? urlInput.value.trim() : '';
         const enabled = enabledSwitch ? enabledSwitch.checked : false;
@@ -110,10 +120,41 @@ class NotificationsPage {
                     alertEl.textContent = i18n.t('discord.save_success');
                     alertEl.style.display = 'block';
                 }
+                if (deleteBtn) {
+                    deleteBtn.style.display = webhookUrl ? 'inline-block' : 'none';
+                }
             } else {
                 if (alertEl) {
                     alertEl.className = 'alert alert-danger small mb-0 mt-2';
                     alertEl.textContent = res.error || i18n.t('discord.save_error');
+                    alertEl.style.display = 'block';
+                }
+            }
+        } catch (err) {
+            if (alertEl) {
+                alertEl.className = 'alert alert-danger small mb-0 mt-2';
+                alertEl.textContent = err.message;
+                alertEl.style.display = 'block';
+            }
+        }
+    }
+
+    async handleDeleteDiscordWebhook() {
+        const urlInput = document.getElementById('discordWebhookUrlInput');
+        const enabledSwitch = document.getElementById('discordWebhookEnabledSwitch');
+        const alertEl = document.getElementById('discordWebhookAlert');
+        const deleteBtn = document.getElementById('deleteDiscordWebhookBtn');
+
+        try {
+            const res = await API.saveDiscordWebhook('', false);
+            if (res && res.success) {
+                if (urlInput) urlInput.value = '';
+                if (enabledSwitch) enabledSwitch.checked = false;
+                if (deleteBtn) deleteBtn.style.display = 'none';
+
+                if (alertEl) {
+                    alertEl.className = 'alert alert-success small mb-0 mt-2';
+                    alertEl.textContent = i18n.t('discord.webhook_deleted') || 'Discord Webhook succesvol ontkoppeld!';
                     alertEl.style.display = 'block';
                 }
             }

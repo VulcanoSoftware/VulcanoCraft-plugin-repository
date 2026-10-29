@@ -1436,7 +1436,9 @@ def admin_get_users():
         user_data.append({
             'username': uname,
             'role': u.get('role', 'user'),
-            'plugin_count': plugin_count
+            'plugin_count': plugin_count,
+            'discord_webhook_url': u.get('discord_webhook_url', ''),
+            'discord_notifications_enabled': bool(u.get('discord_notifications_enabled', False))
         })
     
     if 'page' in request.args or 'per_page' in request.args or 'search' in request.args:

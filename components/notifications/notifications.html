@@ -88,12 +88,17 @@
             </div>
             <div id="discordWebhookAlert" class="alert small" style="display: none;"></div>
           </div>
-          <div class="modal-footer border-secondary justify-content-between">
-            <button type="button" class="btn btn-outline-info" id="testDiscordWebhookBtn">
-              <i class="fas fa-paper-plane me-1"></i><span data-i18n="discord.test_btn">Test Webhook</span>
-            </button>
-            <div>
-              <button type="button" class="btn btn-secondary me-1" data-bs-dismiss="modal" data-i18n="common.cancel">Annuleren</button>
+          <div class="modal-footer border-secondary justify-content-between flex-wrap gap-2">
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-outline-info" id="testDiscordWebhookBtn">
+                <i class="fas fa-paper-plane me-1"></i><span data-i18n="discord.test_btn">Test Webhook</span>
+              </button>
+              <button type="button" class="btn btn-outline-danger" id="deleteDiscordWebhookBtn" style="display: none;">
+                <i class="fas fa-trash-alt me-1"></i><span data-i18n="common.delete">Verwijderen</span>
+              </button>
+            </div>
+            <div class="d-flex gap-1 ms-auto">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="common.cancel">Annuleren</button>
               <button type="button" class="btn btn-primary" id="saveDiscordWebhookBtn">
                 <i class="fas fa-save me-1"></i><span data-i18n="common.save">Opslaan</span>
               </button>

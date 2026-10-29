@@ -802,14 +802,29 @@ class AdminPage {
 
         const pluginWord = user.plugin_count === 1 ? i18n.t('common.plugin') : i18n.t('common.plugins');
 
+        const webhookUrl = user.discord_webhook_url || '';
+        const webhookEnabled = Boolean(user.discord_notifications_enabled);
+        let webhookBadge = `<span class="badge bg-secondary mb-2" title="${i18n.t('admin.discord_not_configured') || 'Geen Discord Webhook'}"><i class="fab fa-discord me-1"></i>${i18n.t('admin.no_webhook') || 'Geen Webhook'}</span>`;
+        if (webhookUrl) {
+            if (webhookEnabled) {
+                webhookBadge = `<span class="badge bg-success mb-2" title="${webhookUrl}"><i class="fab fa-discord me-1"></i>Discord Actief</span>`;
+            } else {
+                webhookBadge = `<span class="badge bg-warning text-dark mb-2" title="${webhookUrl}"><i class="fab fa-discord me-1"></i>Discord Uitgeschakeld</span>`;
+            }
+        }
+
         return `
             <div class="col-md-4 col-lg-3 mb-3">
                 <div class="card h-100">
                     <div class="card-body text-center">
                         <i class="fas fa-user-circle" style="font-size: 3rem; color: #6c757d;"></i>
-                        <h6 class="card-title">${user.username}</h6>
-                        <span class="badge ${this._getRoleBadgeClass(user.role)}">${user.role}</span>
-                        <span class="badge bg-primary"><i class="fas fa-puzzle-piece me-1"></i>${user.plugin_count} ${pluginWord}</span>
+                        <h6 class="card-title mt-1 mb-1">${user.username}</h6>
+                        <div class="d-flex justify-content-center flex-wrap gap-1 mb-2">
+                            <span class="badge ${this._getRoleBadgeClass(user.role)}">${user.role}</span>
+                            <span class="badge bg-primary"><i class="fas fa-puzzle-piece me-1"></i>${user.plugin_count} ${pluginWord}</span>
+                        </div>
+                        <div>${webhookBadge}</div>
+                        ${webhookUrl ? `<div class="small text-muted text-truncate mb-2" style="font-size: 0.75rem;" title="${webhookUrl}">${webhookUrl}</div>` : ''}
                         ${canEdit ? `
                             <select class="form-select form-select-sm mb-2 user-role-select" data-username="${user.username}">${roleOptions}</select>
                             <button class="btn btn-danger btn-sm delete-user-btn" data-username="${user.username}"><i class="fas fa-trash me-1"></i>${i18n.t('common.delete')}</button>
