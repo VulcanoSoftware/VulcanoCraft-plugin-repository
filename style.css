@@ -761,6 +761,37 @@ body {
   color: #f8fafc !important;
 }
 
+/* Discord Webhook Modal High Contrast Styling */
+#discordWebhookModal .modal-content {
+    background: rgba(15, 23, 42, 0.95) !important;
+    backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+    color: #f8fafc !important;
+}
+
+#discordWebhookModal .modal-header,
+#discordWebhookModal .modal-footer {
+    border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+#discordWebhookModal .form-control {
+    background-color: rgba(30, 41, 59, 0.9) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    color: #ffffff !important;
+}
+
+#discordWebhookModal .form-control:focus {
+    background-color: rgba(15, 23, 42, 0.95) !important;
+    border-color: #38bdf8 !important;
+    box-shadow: 0 0 0 0.25rem rgba(56, 189, 248, 0.25) !important;
+    color: #ffffff !important;
+}
+
+#discordWebhookModal .form-control::placeholder {
+    color: #94a3b8 !important;
+}
+
 /* High contrast styles for Notifications and Changes pages */
 .text-muted {
   color: #cbd5e1 !important;
