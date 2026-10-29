@@ -33,31 +33,31 @@
       </header>
 
       <!-- Date Range Filter Card -->
-      <div class="card shadow-lg border-0 mb-4 filter-card">
+      <div class="card shadow-lg border-0 mb-4 dark-glass-card">
         <div class="card-body p-4">
           <div class="row g-3 align-items-end mb-3">
             <div class="col-md-4">
-              <label for="startDate" class="form-label text-light fw-bold">
+              <label for="startDate" class="form-label text-light fw-bold mb-2">
                 <i class="fas fa-calendar-alt text-info me-1"></i> <span data-i18n="changes.start_date">Start Datum</span>
               </label>
-              <input type="date" class="form-control" id="startDate">
+              <input type="date" class="form-control bg-dark text-light border-secondary" id="startDate">
             </div>
             <div class="col-md-4">
-              <label for="endDate" class="form-label text-light fw-bold">
+              <label for="endDate" class="form-label text-light fw-bold mb-2">
                 <i class="fas fa-calendar-check text-info me-1"></i> <span data-i18n="changes.end_date">Eind Datum</span>
               </label>
-              <input type="date" class="form-control" id="endDate">
+              <input type="date" class="form-control bg-dark text-light border-secondary" id="endDate">
             </div>
             <div class="col-md-4 d-flex gap-2">
-              <button type="button" class="btn btn-primary w-100" id="fetchChangesBtn">
+              <button type="button" class="btn btn-info text-dark fw-bold w-100" id="fetchChangesBtn">
                 <i class="fas fa-search me-1"></i> <span data-i18n="changes.search_btn">Bekijk Wijzigingen</span>
               </button>
-              <button type="button" class="btn btn-outline-secondary" id="resetDateFilterBtn" title="Reset datums">
+              <button type="button" class="btn btn-outline-light" id="resetDateFilterBtn" title="Reset datums">
                 <i class="fas fa-undo"></i>
               </button>
             </div>
           </div>
-          <div class="d-flex justify-content-center flex-wrap gap-2 pt-2 border-top border-secondary">
+          <div class="d-flex justify-content-center flex-wrap gap-2 pt-3 border-top border-secondary">
             <button class="btn btn-sm btn-outline-light quick-date-btn" data-days="0" data-i18n="changes.today">Vandaag</button>
             <button class="btn btn-sm btn-outline-light quick-date-btn" data-days="7" data-i18n="changes.last_7_days">Laatste 7 Dagen</button>
             <button class="btn btn-sm btn-outline-light quick-date-btn" data-days="30" data-i18n="changes.last_30_days">Laatste 30 Dagen</button>

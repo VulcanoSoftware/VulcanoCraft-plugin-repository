@@ -753,6 +753,45 @@ body {
   margin-top: 1rem;
 }
 
+/* High contrast dark glass card style for notifications and changes pages */
+.dark-glass-card {
+  background: rgba(15, 23, 42, 0.85) !important;
+  backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #f8fafc !important;
+}
+
+/* High contrast styles for Notifications and Changes pages */
+.text-muted {
+  color: #cbd5e1 !important;
+}
+
+.card-text.text-muted,
+.card-footer.text-muted,
+small.text-muted,
+p.text-muted,
+span.text-muted {
+  color: #cbd5e1 !important;
+}
+
+.opacity-75 {
+  opacity: 0.92 !important;
+}
+
+.opacity-90 {
+  opacity: 0.98 !important;
+}
+
+.quick-date-btn {
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.quick-date-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+}
+
 /* Pin Modal Version Picker Styling */
 .version-group-card {
   transition: all 0.25s ease-in-out;
