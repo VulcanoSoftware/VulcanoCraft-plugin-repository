@@ -64,7 +64,7 @@ def get_modrinth_server_game_versions(slug, pin_format=False):
         return None
 
 # -------- SPIGOT --------
-def get_spigot_game_versions(url):
+def get_spigot_game_versions(url, pin_format=False):
     try:
         match = re.search(r'/resources/[^/]+\.(\d+)/?', url)
         if not match:
@@ -78,9 +78,34 @@ def get_spigot_game_versions(url):
             return None
         
         data = response.json()
-        versions = data.get('testedVersions', [])
-        
-        return sorted(versions) if versions else []
+        tested_versions = data.get('testedVersions', [])
+
+        if not pin_format:
+            return sorted(tested_versions) if tested_versions else []
+
+        versions_url = f"https://api.spiget.org/v2/resources/{resource_id}/versions?size=100&sort=-id"
+        v_response = requests.get(versions_url)
+        if v_response.status_code != 200:
+            return []
+
+        versions_data = v_response.json()
+        if not isinstance(versions_data, list):
+            return []
+
+        versions_list = []
+        seen = set()
+
+        for v in versions_data:
+            ver_name = (v.get('name') or '').strip().lstrip('v')
+            if not ver_name:
+                continue
+            if tested_versions:
+                for gv in tested_versions:
+                    _append_unique(f"{ver_name} ({gv})", seen, versions_list)
+            else:
+                _append_unique(ver_name, seen, versions_list)
+
+        return versions_list
     except Exception:
         return None
 
@@ -178,25 +203,47 @@ def _get_servermods_project(slug):
         return None
 
 # -------- BUKKITDEV / SERVERMODS --------
+def _extract_game_versions(gv_input):
+    if not gv_input:
+        return []
+    if isinstance(gv_input, list):
+        items = gv_input
+    else:
+        items = [str(gv_input)]
+
+    result = []
+    for item in items:
+        matches = re.findall(r'1\.\d+(?:\.\d+)?', str(item))
+        for m in matches:
+            if m not in result:
+                result.append(m)
+    return result
+
+def _get_bukkitdev_file_sort_key(f):
+    dr = f.get("dateReleased") or ""
+    m = re.search(r'\d+', dr)
+    if m:
+        return int(m.group(0))
+    m2 = re.search(r'/(\d+)(?:/|\b)', f.get("downloadUrl") or f.get("fileUrl") or "")
+    if m2:
+        return int(m2.group(0))
+    return f.get("id", 0)
+
 def _process_bukkitdev_file(f, pin_format, seen, versions_list):
     file_name = (f.get("name") or "").strip()
-    gv = f.get("gameVersion")
+    gvs = _extract_game_versions(f.get("gameVersion"))
     if pin_format:
-        entry = ""
-        if file_name and gv:
-            entry = f"{file_name} ({gv})"
+        if file_name and gvs:
+            for gv in gvs:
+                _append_unique(f"{file_name} ({gv})", seen, versions_list)
         elif file_name:
-            entry = file_name
-        elif gv:
-            entry = gv
-        if entry and entry not in seen:
-            seen.add(entry)
-            versions_list.append(entry)
+            _append_unique(file_name, seen, versions_list)
+        elif gvs:
+            for gv in gvs:
+                _append_unique(gv, seen, versions_list)
     else:
-        if gv and re.match(r'^1\.\d+(\.\d+)?$', gv):
-            if gv not in seen:
-                seen.add(gv)
-                versions_list.append(gv)
+        for gv in gvs:
+            _append_unique(gv, seen, versions_list)
 
 def get_bukkitdev_game_versions(slug, pin_format=False):
     try:
@@ -213,8 +260,8 @@ def get_bukkitdev_game_versions(slug, pin_format=False):
         files = files_response.json()
         if not isinstance(files, list):
             return []
-        # Sort files descending by id to get newest releases first
-        files = sorted(files, key=lambda f: f.get("id", 0), reverse=True)
+        # Sort files descending by release date or file ID so newest releases are first
+        files = sorted(files, key=_get_bukkitdev_file_sort_key, reverse=True)
         versions_list = []
         seen = set()
         for f in files:
@@ -226,30 +273,38 @@ def get_bukkitdev_game_versions(slug, pin_format=False):
         return []
 
 # -------- CURSEFORGE --------
-def _process_curseforge_file_index(version, pin_format, seen, versions_list):
-    file_name = (version.get('filename') or version.get('name') or '').strip()
-    game_version = version.get('gameVersion')
+def _process_curseforge_file_object(file_obj, pin_format, seen, versions_list):
+    file_name = (file_obj.get('displayName') or file_obj.get('fileName') or file_obj.get('name') or '').strip()
+    raw_gv = file_obj.get('gameVersions') or file_obj.get('gameVersion')
+    gvs = _extract_game_versions(raw_gv)
+
     if pin_format:
-        entry = ""
-        if file_name and game_version:
-            entry = f"{file_name} ({game_version})"
+        if file_name and gvs:
+            for gv in gvs:
+                _append_unique(f"{file_name} ({gv})", seen, versions_list)
         elif file_name:
-            entry = file_name
-        elif game_version:
-            entry = game_version
-        _append_unique(entry, seen, versions_list)
+            _append_unique(file_name, seen, versions_list)
+        elif gvs:
+            for gv in gvs:
+                _append_unique(gv, seen, versions_list)
     else:
-        if game_version and re.match(r'^1\.\d+(\.\d+)?$', game_version):
-            _append_unique(game_version, seen, versions_list)
+        for gv in gvs:
+            _append_unique(gv, seen, versions_list)
 
 def _parse_curseforge_versions(mod_data, pin_format):
     versions_list = []
     seen = set()
     for mod in mod_data:
-        indexes = mod.get('latestFilesIndexes', [])
-        indexes = sorted(indexes, key=lambda x: x.get('fileId', 0), reverse=True)
-        for version in indexes:
-            _process_curseforge_file_index(version, pin_format, seen, versions_list)
+        files = mod.get('latestFiles', [])
+        if files:
+            files = sorted(files, key=lambda x: x.get('id', 0), reverse=True)
+            for file_obj in files:
+                _process_curseforge_file_object(file_obj, pin_format, seen, versions_list)
+        else:
+            indexes = mod.get('latestFilesIndexes', [])
+            indexes = sorted(indexes, key=lambda x: x.get('fileId', 0), reverse=True)
+            for idx in indexes:
+                _process_curseforge_file_object(idx, pin_format, seen, versions_list)
     if not pin_format:
         return sorted(versions_list)
     return versions_list
@@ -399,7 +454,7 @@ def _fetch_platform_versions(platform, identifier, pin_format):
     if platform == "modrinth":
         res = get_modrinth_server_game_versions(identifier, pin_format=pin_format)
     elif platform == "spigot":
-        res = get_spigot_game_versions(identifier)
+        res = get_spigot_game_versions(identifier, pin_format=pin_format)
     elif platform == "hangar":
         res = get_hangar_game_versions(identifier, pin_format=pin_format)
     elif platform == "curseforge":

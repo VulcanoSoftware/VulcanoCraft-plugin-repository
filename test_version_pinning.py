@@ -123,5 +123,106 @@ class TestVersionPinning(unittest.TestCase):
         })
         self.assertEqual(res.status_code, 401)
 
+    @patch('fetchers.versions.requests.get')
+    def test_get_spigot_game_versions_without_pin_format(self, mock_get):
+        class MockResponse:
+            def __init__(self, json_data, status_code=200):
+                self._json = json_data
+                self.status_code = status_code
+            def json(self):
+                return self._json
+
+        def side_effect(url, **kwargs):
+            if '/resources/42464/versions' in url:
+                return MockResponse([])
+            elif '/resources/42464' in url:
+                return MockResponse({'testedVersions': ['1.21', '1.20']})
+            return MockResponse({}, status_code=404)
+
+        mock_get.side_effect = side_effect
+
+        from fetchers.versions import get_spigot_game_versions
+        versions = get_spigot_game_versions('https://www.spigotmc.org/resources/paper-money.42464/')
+        self.assertEqual(versions, ['1.20', '1.21'])
+
+    @patch('fetchers.versions.requests.get')
+    def test_get_spigot_game_versions_with_pin_format(self, mock_get):
+        class MockResponse:
+            def __init__(self, json_data, status_code=200):
+                self._json = json_data
+                self.status_code = status_code
+            def json(self):
+                return self._json
+
+        def side_effect(url, **kwargs):
+            if '/resources/42464/versions' in url:
+                return MockResponse([
+                    {'id': 594993, 'name': '1.21.4.a.1'},
+                    {'id': 577104, 'name': 'v1.21.0.b.2'}
+                ])
+            elif '/resources/42464' in url:
+                return MockResponse({'testedVersions': ['1.21']})
+            return MockResponse({}, status_code=404)
+
+        mock_get.side_effect = side_effect
+
+        from fetchers.versions import get_spigot_game_versions, _fetch_platform_versions
+        versions = get_spigot_game_versions('https://www.spigotmc.org/resources/paper-money.42464/', pin_format=True)
+        self.assertIn('1.21.4.a.1 (1.21)', versions)
+        self.assertIn('1.21.0.b.2 (1.21)', versions)
+
+        fetched = _fetch_platform_versions('spigot', 'https://www.spigotmc.org/resources/paper-money.42464/', pin_format=True)
+        self.assertEqual(fetched[0], '1.21.4.a.1 (1.21)')
+        self.assertEqual(fetched[1], '1.21.0.b.2 (1.21)')
+
+    @patch('fetchers.versions.requests.get')
+    def test_get_bukkitdev_game_versions_sorting_and_clean_version(self, mock_get):
+        class MockResponse:
+            def __init__(self, json_data, status_code=200):
+                self._json = json_data
+                self.status_code = status_code
+            def json(self):
+                return self._json
+
+        def side_effect(url, **kwargs):
+            if 'projects?search=vault' in url:
+                return MockResponse([{'id': 33437, 'slug': 'vault'}])
+            elif 'files?projectIds=33437' in url:
+                return MockResponse([
+                    {'id': 10, 'name': 'Vault 1.0', 'gameVersion': 'CB 1337', 'dateReleased': '/Date(1000000000000)/'},
+                    {'id': 20, 'name': 'Vault 1.7.2', 'gameVersion': 'CB 1.7.2-R0.3', 'dateReleased': '/Date(1400000000000)/'},
+                ])
+            return MockResponse([], status_code=404)
+
+        mock_get.side_effect = side_effect
+
+        from fetchers.versions import get_bukkitdev_game_versions
+        # Pinned format should put newest release first and clean game versions
+        pinned = get_bukkitdev_game_versions('vault', pin_format=True)
+        self.assertEqual(len(pinned), 2)
+        self.assertEqual(pinned[0], 'Vault 1.7.2 (1.7.2)')
+        self.assertEqual(pinned[1], 'Vault 1.0')
+
+    def test_parse_curseforge_versions_latest_files(self):
+        from fetchers.versions import _parse_curseforge_versions
+        mod_data = [{
+            'latestFiles': [
+                {
+                    'id': 200,
+                    'displayName': 'TestMod 2.0.0',
+                    'gameVersions': ['1.20.1', '1.20.2', 'Forge']
+                },
+                {
+                    'id': 100,
+                    'displayName': 'TestMod 1.0.0',
+                    'gameVersions': ['1.19.4', 'Fabric']
+                }
+            ]
+        }]
+        pinned = _parse_curseforge_versions(mod_data, pin_format=True)
+        self.assertIn('TestMod 2.0.0 (1.20.1)', pinned)
+        self.assertIn('TestMod 2.0.0 (1.20.2)', pinned)
+        self.assertIn('TestMod 1.0.0 (1.19.4)', pinned)
+
 if __name__ == '__main__':
     unittest.main()
