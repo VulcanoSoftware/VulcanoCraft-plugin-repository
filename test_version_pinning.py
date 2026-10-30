@@ -175,5 +175,33 @@ class TestVersionPinning(unittest.TestCase):
         self.assertEqual(fetched[0], '1.21.4.a.1 (1.21)')
         self.assertEqual(fetched[1], '1.21.0.b.2 (1.21)')
 
+    @patch('fetchers.versions.requests.get')
+    def test_get_bukkitdev_game_versions_sorting_and_clean_version(self, mock_get):
+        class MockResponse:
+            def __init__(self, json_data, status_code=200):
+                self._json = json_data
+                self.status_code = status_code
+            def json(self):
+                return self._json
+
+        def side_effect(url, **kwargs):
+            if 'projects?search=vault' in url:
+                return MockResponse([{'id': 33437, 'slug': 'vault'}])
+            elif 'files?projectIds=33437' in url:
+                return MockResponse([
+                    {'id': 10, 'name': 'Vault 1.0', 'gameVersion': 'CB 1337', 'dateReleased': '/Date(1000000000000)/'},
+                    {'id': 20, 'name': 'Vault 1.7.2', 'gameVersion': 'CB 1.7.2-R0.3', 'dateReleased': '/Date(1400000000000)/'},
+                ])
+            return MockResponse([], status_code=404)
+
+        mock_get.side_effect = side_effect
+
+        from fetchers.versions import get_bukkitdev_game_versions
+        # Pinned format should put newest release first and clean game versions
+        pinned = get_bukkitdev_game_versions('vault', pin_format=True)
+        self.assertEqual(len(pinned), 2)
+        self.assertEqual(pinned[0], 'Vault 1.7.2 (1.7.2)')
+        self.assertEqual(pinned[1], 'Vault 1.0')
+
 if __name__ == '__main__':
     unittest.main()
