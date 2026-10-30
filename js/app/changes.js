@@ -98,9 +98,10 @@ class ChangesPage {
             this.changesContainer.innerHTML = `
                 <div class="card dark-glass-card border-0 text-center p-5">
                     <i class="fas fa-search text-info fa-3x mb-3 opacity-75"></i>
-                    <h5 class="text-light fw-bold" data-i18n="changes.no_changes">Geen wijzigingen gevonden voor deze periode</h5>
-                    <p class="text-light opacity-75 mb-0" data-i18n="changes.no_changes_desc">Probeer een andere datumreeks of bekijk alle resultaten.</p>
+                    <h5 class="text-light fw-bold" data-i18n="changes.no_changes">${i18n.t('changes.no_changes')}</h5>
+                    <p class="text-light opacity-75 mb-0" data-i18n="changes.no_changes_desc">${i18n.t('changes.no_changes_desc')}</p>
                 </div>`;
+            i18n.applyTranslations();
             return;
         }
 
@@ -120,6 +121,7 @@ class ChangesPage {
         }
 
         this.changesContainer.innerHTML = html;
+        i18n.applyTranslations();
     }
 
     _updateSummaryBar(count, startDate, endDate) {
@@ -145,7 +147,7 @@ class ChangesPage {
     _groupChangesByDate(changes) {
         const grouped = new Map();
         changes.forEach(c => {
-            const dateStr = c.date || (c.timestamp ? c.timestamp.split('T')[0] : 'Onbekend');
+            const dateStr = c.date || (c.timestamp ? c.timestamp.split('T')[0] : i18n.t('common.unknown'));
             if (!grouped.has(dateStr)) {
                 grouped.set(dateStr, []);
             }
