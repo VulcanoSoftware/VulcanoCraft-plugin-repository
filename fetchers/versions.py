@@ -64,7 +64,7 @@ def get_modrinth_server_game_versions(slug, pin_format=False):
         return None
 
 # -------- SPIGOT --------
-def get_spigot_game_versions(url):
+def get_spigot_game_versions(url, pin_format=False):
     try:
         match = re.search(r'/resources/[^/]+\.(\d+)/?', url)
         if not match:
@@ -78,9 +78,34 @@ def get_spigot_game_versions(url):
             return None
         
         data = response.json()
-        versions = data.get('testedVersions', [])
-        
-        return sorted(versions) if versions else []
+        tested_versions = data.get('testedVersions', [])
+
+        if not pin_format:
+            return sorted(tested_versions) if tested_versions else []
+
+        versions_url = f"https://api.spiget.org/v2/resources/{resource_id}/versions?size=100&sort=-id"
+        v_response = requests.get(versions_url)
+        if v_response.status_code != 200:
+            return []
+
+        versions_data = v_response.json()
+        if not isinstance(versions_data, list):
+            return []
+
+        versions_list = []
+        seen = set()
+
+        for v in versions_data:
+            ver_name = (v.get('name') or '').strip().lstrip('v')
+            if not ver_name:
+                continue
+            if tested_versions:
+                for gv in tested_versions:
+                    _append_unique(f"{ver_name} ({gv})", seen, versions_list)
+            else:
+                _append_unique(ver_name, seen, versions_list)
+
+        return versions_list
     except Exception:
         return None
 
@@ -399,7 +424,7 @@ def _fetch_platform_versions(platform, identifier, pin_format):
     if platform == "modrinth":
         res = get_modrinth_server_game_versions(identifier, pin_format=pin_format)
     elif platform == "spigot":
-        res = get_spigot_game_versions(identifier)
+        res = get_spigot_game_versions(identifier, pin_format=pin_format)
     elif platform == "hangar":
         res = get_hangar_game_versions(identifier, pin_format=pin_format)
     elif platform == "curseforge":
