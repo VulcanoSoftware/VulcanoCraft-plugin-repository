@@ -98,10 +98,22 @@
             <div class="card-body">
               <div class="mb-5">
                 <h4><i class="fas fa-sliders-h me-2"></i><span data-i18n="admin.settings">Instellingen</span></h4>
-                <div class="form-check form-switch">
+                <div class="form-check form-switch mb-3">
                   <input class="form-check-input" id="registrationToggle" type="checkbox">
                   <label class="form-check-label" for="registrationToggle" data-i18n="admin.allow_registration">Registratie toestaan</label>
                 </div>
+                <div class="row g-3 align-items-center">
+                  <div class="col-auto">
+                    <label for="retentionDaysInput" class="col-form-label fw-bold" data-i18n="admin.retention_days_label">Bewaartermijn wijzigingshistorie (dagen):</label>
+                  </div>
+                  <div class="col-auto">
+                    <input type="number" id="retentionDaysInput" class="form-control" style="width: 100px;" min="0" value="30">
+                  </div>
+                  <div class="col-auto">
+                    <button class="btn btn-sm btn-primary" id="saveRetentionDaysBtn"><i class="fas fa-save me-1"></i><span data-i18n="common.save">Opslaan</span></button>
+                  </div>
+                </div>
+                <div class="form-text mt-1 text-muted" data-i18n="admin.retention_help">0 betekent onbeperkt bewaren. Oudere notificaties en wijzigingen worden automatisch opgeruimd.</div>
               </div>
 
               <div class="mb-5" id="softwareUpdateSection">

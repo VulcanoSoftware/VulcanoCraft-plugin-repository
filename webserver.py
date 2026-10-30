@@ -329,10 +329,12 @@ def load_settings():
         doc = db.settings.find_one({"_id": "app_settings"})
         if doc:
             doc.pop("_id", None)
+            doc.setdefault('registration_enabled', True)
+            doc.setdefault('retention_days', 30)
             return doc
-        return {'registration_enabled': True}
+        return {'registration_enabled': True, 'retention_days': 30}
     except Exception:
-        return {'registration_enabled': True}
+        return {'registration_enabled': True, 'retention_days': 30}
     
 def save_settings(settings):
     """Sla instellingen op"""
@@ -379,6 +381,122 @@ def login_page():
 @app.route('/change_password', methods=['GET', 'POST'])
 def change_password_page():
     return send_file('components/user/change_password.html')
+
+@app.route('/changes')
+def changes_page():
+    """Serveer de changes.html pagina"""
+    return send_file('components/changes/changes.html')
+
+@app.route('/notifications')
+def notifications_page():
+    """Serveer de notifications.html pagina"""
+    return send_file('components/notifications/notifications.html')
+
+@app.route('/api/cron_status')
+def api_cron_status():
+    """API endpoint die de laatste cron fetch timestamp retourneert"""
+    try:
+        doc = db.settings.find_one({"_id": "cron_status"}, {"_id": 0}) or {}
+        return jsonify({'last_fetched': doc.get('last_fetched')})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/notifications', methods=['GET'])
+def api_get_notifications():
+    """API endpoint voor het ophalen van recente notificaties"""
+    try:
+        notifications = list(db.notifications.find({}, {"_id": 0}).sort("timestamp", -1).limit(50))
+        unread_count = db.notifications.count_documents({"read": {"$ne": True}})
+        return jsonify({
+            'notifications': notifications,
+            'unread_count': unread_count
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/notifications/clear', methods=['POST'])
+@require_login
+def api_clear_notifications():
+    """API endpoint om alle notificaties te wisssen"""
+    try:
+        db.notifications.delete_many({})
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/changes', methods=['GET'])
+def api_get_changes():
+    """API endpoint om wijzigingen tussen 2 datums op te halen"""
+    try:
+        start_date = sanitize_str(request.args.get('start_date', ''))
+        end_date = sanitize_str(request.args.get('end_date', ''))
+
+        query = {}
+        if start_date and end_date:
+            query['date'] = {'$gte': start_date, '$lte': end_date}
+        elif start_date:
+            query['date'] = {'$gte': start_date}
+        elif end_date:
+            query['date'] = {'$lte': end_date}
+
+        changes = list(db.plugin_changes.find(query, {"_id": 0}).sort("timestamp", -1).limit(200))
+        return jsonify({'changes': changes})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/user/discord_webhook', methods=['GET', 'POST'])
+@require_login
+def api_user_discord_webhook():
+    """API endpoint voor instellen en ophalen van de Discord Webhook van een ingelogde gebruiker"""
+    username = session['user']
+    if request.method == 'GET':
+        user = get_current_user()
+        if not user:
+            return jsonify({'error': 'Gebruiker niet gevonden'}), 404
+        return jsonify({
+            'webhook_url': user.get('discord_webhook_url', ''),
+            'enabled': bool(user.get('discord_notifications_enabled', False))
+        })
+
+    data = request.get_json() or {}
+    webhook_url = sanitize_str(data.get('webhook_url', ''))
+    enabled = bool(data.get('enabled', False))
+
+    db.users.update_one(
+        {"username": username},
+        {"$set": {
+            "discord_webhook_url": webhook_url,
+            "discord_notifications_enabled": enabled
+        }}
+    )
+    return jsonify({'success': True, 'webhook_url': webhook_url, 'enabled': enabled})
+
+@app.route('/api/user/discord_webhook/test', methods=['POST'])
+@require_login
+def api_user_discord_webhook_test():
+    """API endpoint voor het testen van de Discord webhook van de ingelogde gebruiker"""
+    data = request.get_json(silent=True) or {}
+    user = get_current_user()
+    webhook_url = sanitize_str(data.get('webhook_url', '')) or user.get('discord_webhook_url', '')
+
+    if not webhook_url:
+        return jsonify({'error': 'Geen Discord Webhook URL opgegeven'}), 400
+
+    try:
+        from datetime import datetime
+        embed = {
+            "title": "🧪 VulcanoCraft Webhook Test",
+            "description": f"Testbericht succesvol ontvangen voor gebruiker **{session['user']}**! Notificaties via Discord werken naar behoren.",
+            "color": 3066993,
+            "timestamp": datetime.now().isoformat()
+        }
+        res = requests.post(webhook_url, json={"content": "VulcanoCraft Discord Webhook Test", "embeds": [embed]}, timeout=5)
+        if res.status_code in [200, 204]:
+            return jsonify({'success': True, 'message': 'Testbericht succesvol verzonden naar Discord!'})
+        else:
+            return jsonify({'error': f'Discord retourneerde status code {res.status_code}'}), 400
+    except Exception as e:
+        return jsonify({'error': f'Fout bij verbinden met Discord webhook: {str(e)}'}), 500
 
 
 @app.route('/style.css')
@@ -1318,7 +1436,9 @@ def admin_get_users():
         user_data.append({
             'username': uname,
             'role': u.get('role', 'user'),
-            'plugin_count': plugin_count
+            'plugin_count': plugin_count,
+            'discord_webhook_url': u.get('discord_webhook_url', ''),
+            'discord_notifications_enabled': bool(u.get('discord_notifications_enabled', False))
         })
     
     if 'page' in request.args or 'per_page' in request.args or 'search' in request.args:

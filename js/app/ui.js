@@ -645,6 +645,66 @@ class UI {
         this.resultsCounter.innerHTML = html;
     }
 
+    renderCronStatus(cronData) {
+        const timeEl = document.getElementById('lastFetchedTime');
+        if (!timeEl) return;
+        if (cronData && cronData.last_fetched) {
+            try {
+                const date = new Date(cronData.last_fetched);
+                if (isNaN(date.getTime())) {
+                    timeEl.textContent = cronData.last_fetched;
+                } else {
+                    timeEl.textContent = date.toLocaleString(undefined, {
+                        year: 'numeric', month: 'short', day: 'numeric',
+                        hour: '2-digit', minute: '2-digit', second: '2-digit'
+                    });
+                }
+            } catch (e) {
+                timeEl.textContent = cronData.last_fetched;
+            }
+        } else {
+            timeEl.textContent = i18n.t('common.unknown');
+        }
+    }
+
+    renderNotifications(notifications) {
+        const badge = document.getElementById('notificationBadge');
+        const list = document.getElementById('notificationList');
+        const clearBtn = document.getElementById('clearNotificationsBtn');
+
+        const notifArray = Array.isArray(notifications) ? notifications : [];
+        if (badge) {
+            if (notifArray.length === 0) {
+                badge.style.display = 'none';
+                badge.textContent = '0';
+            } else {
+                badge.style.display = 'inline-block';
+                badge.textContent = notifArray.length;
+            }
+        }
+
+        if (list) {
+            if (notifArray.length === 0) {
+                list.innerHTML = `<div class="text-center text-muted py-3" data-i18n="notifications.empty">${i18n.t('notifications.empty')}</div>`;
+                if (clearBtn) clearBtn.style.display = 'none';
+            } else {
+                if (clearBtn) clearBtn.style.display = 'inline-block';
+                list.innerHTML = notifArray.map(n => {
+                    const timeStr = n.timestamp ? new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                    return `
+                        <div class="p-2 mb-2 rounded border border-secondary" style="background: rgba(255,255,255,0.05);">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <strong class="text-info text-truncate me-1">${n.plugin_title || 'Plugin Update'}</strong>
+                                <small class="text-muted flex-shrink-0" style="font-size: 0.75rem;">${timeStr}</small>
+                            </div>
+                            <div class="text-light small">${n.message || ''}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+    }
+
     showSuccessMessage(message) {
         const successAlert = document.createElement("div");
         successAlert.className = "alert alert-success alert-dismissible fade show";

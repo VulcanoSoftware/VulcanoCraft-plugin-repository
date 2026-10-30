@@ -115,6 +115,46 @@ class API {
             body: JSON.stringify({ url }),
         });
     }
+
+    getCronStatus() {
+        return this._fetch('/api/cron_status').catch(() => ({ last_fetched: null }));
+    }
+
+    getNotifications() {
+        return this._fetch('/api/notifications').catch(() => []);
+    }
+
+    clearNotifications() {
+        return this._fetch('/api/notifications/clear', { method: 'POST' });
+    }
+
+    getChanges(startDate = '', endDate = '') {
+        const query = new URLSearchParams();
+        if (startDate) query.set('start_date', startDate);
+        if (endDate) query.set('end_date', endDate);
+        const qStr = query.toString();
+        return this._fetch(qStr ? `/api/changes?${qStr}` : '/api/changes');
+    }
+
+    getDiscordWebhook() {
+        return this._fetch('/api/user/discord_webhook');
+    }
+
+    saveDiscordWebhook(webhookUrl, enabled) {
+        return this._fetch('/api/user/discord_webhook', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ webhook_url: webhookUrl, enabled }),
+        });
+    }
+
+    testDiscordWebhook(webhookUrl = '') {
+        return this._fetch('/api/user/discord_webhook/test', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ webhook_url: webhookUrl }),
+        });
+    }
 }
 
 export default new API();

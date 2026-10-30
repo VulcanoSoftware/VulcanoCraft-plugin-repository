@@ -753,6 +753,76 @@ body {
   margin-top: 1rem;
 }
 
+/* High contrast dark glass card style for notifications and changes pages */
+.dark-glass-card {
+  background: rgba(15, 23, 42, 0.85) !important;
+  backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #f8fafc !important;
+}
+
+/* Discord Webhook Modal High Contrast Styling */
+#discordWebhookModal .modal-content {
+    background: rgba(15, 23, 42, 0.95) !important;
+    backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+    color: #f8fafc !important;
+}
+
+#discordWebhookModal .modal-header,
+#discordWebhookModal .modal-footer {
+    border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+#discordWebhookModal .form-control {
+    background-color: rgba(30, 41, 59, 0.9) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    color: #ffffff !important;
+}
+
+#discordWebhookModal .form-control:focus {
+    background-color: rgba(15, 23, 42, 0.95) !important;
+    border-color: #38bdf8 !important;
+    box-shadow: 0 0 0 0.25rem rgba(56, 189, 248, 0.25) !important;
+    color: #ffffff !important;
+}
+
+#discordWebhookModal .form-control::placeholder {
+    color: #94a3b8 !important;
+}
+
+/* High contrast styles for Notifications and Changes pages */
+.text-muted {
+  color: #cbd5e1 !important;
+}
+
+.card-text.text-muted,
+.card-footer.text-muted,
+small.text-muted,
+p.text-muted,
+span.text-muted {
+  color: #cbd5e1 !important;
+}
+
+.opacity-75 {
+  opacity: 0.92 !important;
+}
+
+.opacity-90 {
+  opacity: 0.98 !important;
+}
+
+.quick-date-btn {
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.quick-date-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+}
+
 /* Pin Modal Version Picker Styling */
 .version-group-card {
   transition: all 0.25s ease-in-out;
@@ -962,6 +1032,35 @@ body {
   border-color: #2563eb;
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Notification Dropdown Menu styling */
+#notificationDropdownMenu {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #f8fafc !important;
+  --bs-dropdown-color: #f8fafc !important;
+  --bs-dropdown-link-color: #f8fafc !important;
+}
+
+#notificationDropdownMenu .text-muted {
+  color: #94a3b8 !important;
+}
+
+#notificationDropdownMenu #notificationList {
+  color: #f8fafc !important;
+}
+
+#notificationDropdownMenu #notificationList .text-muted {
+  color: #94a3b8 !important;
+}
+
+#notificationDropdownMenu #clearNotificationsBtn {
+  color: #94a3b8 !important;
+}
+
+#notificationDropdownMenu #clearNotificationsBtn:hover {
+  color: #38bdf8 !important;
 }
 
 /* Cyber-Glass Language Dropdown Component */

@@ -320,6 +320,7 @@
       </div>
     </div>
 
+
     <!-- Categorie Leegmaken Modal -->
     <div class="modal fade" id="clearCategoryModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog">
@@ -510,10 +511,24 @@
             </span>
           </div>
         </h1>
-        <p class="lead text-light" data-i18n="app.subtitle">Overzicht van alle beschikbare plugins</p>
+        <p class="lead text-light mb-1" data-i18n="app.subtitle">Overzicht van alle beschikbare plugins</p>
+        <p class="text-light opacity-75 small mb-3" id="lastFetchedContainer">
+          <i class="fas fa-clock me-1 text-info"></i><span data-i18n="app.last_fetched">Laatste cron fetch:</span> <span id="lastFetchedTime">-</span>
+        </p>
 
-        <!-- Auth buttons -->
+        <!-- Auth & Nav buttons -->
         <div class="btn-container text-center d-flex flex-wrap align-items-center justify-content-center gap-2">
+          <!-- Notification Center Link -->
+          <a class="btn btn-outline-light position-relative header-nav-btn me-1" href="/notifications" title="Notificatiecentrum" data-i18n-title="notifications.title" id="notificationBellBtn">
+            <i class="fas fa-bell"></i>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificationBadge" style="display: none;">0</span>
+          </a>
+
+          <!-- Changes Page Link -->
+          <a class="btn btn-outline-light header-nav-btn me-1" href="/changes" title="Wijzigingen per datum" data-i18n-title="nav.changes_title">
+            <i class="fas fa-history me-1"></i><span data-i18n="nav.changes">Wijzigingen</span>
+          </a>
+
           <div id="authButtons" class="align-items-center flex-wrap gap-2">
             <a class="btn btn-light header-nav-btn" href="/login-page">
               <i class="fas fa-sign-in-alt me-1"></i><span data-i18n="nav.login">Inloggen</span>

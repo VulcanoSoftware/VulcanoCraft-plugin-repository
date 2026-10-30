@@ -1,0 +1,327 @@
+import API from './api.js';
+import i18n from './i18n.js';
+import { showConfirmModal, showAlertModal } from './modals.js';
+
+class NotificationsPage {
+    constructor() {
+        this.container = document.getElementById('notificationsContainer');
+        this.clearBtn = document.getElementById('clearAllNotificationsBtn');
+        this.unreadBadge = document.getElementById('unreadNotifCountBadge');
+        this.totalBadge = document.getElementById('totalNotifCountBadge');
+        this.filterAllBtn = document.getElementById('filterNotifAll');
+        this.filterUnreadBtn = document.getElementById('filterNotifUnread');
+        this.discordBtn = document.getElementById('discordWebhookBtn');
+
+        this.notifications = [];
+        this.currentFilter = 'all';
+
+        this.init();
+    }
+
+    async init() {
+        await i18n.init();
+        await i18n.applyTranslations();
+        await this.checkAuthAndDiscordVisibility();
+        this.setupEventListeners();
+        await this.loadNotifications();
+    }
+
+    async checkAuthAndDiscordVisibility() {
+        if (!this.discordBtn) return;
+        try {
+            const authStatus = await API.getAuthStatus();
+            if (authStatus && authStatus.logged_in) {
+                this.discordBtn.style.setProperty('display', 'inline-block', 'important');
+            } else {
+                this.discordBtn.style.setProperty('display', 'none', 'important');
+            }
+        } catch (e) {
+            this.discordBtn.style.setProperty('display', 'none', 'important');
+        }
+    }
+
+    setupEventListeners() {
+        if (this.clearBtn) {
+            this.clearBtn.addEventListener('click', () => this.handleClearAll());
+        }
+
+        if (this.filterAllBtn) {
+            this.filterAllBtn.addEventListener('click', () => {
+                this.setActiveFilter('all');
+            });
+        }
+
+        if (this.filterUnreadBtn) {
+            this.filterUnreadBtn.addEventListener('click', () => {
+                this.setActiveFilter('unread');
+            });
+        }
+
+        this.setupDiscordWebhookEvents();
+    }
+
+    setupDiscordWebhookEvents() {
+        if (this.discordBtn) {
+            this.discordBtn.addEventListener('click', async () => {
+                const modalEl = document.getElementById('discordWebhookModal');
+                if (!modalEl) return;
+                const alertEl = document.getElementById('discordWebhookAlert');
+                if (alertEl) alertEl.style.display = 'none';
+
+                const deleteBtn = document.getElementById('deleteDiscordWebhookBtn');
+                try {
+                    const data = await API.getDiscordWebhook();
+                    const urlInput = document.getElementById('discordWebhookUrlInput');
+                    const enabledSwitch = document.getElementById('discordWebhookEnabledSwitch');
+                    if (urlInput) urlInput.value = data.webhook_url || '';
+                    if (enabledSwitch) enabledSwitch.checked = Boolean(data.enabled);
+                    if (deleteBtn) {
+                        deleteBtn.style.display = data.webhook_url ? 'inline-block' : 'none';
+                    }
+                } catch (err) {
+                    console.error('Failed to load discord webhook data:', err);
+                }
+
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            });
+        }
+
+        const saveDiscordBtn = document.getElementById('saveDiscordWebhookBtn');
+        if (saveDiscordBtn) {
+            saveDiscordBtn.addEventListener('click', () => this.handleSaveDiscordWebhook());
+        }
+
+        const testDiscordBtn = document.getElementById('testDiscordWebhookBtn');
+        if (testDiscordBtn) {
+            testDiscordBtn.addEventListener('click', () => this.handleTestDiscordWebhook());
+        }
+
+        const deleteDiscordBtn = document.getElementById('deleteDiscordWebhookBtn');
+        if (deleteDiscordBtn) {
+            deleteDiscordBtn.addEventListener('click', () => this.handleDeleteDiscordWebhook());
+        }
+    }
+
+    async handleSaveDiscordWebhook() {
+        const urlInput = document.getElementById('discordWebhookUrlInput');
+        const enabledSwitch = document.getElementById('discordWebhookEnabledSwitch');
+        const alertEl = document.getElementById('discordWebhookAlert');
+        const deleteBtn = document.getElementById('deleteDiscordWebhookBtn');
+
+        const webhookUrl = urlInput ? urlInput.value.trim() : '';
+        const enabled = enabledSwitch ? enabledSwitch.checked : false;
+
+        try {
+            const res = await API.saveDiscordWebhook(webhookUrl, enabled);
+            if (res && res.success) {
+                if (alertEl) {
+                    alertEl.className = 'alert alert-success small mb-0 mt-2';
+                    alertEl.textContent = i18n.t('discord.save_success');
+                    alertEl.style.display = 'block';
+                }
+                if (deleteBtn) {
+                    deleteBtn.style.display = webhookUrl ? 'inline-block' : 'none';
+                }
+            } else {
+                if (alertEl) {
+                    alertEl.className = 'alert alert-danger small mb-0 mt-2';
+                    alertEl.textContent = res.error || i18n.t('discord.save_error');
+                    alertEl.style.display = 'block';
+                }
+            }
+        } catch (err) {
+            if (alertEl) {
+                alertEl.className = 'alert alert-danger small mb-0 mt-2';
+                alertEl.textContent = err.message;
+                alertEl.style.display = 'block';
+            }
+        }
+    }
+
+    async handleDeleteDiscordWebhook() {
+        const urlInput = document.getElementById('discordWebhookUrlInput');
+        const enabledSwitch = document.getElementById('discordWebhookEnabledSwitch');
+        const alertEl = document.getElementById('discordWebhookAlert');
+        const deleteBtn = document.getElementById('deleteDiscordWebhookBtn');
+
+        try {
+            const res = await API.saveDiscordWebhook('', false);
+            if (res && res.success) {
+                if (urlInput) urlInput.value = '';
+                if (enabledSwitch) enabledSwitch.checked = false;
+                if (deleteBtn) deleteBtn.style.display = 'none';
+
+                if (alertEl) {
+                    alertEl.className = 'alert alert-success small mb-0 mt-2';
+                    alertEl.textContent = i18n.t('discord.webhook_deleted') || 'Discord Webhook succesvol ontkoppeld!';
+                    alertEl.style.display = 'block';
+                }
+            }
+        } catch (err) {
+            if (alertEl) {
+                alertEl.className = 'alert alert-danger small mb-0 mt-2';
+                alertEl.textContent = err.message;
+                alertEl.style.display = 'block';
+            }
+        }
+    }
+
+    async handleTestDiscordWebhook() {
+        const urlInput = document.getElementById('discordWebhookUrlInput');
+        const alertEl = document.getElementById('discordWebhookAlert');
+        const webhookUrl = urlInput ? urlInput.value.trim() : '';
+
+        if (alertEl) {
+            alertEl.className = 'alert alert-info small mb-0 mt-2';
+            alertEl.textContent = i18n.t('discord.testing');
+            alertEl.style.display = 'block';
+        }
+
+        try {
+            const res = await API.testDiscordWebhook(webhookUrl);
+            if (res && res.success) {
+                if (alertEl) {
+                    alertEl.className = 'alert alert-success small mb-0 mt-2';
+                    alertEl.textContent = res.message || i18n.t('discord.test_success');
+                    alertEl.style.display = 'block';
+                }
+            } else {
+                if (alertEl) {
+                    alertEl.className = 'alert alert-danger small mb-0 mt-2';
+                    alertEl.textContent = res.error || i18n.t('discord.test_failed');
+                    alertEl.style.display = 'block';
+                }
+            }
+        } catch (err) {
+            if (alertEl) {
+                alertEl.className = 'alert alert-danger small mb-0 mt-2';
+                alertEl.textContent = err.message;
+                alertEl.style.display = 'block';
+            }
+        }
+    }
+
+    setActiveFilter(filter) {
+        this.currentFilter = filter;
+        if (filter === 'all') {
+            this.filterAllBtn.classList.add('active');
+            this.filterUnreadBtn.classList.remove('active');
+        } else {
+            this.filterUnreadBtn.classList.add('active');
+            this.filterAllBtn.classList.remove('active');
+        }
+        this.renderNotifications();
+    }
+
+    async loadNotifications() {
+        this.container.innerHTML = `
+            <div class="text-center text-light py-5">
+                <div class="spinner-border text-info mb-3" role="status"></div>
+                <p data-i18n="common.loading">Laden...</p>
+            </div>`;
+
+        try {
+            const data = await API.getNotifications();
+            this.notifications = (data && data.notifications) || [];
+            this.updateBadges(data.unread_count || 0, this.notifications.length);
+            this.renderNotifications();
+        } catch (err) {
+            console.error('Failed to load notifications:', err);
+            this.container.innerHTML = `
+                <div class="alert alert-danger text-center shadow" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i> ${i18n.t('error.load_notifications') || 'Fout bij het laden van notificaties.'}
+                </div>`;
+        }
+    }
+
+    updateBadges(unreadCount, totalCount) {
+        if (this.unreadBadge) {
+            this.unreadBadge.textContent = `${unreadCount} ${i18n.t('notifications.unread') || 'ongelezen'}`;
+        }
+        if (this.totalBadge) {
+            this.totalBadge.textContent = `${totalCount} ${i18n.t('notifications.total') || 'totaal'}`;
+        }
+    }
+
+    renderNotifications() {
+        let filtered = this.notifications;
+        if (this.currentFilter === 'unread') {
+            filtered = this.notifications.filter(n => !n.read);
+        }
+
+        if (filtered.length === 0) {
+            this.container.innerHTML = `
+                <div class="card shadow-lg border-0 dark-glass-card p-5 text-center">
+                    <i class="fas fa-bell-slash text-warning mb-3" style="font-size: 3rem;"></i>
+                    <h5 class="text-light fw-bold mb-2">${i18n.t('notifications.no_notifications') || 'Geen notificaties gevonden'}</h5>
+                    <p class="text-light opacity-90 mb-0 fs-6">${i18n.t('notifications.no_notifications_desc') || 'Er zijn geen notificaties in deze weergave.'}</p>
+                </div>`;
+            return;
+        }
+
+        let html = '<div class="d-flex flex-column gap-3">';
+        filtered.forEach((n, idx) => {
+            const isUnread = !n.read;
+            const dateStr = n.timestamp ? new Date(n.timestamp).toLocaleString(i18n.currentLang || 'nl') : '';
+            const borderClass = isUnread ? 'border-start border-4 border-warning' : 'border-start border-4 border-secondary';
+
+            html += `
+                <div class="card bg-dark text-light border-0 shadow ${borderClass} overflow-hidden" style="background-color: rgba(15, 23, 42, 0.85) !important;">
+                    <div class="card-body p-4 d-flex align-items-start justify-content-between flex-wrap gap-3">
+                        <div class="d-flex gap-3 align-items-start">
+                            <div class="mt-1">
+                                <i class="fas fa-arrow-circle-up text-warning fs-3"></i>
+                            </div>
+                            <div>
+                                <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                    <h5 class="card-title text-light mb-0 fw-bold">${this.escapeHtml(n.plugin_title || 'Plugin Update')}</h5>
+                                    ${isUnread ? `<span class="badge bg-warning text-dark">${i18n.t('notifications.unread') || 'Nieuw'}</span>` : ''}
+                                </div>
+                                <p class="card-text text-light opacity-90 mb-2">${this.escapeHtml(n.message || '')}</p>
+                                <div class="d-flex align-items-center gap-3 text-muted small">
+                                    <span><i class="far fa-clock me-1"></i>${dateStr}</span>
+                                    ${n.url ? `<a href="${this.escapeHtml(n.url)}" target="_blank" rel="noopener noreferrer" class="text-info text-decoration-none"><i class="fas fa-external-link-alt me-1"></i>${i18n.t('common.view_plugin') || 'Bekijk Plugin'}</a>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+        });
+        html += '</div>';
+
+        this.container.innerHTML = html;
+    }
+
+    async handleClearAll() {
+        const confirmed = await showConfirmModal({
+            title: i18n.t('notifications.clear_all') || 'Notificaties Wissen',
+            message: i18n.t('notifications.confirm_clear') || 'Weet je zeker dat je alle notificaties wilt wissen?',
+            confirmText: i18n.t('notifications.clear_all') || 'Wissen',
+            confirmClass: 'btn-danger',
+            iconClass: 'fas fa-trash-alt text-danger'
+        });
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            await API.clearNotifications();
+            this.notifications = [];
+            this.updateBadges(0, 0);
+            this.renderNotifications();
+        } catch (err) {
+            console.error('Failed to clear notifications:', err);
+            await showAlertModal(i18n.t('error.clear_notifications') || 'Fout bij het wissen van notificaties.', i18n.t('common.error') || 'Fout', 'fas fa-exclamation-triangle text-danger');
+        }
+    }
+
+    escapeHtml(str) {
+        return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    window.notificationsPage = new NotificationsPage();
+});

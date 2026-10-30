@@ -29,15 +29,19 @@ class App {
             this.loadAndRenderPlugins(filterParams);
         });
 
-        const [serverCategories, serverInfo] = await Promise.all([
+        const [serverCategories, serverInfo, cronStatus, notifications] = await Promise.all([
             API.getServerCategories(),
-            API.getServerInfo()
+            API.getServerInfo(),
+            API.getCronStatus(),
+            API.getNotifications()
         ]);
 
         this.serverCategories = serverCategories || [];
         this.serverInfo = serverInfo || {};
 
         UI.buildCategorySidebar([], this.serverCategories, this.serverInfo);
+        UI.renderCronStatus(cronStatus);
+        UI.renderNotifications(notifications);
 
         this.setupEventListeners();
 
@@ -409,7 +413,23 @@ class App {
         this._setupPaginationAndExportListeners();
         this._setupImportListeners();
         this._setupLanguageAndHomeListeners();
+        this._setupNotificationsAndDiscordListeners();
         this._setupModalEventsAndDelegation();
+    }
+
+    _setupNotificationsAndDiscordListeners() {
+        const clearNotifsBtn = document.getElementById('clearNotificationsBtn');
+        if (clearNotifsBtn) {
+            clearNotifsBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                try {
+                    await API.clearNotifications();
+                    UI.renderNotifications([]);
+                } catch (err) {
+                    console.error('Failed to clear notifications:', err);
+                }
+            });
+        }
     }
 
     _setupPaginationAndExportListeners() {

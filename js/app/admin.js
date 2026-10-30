@@ -12,6 +12,8 @@ class AdminPage {
         this.logoutBtn = this.adminPanel ? this.adminPanel.querySelector('button') : null;
         this.adminLogoutBtn = document.getElementById('adminLogoutBtn');
         this.registrationToggle = document.getElementById('registrationToggle');
+        this.retentionDaysInput = document.getElementById('retentionDaysInput');
+        this.saveRetentionDaysBtn = document.getElementById('saveRetentionDaysBtn');
         this.usersGrid = document.getElementById('usersGrid');
         this.categoriesGrid = document.getElementById('categoriesGrid');
         this.pluginsGrid = document.getElementById('pluginsGrid');
@@ -98,6 +100,9 @@ class AdminPage {
         }
         if (this.registrationToggle) {
             this.registrationToggle.addEventListener('change', (e) => this._handleRegistrationToggle(e));
+        }
+        if (this.saveRetentionDaysBtn) {
+            this.saveRetentionDaysBtn.addEventListener('click', () => this._handleSaveRetentionDays());
         }
         if (this.addCategoryBtn) {
             this.addCategoryBtn.addEventListener('click', () => this._handleAddCategory());
@@ -627,6 +632,24 @@ class AdminPage {
     async _loadSettings() {
         const data = await ApiAdmin.getSettings();
         this.registrationToggle.checked = data.registration_enabled;
+        if (this.retentionDaysInput && data.retention_days !== undefined) {
+            this.retentionDaysInput.value = data.retention_days;
+        }
+    }
+
+    async _handleSaveRetentionDays() {
+        const days = parseInt(this.retentionDaysInput.value, 10);
+        if (isNaN(days) || days < 0) {
+            await showAlertModal('Ongeldig aantal dagen', i18n.t('common.error'), 'fas fa-exclamation-circle text-warning');
+            return;
+        }
+        try {
+            const currentSettings = await ApiAdmin.getSettings();
+            await ApiAdmin.updateSettings({ ...currentSettings, retention_days: days });
+            await showAlertModal('Bewaartermijn succesvol opgeslagen!', i18n.t('common.success'), 'fas fa-check-circle text-success');
+        } catch (error) {
+            await showAlertModal(i18n.t('admin.save_settings_error'), i18n.t('common.error'), 'fas fa-exclamation-triangle text-danger');
+        }
     }
 
     async _loadUsers(page) {
@@ -779,14 +802,29 @@ class AdminPage {
 
         const pluginWord = user.plugin_count === 1 ? i18n.t('common.plugin') : i18n.t('common.plugins');
 
+        const webhookUrl = user.discord_webhook_url || '';
+        const webhookEnabled = Boolean(user.discord_notifications_enabled);
+        let webhookBadge = `<span class="badge bg-secondary mb-2" title="${i18n.t('admin.discord_not_configured') || 'Geen Discord Webhook'}"><i class="fab fa-discord me-1"></i>${i18n.t('admin.no_webhook') || 'Geen Webhook'}</span>`;
+        if (webhookUrl) {
+            if (webhookEnabled) {
+                webhookBadge = `<span class="badge bg-success mb-2" title="${webhookUrl}"><i class="fab fa-discord me-1"></i>Discord Actief</span>`;
+            } else {
+                webhookBadge = `<span class="badge bg-warning text-dark mb-2" title="${webhookUrl}"><i class="fab fa-discord me-1"></i>Discord Uitgeschakeld</span>`;
+            }
+        }
+
         return `
             <div class="col-md-4 col-lg-3 mb-3">
                 <div class="card h-100">
                     <div class="card-body text-center">
                         <i class="fas fa-user-circle" style="font-size: 3rem; color: #6c757d;"></i>
-                        <h6 class="card-title">${user.username}</h6>
-                        <span class="badge ${this._getRoleBadgeClass(user.role)}">${user.role}</span>
-                        <span class="badge bg-primary"><i class="fas fa-puzzle-piece me-1"></i>${user.plugin_count} ${pluginWord}</span>
+                        <h6 class="card-title mt-1 mb-1">${user.username}</h6>
+                        <div class="d-flex justify-content-center flex-wrap gap-1 mb-2">
+                            <span class="badge ${this._getRoleBadgeClass(user.role)}">${user.role}</span>
+                            <span class="badge bg-primary"><i class="fas fa-puzzle-piece me-1"></i>${user.plugin_count} ${pluginWord}</span>
+                        </div>
+                        <div>${webhookBadge}</div>
+                        ${webhookUrl ? `<div class="small text-muted text-truncate mb-2" style="font-size: 0.75rem;" title="${webhookUrl}">${webhookUrl}</div>` : ''}
                         ${canEdit ? `
                             <select class="form-select form-select-sm mb-2 user-role-select" data-username="${user.username}">${roleOptions}</select>
                             <button class="btn btn-danger btn-sm delete-user-btn" data-username="${user.username}"><i class="fas fa-trash me-1"></i>${i18n.t('common.delete')}</button>
