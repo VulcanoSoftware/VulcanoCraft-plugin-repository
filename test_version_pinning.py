@@ -203,5 +203,26 @@ class TestVersionPinning(unittest.TestCase):
         self.assertEqual(pinned[0], 'Vault 1.7.2 (1.7.2)')
         self.assertEqual(pinned[1], 'Vault 1.0')
 
+    def test_parse_curseforge_versions_latest_files(self):
+        from fetchers.versions import _parse_curseforge_versions
+        mod_data = [{
+            'latestFiles': [
+                {
+                    'id': 200,
+                    'displayName': 'TestMod 2.0.0',
+                    'gameVersions': ['1.20.1', '1.20.2', 'Forge']
+                },
+                {
+                    'id': 100,
+                    'displayName': 'TestMod 1.0.0',
+                    'gameVersions': ['1.19.4', 'Fabric']
+                }
+            ]
+        }]
+        pinned = _parse_curseforge_versions(mod_data, pin_format=True)
+        self.assertIn('TestMod 2.0.0 (1.20.1)', pinned)
+        self.assertIn('TestMod 2.0.0 (1.20.2)', pinned)
+        self.assertIn('TestMod 1.0.0 (1.19.4)', pinned)
+
 if __name__ == '__main__':
     unittest.main()
