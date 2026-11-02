@@ -207,6 +207,8 @@ function _groupVersionsByPluginVersion(versionsArray) {
         }
     });
 
+    groups.sort((g1, g2) => compareParsed(parseVersionParts(g2.pluginVersion), parseVersionParts(g1.pluginVersion)));
+
     return groups;
 }
 

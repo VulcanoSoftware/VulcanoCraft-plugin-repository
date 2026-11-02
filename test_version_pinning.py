@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 import mongomock
 
 mongo_patcher = patch('pymongo.MongoClient', mongomock.MongoClient)
@@ -200,8 +200,8 @@ class TestVersionPinning(unittest.TestCase):
         # Pinned format should put newest release first and clean game versions
         pinned = get_bukkitdev_game_versions('vault', pin_format=True)
         self.assertEqual(len(pinned), 2)
-        self.assertEqual(pinned[0], 'Vault 1.7.2 (1.7.2)')
-        self.assertEqual(pinned[1], 'Vault 1.0')
+        self.assertEqual(pinned[0], '1.7.2 (1.7.2)')
+        self.assertEqual(pinned[1], '1.0')
 
     def test_parse_curseforge_versions_latest_files(self):
         from fetchers.versions import _parse_curseforge_versions
@@ -220,9 +220,133 @@ class TestVersionPinning(unittest.TestCase):
             ]
         }]
         pinned = _parse_curseforge_versions(mod_data, pin_format=True)
-        self.assertIn('TestMod 2.0.0 (1.20.1)', pinned)
-        self.assertIn('TestMod 2.0.0 (1.20.2)', pinned)
-        self.assertIn('TestMod 1.0.0 (1.19.4)', pinned)
+        self.assertIn('2.0.0 (1.20.1)', pinned)
+        self.assertIn('2.0.0 (1.20.2)', pinned)
+        self.assertIn('1.0.0 (1.19.4)', pinned)
+
+    def test_parse_curseforge_versions_with_filename_key(self):
+        from fetchers.versions import _parse_curseforge_versions
+        mod_data = [{
+            'latestFilesIndexes': [
+                {
+                    'fileId': 500,
+                    'filename': 'PlayerVaultsX-4.1.2.jar',
+                    'gameVersion': '1.16'
+                },
+                {
+                    'fileId': 400,
+                    'filename': 'PlayerVaultsX-4.1.1.jar',
+                    'gameVersion': '1.15'
+                }
+            ]
+        }]
+        pinned = _parse_curseforge_versions(mod_data, pin_format=True)
+        self.assertIn('4.1.2 (1.16)', pinned)
+        self.assertIn('4.1.1 (1.15)', pinned)
+
+    def test_parse_curseforge_multi_game_versions_indexes(self):
+        from fetchers.versions import _parse_curseforge_versions
+        mod_data = [{
+            'latestFilesIndexes': [
+                {
+                    'fileId': 500,
+                    'filename': 'TAB-5.0.4.jar',
+                    'gameVersion': '1.21'
+                },
+                {
+                    'fileId': 500,
+                    'filename': 'TAB-5.0.4.jar',
+                    'gameVersion': '1.20'
+                },
+                {
+                    'fileId': 500,
+                    'filename': 'TAB-5.0.4.jar',
+                    'gameVersion': '1.19'
+                },
+                {
+                    'fileId': 400,
+                    'filename': 'TAB-5.0.3.jar',
+                    'gameVersion': '1.21'
+                }
+            ]
+        }]
+        pinned = _parse_curseforge_versions(mod_data, pin_format=True)
+        self.assertIn('5.0.4 (1.21)', pinned)
+        self.assertIn('5.0.4 (1.20)', pinned)
+        self.assertIn('5.0.4 (1.19)', pinned)
+        self.assertIn('5.0.3 (1.21)', pinned)
+
+    def test_curseforge_game_version_not_plugin_version(self):
+        from fetchers.versions import _parse_curseforge_versions
+        mod_data = [{
+            'latestFiles': [
+                {
+                    'id': 300,
+                    'displayName': '1.20.1',
+                    'fileName': '1.20.1.jar',
+                    'gameVersions': ['1.20.1']
+                },
+                {
+                    'id': 200,
+                    'displayName': '1.19.4',
+                    'fileName': 'Plugin-2.1.0.jar',
+                    'gameVersions': ['1.19.4']
+                }
+            ]
+        }]
+        pinned = _parse_curseforge_versions(mod_data, pin_format=True)
+        self.assertIn('1.20.1', pinned)
+        self.assertNotIn('1.20.1 (1.20.1)', pinned)
+        self.assertIn('2.1.0 (1.19.4)', pinned)
+
+    @patch('fetchers.versions.requests.get')
+    def test_bukkitdev_multi_game_versions_scraping(self, mock_get):
+        from fetchers.versions import get_bukkitdev_game_versions
+        html_content = '''
+        <table>
+            <tr class="project-file-list-item">
+                <td><a data-action="file-link" href="/projects/tab/files/1000">TAB v5.0.4</a></td>
+                <td class="project-file-game-version">
+                    <span class="version-label">1.21</span>
+                    <span class="additional-versions tip" title="<div>1.21</div><div>1.20</div><div>1.19</div><div>1.18</div><div>1.17</div><div>1.16</div>">+5</span>
+                </td>
+            </tr>
+        </table>
+        '''
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.text = html_content
+        mock_get.return_value = mock_resp
+
+        pinned = get_bukkitdev_game_versions('tab', pin_format=True)
+        self.assertEqual(len(pinned), 6)
+        self.assertEqual(pinned[0], '5.0.4 (1.21)')
+        self.assertEqual(pinned[1], '5.0.4 (1.20)')
+        self.assertEqual(pinned[2], '5.0.4 (1.19)')
+        self.assertEqual(pinned[3], '5.0.4 (1.18)')
+        self.assertEqual(pinned[4], '5.0.4 (1.17)')
+        self.assertEqual(pinned[5], '5.0.4 (1.16)')
+
+    def test_sort_pin_versions_orders_plugin_versions_descending(self):
+        from fetchers.versions import _sort_pin_versions
+        raw_list = [
+            '1.2 (1.18)',
+            '1.3 (1.17)',
+            '1.3 (1.18)',
+            '0.2.1 (1.12)',
+            '1.3 (1.16)',
+            '2.0.0'
+        ]
+        sorted_list = _sort_pin_versions(raw_list)
+        # 2.0.0 should be first, then 1.3 with game versions 1.18, 1.17, 1.16 in descending order, then 1.2, then 0.2.1
+        self.assertEqual(sorted_list, [
+            '2.0.0',
+            '1.3 (1.18)',
+            '1.3 (1.17)',
+            '1.3 (1.16)',
+            '1.2 (1.18)',
+            '0.2.1 (1.12)'
+        ])
 
 if __name__ == '__main__':
     unittest.main()

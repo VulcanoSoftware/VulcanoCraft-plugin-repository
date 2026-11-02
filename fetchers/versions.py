@@ -219,18 +219,61 @@ def _extract_game_versions(gv_input):
                 result.append(m)
     return result
 
+def _clean_plugin_version_from_name(name):
+    if not name:
+        return ''
+    cleaned = name.strip()
+    cleaned = re.sub(r'\.(jar|zip)$', '', cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r'jar$', '', cleaned, flags=re.IGNORECASE)
+    cleaned = cleaned.strip()
+
+    m = re.search(r'(?:^|[_\s\-\/]|[vV]|release-|rel-)(\d+(?:\.\d+)*(?:[-_.][a-zA-Z0-9]+)*)$', cleaned)
+    if m:
+        extracted = m.group(1).strip()
+        if any(c.isdigit() for c in extracted):
+            return extracted
+    return cleaned
+
+def _is_just_game_version(s):
+    if not s:
+        return False
+    clean = str(s).strip()
+    clean = re.sub(r'\.(?:jar|zip)$', '', clean, flags=re.IGNORECASE).strip()
+    clean = re.sub(r'^\[(.*)\]$', r'\1', clean).strip()
+    return bool(re.fullmatch(r'(?:MC|Minecraft|CB|CraftBukkit|Spigot|Paper)?[\s_-]*v?(?:1\.(?:[5-9]|[1-9]\d)(?:\.\d+)?|26\.\d+)', clean, re.IGNORECASE))
+
+def _resolve_file_plugin_version(file_obj):
+    candidates = [
+        file_obj.get('displayName'),
+        file_obj.get('fileName'),
+        file_obj.get('filename'),
+        file_obj.get('name')
+    ]
+    for cand in candidates:
+        if not cand:
+            continue
+        cand_str = str(cand).strip()
+        if _is_just_game_version(cand_str):
+            continue
+        cleaned = _clean_plugin_version_from_name(cand_str)
+        if cleaned:
+            return cleaned
+    return ''
+
 def _get_bukkitdev_file_sort_key(f):
     dr = f.get("dateReleased") or ""
-    m = re.search(r'\d+', dr)
+    m = re.search(r'/Date\((-?\d+)', dr)
     if m:
-        return int(m.group(0))
+        val = int(m.group(1))
+        if val > 0:
+            return val
     m2 = re.search(r'/(\d+)(?:/|\b)', f.get("downloadUrl") or f.get("fileUrl") or "")
     if m2:
-        return int(m2.group(0))
+        return int(m2.group(1))
     return f.get("id", 0)
 
 def _process_bukkitdev_file(f, pin_format, seen, versions_list):
-    file_name = (f.get("name") or "").strip()
+    file_name = _resolve_file_plugin_version(f)
     gvs = _extract_game_versions(f.get("gameVersion"))
     if pin_format:
         if file_name and gvs:
@@ -245,8 +288,45 @@ def _process_bukkitdev_file(f, pin_format, seen, versions_list):
         for gv in gvs:
             _append_unique(gv, seen, versions_list)
 
+def _scrape_bukkitdev_files(slug):
+    try:
+        url = f"https://dev.bukkit.org/projects/{slug}/files"
+        headers = {"User-Agent": "Mozilla/5.0"}
+        r = requests.get(url, headers=headers, timeout=10)
+        if r.status_code != 200:
+            return []
+        rows = re.findall(r'<tr class="project-file-list-item">.*?</tr>', r.text, re.DOTALL)
+        files = []
+        for row in rows:
+            name_match = re.search(r'<a[^>]+data-action="file-link"[^>]*>([^<]+)</a>', row) or re.search(r'<a class="overflow-tip"[^>]*>([^<]+)</a>', row)
+            name = name_match.group(1).strip() if name_match else ""
+            fid_match = re.search(r'/files/(\d+)', row)
+            fid = int(fid_match.group(1)) if fid_match else 0
+            td_gv = re.search(r'<td[^>]*class="[^"]*game-version[^"]*"[^>]*>(.*?)</td>', row, re.DOTALL)
+            gvs = []
+            if td_gv:
+                for gv in re.findall(r'1\.\d+(?:\.\d+)?', td_gv.group(1)):
+                    if gv not in gvs:
+                        gvs.append(gv)
+            if name or gvs:
+                files.append({"name": name, "id": fid, "gameVersion": gvs})
+        return files
+    except Exception:
+        return []
+
 def get_bukkitdev_game_versions(slug, pin_format=False):
     try:
+        scraped_files = _scrape_bukkitdev_files(slug)
+        if scraped_files:
+            scraped_files = sorted(scraped_files, key=lambda x: x.get("id", 0), reverse=True)
+            versions_list = []
+            seen = set()
+            for f in scraped_files:
+                _process_bukkitdev_file(f, pin_format, seen, versions_list)
+            if not pin_format:
+                return sorted(versions_list)
+            return versions_list
+
         project = _get_servermods_project(slug)
         if not project:
             return []
@@ -274,7 +354,7 @@ def get_bukkitdev_game_versions(slug, pin_format=False):
 
 # -------- CURSEFORGE --------
 def _process_curseforge_file_object(file_obj, pin_format, seen, versions_list):
-    file_name = (file_obj.get('displayName') or file_obj.get('fileName') or file_obj.get('name') or '').strip()
+    file_name = _resolve_file_plugin_version(file_obj)
     raw_gv = file_obj.get('gameVersions') or file_obj.get('gameVersion')
     gvs = _extract_game_versions(raw_gv)
 
@@ -291,6 +371,28 @@ def _process_curseforge_file_object(file_obj, pin_format, seen, versions_list):
         for gv in gvs:
             _append_unique(gv, seen, versions_list)
 
+def _group_curseforge_indexes(indexes):
+    grouped = {}
+    order = []
+    for idx in indexes:
+        fid = idx.get('fileId') or idx.get('filename')
+        if not fid:
+            continue
+        if fid not in grouped:
+            order.append(fid)
+            grouped[fid] = {
+                'id': idx.get('fileId', 0),
+                'displayName': idx.get('displayName'),
+                'fileName': idx.get('fileName') or idx.get('filename'),
+                'filename': idx.get('filename'),
+                'gameVersions': []
+            }
+        gv = idx.get('gameVersion')
+        if gv and gv not in grouped[fid]['gameVersions']:
+            grouped[fid]['gameVersions'].append(gv)
+    res = [grouped[fid] for fid in order]
+    return sorted(res, key=lambda x: x.get('id', 0), reverse=True)
+
 def _parse_curseforge_versions(mod_data, pin_format):
     versions_list = []
     seen = set()
@@ -302,9 +404,9 @@ def _parse_curseforge_versions(mod_data, pin_format):
                 _process_curseforge_file_object(file_obj, pin_format, seen, versions_list)
         else:
             indexes = mod.get('latestFilesIndexes', [])
-            indexes = sorted(indexes, key=lambda x: x.get('fileId', 0), reverse=True)
-            for idx in indexes:
-                _process_curseforge_file_object(idx, pin_format, seen, versions_list)
+            grouped_files = _group_curseforge_indexes(indexes)
+            for file_obj in grouped_files:
+                _process_curseforge_file_object(file_obj, pin_format, seen, versions_list)
     if not pin_format:
         return sorted(versions_list)
     return versions_list
@@ -403,16 +505,18 @@ def detect_platform(url):
 # -------- SORTING PIN VERSIONS --------
 def _parse_version_key(v):
     if not v:
-        return []
+        return (0, [])
     clean = re.sub(r'^[vV]', '', str(v)).strip()
+    has_leading_digit = bool(re.match(r'^\d', clean))
     parts = re.split(r'[-+.]', clean)
     key = []
     for p in parts:
         if p.isdigit():
-            key.append((0, int(p)))
+            key.append((1, int(p)))
         else:
-            key.append((1, p))
-    return key
+            key.append((0, p.lower()))
+    priority = 1 if has_leading_digit else 0
+    return (priority, key)
 
 def _sort_pin_versions(versions_list):
     if not versions_list:
@@ -435,6 +539,9 @@ def _sort_pin_versions(versions_list):
 
         if g_ver and g_ver not in group_map[p_ver]['g_vers']:
             group_map[p_ver]['g_vers'].append(g_ver)
+
+    # Sort groups descending by plugin version key so newest versions appear first
+    groups = sorted(groups, key=lambda g: _parse_version_key(g['p_ver']), reverse=True)
 
     result = []
     for grp in groups:
