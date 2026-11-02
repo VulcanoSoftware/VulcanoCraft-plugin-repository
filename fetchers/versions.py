@@ -219,18 +219,36 @@ def _extract_game_versions(gv_input):
                 result.append(m)
     return result
 
+def _clean_plugin_version_from_name(name):
+    if not name:
+        return ''
+    cleaned = name.strip()
+    cleaned = re.sub(r'\.(jar|zip)$', '', cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r'jar$', '', cleaned, flags=re.IGNORECASE)
+    cleaned = cleaned.strip()
+
+    m = re.search(r'(?:^|[_\s\-\/]|[vV]|release-|rel-)(\d+(?:\.\d+)*(?:[-_.][a-zA-Z0-9]+)*)$', cleaned)
+    if m:
+        extracted = m.group(1).strip()
+        if any(c.isdigit() for c in extracted):
+            return extracted
+    return cleaned
+
 def _get_bukkitdev_file_sort_key(f):
     dr = f.get("dateReleased") or ""
-    m = re.search(r'\d+', dr)
+    m = re.search(r'/Date\((-?\d+)', dr)
     if m:
-        return int(m.group(0))
+        val = int(m.group(1))
+        if val > 0:
+            return val
     m2 = re.search(r'/(\d+)(?:/|\b)', f.get("downloadUrl") or f.get("fileUrl") or "")
     if m2:
-        return int(m2.group(0))
+        return int(m2.group(1))
     return f.get("id", 0)
 
 def _process_bukkitdev_file(f, pin_format, seen, versions_list):
-    file_name = (f.get("name") or "").strip()
+    raw_name = (f.get("name") or f.get("fileName") or f.get("filename") or "").strip()
+    file_name = _clean_plugin_version_from_name(raw_name) or raw_name
     gvs = _extract_game_versions(f.get("gameVersion"))
     if pin_format:
         if file_name and gvs:
@@ -274,7 +292,8 @@ def get_bukkitdev_game_versions(slug, pin_format=False):
 
 # -------- CURSEFORGE --------
 def _process_curseforge_file_object(file_obj, pin_format, seen, versions_list):
-    file_name = (file_obj.get('displayName') or file_obj.get('fileName') or file_obj.get('name') or '').strip()
+    raw_name = (file_obj.get('displayName') or file_obj.get('fileName') or file_obj.get('filename') or file_obj.get('name') or '').strip()
+    file_name = _clean_plugin_version_from_name(raw_name) or raw_name
     raw_gv = file_obj.get('gameVersions') or file_obj.get('gameVersion')
     gvs = _extract_game_versions(raw_gv)
 
@@ -403,16 +422,18 @@ def detect_platform(url):
 # -------- SORTING PIN VERSIONS --------
 def _parse_version_key(v):
     if not v:
-        return []
+        return (0, [])
     clean = re.sub(r'^[vV]', '', str(v)).strip()
+    has_leading_digit = bool(re.match(r'^\d', clean))
     parts = re.split(r'[-+.]', clean)
     key = []
     for p in parts:
         if p.isdigit():
-            key.append((0, int(p)))
+            key.append((1, int(p)))
         else:
-            key.append((1, p))
-    return key
+            key.append((0, p.lower()))
+    priority = 1 if has_leading_digit else 0
+    return (priority, key)
 
 def _sort_pin_versions(versions_list):
     if not versions_list:
@@ -435,6 +456,9 @@ def _sort_pin_versions(versions_list):
 
         if g_ver and g_ver not in group_map[p_ver]['g_vers']:
             group_map[p_ver]['g_vers'].append(g_ver)
+
+    # Sort groups descending by plugin version key so newest versions appear first
+    groups = sorted(groups, key=lambda g: _parse_version_key(g['p_ver']), reverse=True)
 
     result = []
     for grp in groups:

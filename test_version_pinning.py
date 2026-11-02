@@ -200,8 +200,8 @@ class TestVersionPinning(unittest.TestCase):
         # Pinned format should put newest release first and clean game versions
         pinned = get_bukkitdev_game_versions('vault', pin_format=True)
         self.assertEqual(len(pinned), 2)
-        self.assertEqual(pinned[0], 'Vault 1.7.2 (1.7.2)')
-        self.assertEqual(pinned[1], 'Vault 1.0')
+        self.assertEqual(pinned[0], '1.7.2 (1.7.2)')
+        self.assertEqual(pinned[1], '1.0')
 
     def test_parse_curseforge_versions_latest_files(self):
         from fetchers.versions import _parse_curseforge_versions
@@ -220,9 +220,50 @@ class TestVersionPinning(unittest.TestCase):
             ]
         }]
         pinned = _parse_curseforge_versions(mod_data, pin_format=True)
-        self.assertIn('TestMod 2.0.0 (1.20.1)', pinned)
-        self.assertIn('TestMod 2.0.0 (1.20.2)', pinned)
-        self.assertIn('TestMod 1.0.0 (1.19.4)', pinned)
+        self.assertIn('2.0.0 (1.20.1)', pinned)
+        self.assertIn('2.0.0 (1.20.2)', pinned)
+        self.assertIn('1.0.0 (1.19.4)', pinned)
+
+    def test_parse_curseforge_versions_with_filename_key(self):
+        from fetchers.versions import _parse_curseforge_versions
+        mod_data = [{
+            'latestFilesIndexes': [
+                {
+                    'fileId': 500,
+                    'filename': 'PlayerVaultsX-4.1.2.jar',
+                    'gameVersion': '1.16'
+                },
+                {
+                    'fileId': 400,
+                    'filename': 'PlayerVaultsX-4.1.1.jar',
+                    'gameVersion': '1.15'
+                }
+            ]
+        }]
+        pinned = _parse_curseforge_versions(mod_data, pin_format=True)
+        self.assertIn('4.1.2 (1.16)', pinned)
+        self.assertIn('4.1.1 (1.15)', pinned)
+
+    def test_sort_pin_versions_orders_plugin_versions_descending(self):
+        from fetchers.versions import _sort_pin_versions
+        raw_list = [
+            '1.2 (1.18)',
+            '1.3 (1.17)',
+            '1.3 (1.18)',
+            '0.2.1 (1.12)',
+            '1.3 (1.16)',
+            '2.0.0'
+        ]
+        sorted_list = _sort_pin_versions(raw_list)
+        # 2.0.0 should be first, then 1.3 with game versions 1.18, 1.17, 1.16 in descending order, then 1.2, then 0.2.1
+        self.assertEqual(sorted_list, [
+            '2.0.0',
+            '1.3 (1.18)',
+            '1.3 (1.17)',
+            '1.3 (1.16)',
+            '1.2 (1.18)',
+            '0.2.1 (1.12)'
+        ])
 
 if __name__ == '__main__':
     unittest.main()
