@@ -304,15 +304,18 @@ def _code_snapshot():
     return snap
 
 def sleep_until_next_cycle(seconds, snapshot):
-    """Slaap tot de volgende cyclus; herstart het proces als de code is gewijzigd."""
+    """Slaap tot de volgende cyclus; stop het proces als de code is gewijzigd.
+
+    De container herstart automatisch (restart: unless-stopped) met de nieuwe code.
+    """
     waited = 0
     while waited < seconds:
         time.sleep(60)
         waited += 60
         if _code_snapshot() != snapshot:
-            print("Codewijziging gedetecteerd, cron service herstart zichzelf...")
+            print("Codewijziging gedetecteerd, cron service stopt zodat Docker hem met de nieuwe code herstart...")
             sys.stdout.flush()
-            os.execv(sys.executable, [sys.executable] + sys.argv)
+            sys.exit(0)
 
 def main():
     """Hoofdfunctie die elke 6 uur alle plugins bijwerkt"""
