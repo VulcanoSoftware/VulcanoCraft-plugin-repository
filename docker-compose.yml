@@ -51,6 +51,10 @@ services:
     image: vulcanocraft-app
     command: ["python", "cron.py"]
     restart: unless-stopped
+    volumes:
+      # Gebruik dezelfde code als de app (de in-app update synchroniseert naar ./),
+      # zodat cron niet op een verouderde image-versie blijft draaien.
+      - ./:/app:ro
     environment:
       - FLASK_ENV=production
       - MONGO_URI=${MONGO_URI}

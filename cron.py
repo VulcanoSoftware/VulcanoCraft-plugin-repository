@@ -10,13 +10,19 @@ from pymongo import MongoClient
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "vulcanocraft")
 
+_db = None
+
 def get_db():
-    try:
-        from webserver import db
-        return db
-    except Exception:
-        client = MongoClient(MONGO_URI)
-        return client[MONGO_DB_NAME]
+    """Geef een gedeelde database-verbinding terug.
+
+    Er wordt bewust niet uit webserver geïmporteerd: dat vereist o.a.
+    FLASK_SECRET_KEY (niet beschikbaar in de cron-container) en voert
+    migraties uit bij elke import.
+    """
+    global _db
+    if _db is None:
+        _db = MongoClient(MONGO_URI)[MONGO_DB_NAME]
+    return _db
 
 def load_plugins():
     """Laad de plugins data"""
@@ -236,6 +242,7 @@ def run_cron_cycle():
 
     if not plugins:
         print("Geen plugins gevonden om bij te werken")
+        record_cron_status()
         return 0
 
     print(f"Start bijwerken van {len(plugins)} plugin(s)")
@@ -271,7 +278,41 @@ def run_cron_cycle():
             print("Plugin zonder URL gevonden, overslaan...")
 
     print(f"Bijwerken voltooid: {success_count}/{len(plugins)} plugins succesvol bijgewerkt")
+    # Werk de timestamp ook na afloop bij, zodat "laatste cron fetch" de
+    # afronding van de cyclus weergeeft.
+    record_cron_status()
     return success_count
+
+CODE_WATCH_DIRS = (".", "fetchers")
+
+def _code_snapshot():
+    """Map van .py-bestanden naar mtime, om codewijzigingen (updates) te detecteren."""
+    snap = {}
+    base = os.path.dirname(os.path.abspath(__file__))
+    for d in CODE_WATCH_DIRS:
+        folder = os.path.join(base, d)
+        try:
+            for name in os.listdir(folder):
+                if name.endswith(".py"):
+                    path = os.path.join(folder, name)
+                    try:
+                        snap[path] = os.stat(path).st_mtime
+                    except OSError:
+                        pass
+        except OSError:
+            pass
+    return snap
+
+def sleep_until_next_cycle(seconds, snapshot):
+    """Slaap tot de volgende cyclus; herstart het proces als de code is gewijzigd."""
+    waited = 0
+    while waited < seconds:
+        time.sleep(60)
+        waited += 60
+        if _code_snapshot() != snapshot:
+            print("Codewijziging gedetecteerd, cron service herstart zichzelf...")
+            sys.stdout.flush()
+            os.execv(sys.executable, [sys.executable] + sys.argv)
 
 def main():
     """Hoofdfunctie die elke 6 uur alle plugins bijwerkt"""
@@ -281,13 +322,14 @@ def main():
     
     while True:
         try:
+            snapshot = _code_snapshot()
             run_cron_cycle()
             
             next_run = datetime.now() + timedelta(hours=6)
             print(f"Volgende update om: {next_run.strftime('%Y-%m-%d %H:%M:%S')}")
             print("-" * 50)
             
-            time.sleep(21600)
+            sleep_until_next_cycle(21600, snapshot)
             
         except KeyboardInterrupt:
             print("\nCron service gestopt door gebruiker")

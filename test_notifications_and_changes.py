@@ -16,6 +16,8 @@ class TestNotificationsAndChanges(unittest.TestCase):
         self.app = app.test_client()
         self.app.testing = True
         webserver.limiter.reset()
+        # cron gebruikt een eigen verbinding; laat het dezelfde (mock) database delen
+        cron._db = db
 
         # Clean collections
         db.settings.delete_many({})
