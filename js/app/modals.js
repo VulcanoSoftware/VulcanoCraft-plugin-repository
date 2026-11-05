@@ -890,6 +890,33 @@ class Modals {
         }
     }
 
+    _resolveBulkCategories(item, activeCategory) {
+        const own = item.targetCategories || [];
+        if (own.length > 0) return own;
+
+        const hasTarget = this.targetCategory && this.targetCategory !== 'ALL';
+        const hasActive = activeCategory && activeCategory !== 'ALL';
+        const fallback = hasTarget ? this.targetCategory : (hasActive ? activeCategory : '');
+        return [fallback];
+    }
+
+    // Eén aanroep per categorie: de server voegt categorieën samen bij een
+    // bestaande plugin (add_user_plugin). Geeft true terug als alle aanroepen slaagden.
+    async _addPluginToCategories(plugin, categories) {
+        let allOk = true;
+        for (const cat of categories) {
+            const payload = { ...plugin };
+            if (cat) payload.category = cat;
+            try {
+                const data = await API.addPlugin(payload);
+                if (!data.success) allOk = false;
+            } catch (err) {
+                allOk = false;
+            }
+        }
+        return allOk;
+    }
+
     async _addBulkPlugins(activeCategory) {
         const selectedItems = this.cachedBulkPlugins.filter(i => i.selected && i.status === 'success');
         if (selectedItems.length === 0) {
@@ -901,28 +928,8 @@ class Modals {
         let failCount = 0;
 
         for (const item of selectedItems) {
-            let categories = item.targetCategories || [];
-            if (categories.length === 0) {
-                const fallback = (this.targetCategory && this.targetCategory !== 'ALL')
-                    ? this.targetCategory
-                    : (activeCategory !== undefined && activeCategory !== null && activeCategory !== 'ALL' ? activeCategory : '');
-                categories = fallback ? [fallback] : [''];
-            }
-
-            // Eén aanroep per categorie: de server voegt de categorieën samen
-            // bij een bestaande plugin (add_user_plugin).
-            let pluginOk = true;
-            for (const cat of categories) {
-                const payload = { ...item.plugin };
-                if (cat) payload.category = cat;
-                try {
-                    const data = await API.addPlugin(payload);
-                    if (!data.success) pluginOk = false;
-                } catch (err) {
-                    pluginOk = false;
-                }
-            }
-            if (pluginOk) {
+            const categories = this._resolveBulkCategories(item, activeCategory);
+            if (await this._addPluginToCategories(item.plugin, categories)) {
                 addedCount++;
             } else {
                 failCount++;
