@@ -39,6 +39,16 @@ class TestNotificationsAndChanges(unittest.TestCase):
         last_fetched = resp_set.get_json().get('last_fetched')
         self.assertIsNotNone(last_fetched)
 
+    def test_add_same_plugin_to_multiple_categories(self):
+        """Dezelfde plugin in meerdere categorieën (bv. Lobby én Survival) blijft in beide staan."""
+        url = "https://modrinth.com/plugin/luckperms"
+        for cat in ["Lobby", "Survival Main Server", "Lobby"]:
+            self.assertTrue(webserver.add_user_plugin("tester", {"url": url, "title": "LuckPerms", "category": cat}))
+
+        docs = list(db.plugins.find({"url": url, "owner": "tester"}))
+        self.assertEqual(len(docs), 1)
+        self.assertEqual(sorted(docs[0]["categories"]), ["Lobby", "Survival Main Server"])
+
     def test_notifications_endpoints(self):
         # Insert test notifications
         db.notifications.insert_one({

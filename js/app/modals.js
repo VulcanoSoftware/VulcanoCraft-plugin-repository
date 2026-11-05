@@ -613,15 +613,15 @@ class Modals {
                 progressBar.style.width = `${percent}%`;
             }
 
-            const itemCategory = (this.bulkItemMap && this.bulkItemMap.has(url))
+            const itemCategories = (this.bulkItemMap && this.bulkItemMap.has(url))
                 ? this.bulkItemMap.get(url)
-                : (this.targetCategory && this.targetCategory !== 'ALL' ? this.targetCategory : null);
+                : (this.targetCategory && this.targetCategory !== 'ALL' ? [this.targetCategory] : []);
 
             try {
                 const plugin = await API.fetchPlugin(url);
                 this.cachedBulkPlugins.push({
                     url,
-                    targetCategory: itemCategory,
+                    targetCategories: itemCategories,
                     plugin,
                     status: 'success',
                     selected: true
@@ -629,7 +629,7 @@ class Modals {
             } catch (err) {
                 this.cachedBulkPlugins.push({
                     url,
-                    targetCategory: itemCategory,
+                    targetCategories: itemCategories,
                     plugin: null,
                     status: 'error',
                     error: err.message,
@@ -688,7 +688,7 @@ class Modals {
                                 </div>
                                 <div class="small text-muted text-truncate min-w-0" title="${plugin.description || i18n.t('common.no_description')}">${plugin.description || i18n.t('common.no_description')}</div>
                                 <div class="small mt-1 d-flex flex-wrap align-items-center gap-1 min-w-0">
-                                    ${item.targetCategory ? `<span class="badge bg-primary text-truncate flex-shrink-0"><i class="fas fa-folder me-1"></i>${item.targetCategory}</span>` : ''}
+                                    ${(item.targetCategories || []).map(c => `<span class="badge bg-primary text-truncate flex-shrink-0"><i class="fas fa-folder me-1"></i>${c}</span>`).join('')}
                                     <span class="badge bg-info text-dark flex-shrink-0">v: ${versionsStr}</span>
                                     <span class="badge bg-secondary text-truncate mw-100" title="${item.url}">${item.url}</span>
                                 </div>
@@ -822,7 +822,8 @@ class Modals {
                 : (document.querySelector('#categorySidebar .category-item.active')?.dataset.category || '');
 
             if (this.isReplaceMode) {
-                await API.clearPlugins(false, targetCat || null);
+                // 'ALL' is geen echte categorie: dan moet alles van de gebruiker gewist worden
+                await API.clearPlugins(false, (targetCat && targetCat !== 'ALL') ? targetCat : null);
                 this.isReplaceMode = false;
             }
 
@@ -858,10 +859,14 @@ class Modals {
     }
 
     openWithBulkItems(items, isReplace = false, category = null) {
+        // Een plugin kan in meerdere categorieën staan (bv. Lobby én Survival):
+        // bewaar per URL alle categorieën in plaats van alleen de laatste.
         this.bulkItemMap = new Map();
         items.forEach(i => {
             if (i.url && i.category) {
-                this.bulkItemMap.set(i.url, i.category);
+                const cats = this.bulkItemMap.get(i.url) || [];
+                if (!cats.includes(i.category)) cats.push(i.category);
+                this.bulkItemMap.set(i.url, cats);
             }
         });
         const urls = Array.from(new Set(items.map(i => i.url)));
@@ -896,18 +901,30 @@ class Modals {
         let failCount = 0;
 
         for (const item of selectedItems) {
-            const catToAssign = item.targetCategory || (this.targetCategory && this.targetCategory !== 'ALL' ? this.targetCategory : (activeCategory !== undefined && activeCategory !== null ? activeCategory : ''));
-            if (catToAssign) {
-                item.plugin.category = catToAssign;
+            let categories = item.targetCategories || [];
+            if (categories.length === 0) {
+                const fallback = (this.targetCategory && this.targetCategory !== 'ALL')
+                    ? this.targetCategory
+                    : (activeCategory !== undefined && activeCategory !== null && activeCategory !== 'ALL' ? activeCategory : '');
+                categories = fallback ? [fallback] : [''];
             }
-            try {
-                const data = await API.addPlugin(item.plugin);
-                if (data.success) {
-                    addedCount++;
-                } else {
-                    failCount++;
+
+            // Eén aanroep per categorie: de server voegt de categorieën samen
+            // bij een bestaande plugin (add_user_plugin).
+            let pluginOk = true;
+            for (const cat of categories) {
+                const payload = { ...item.plugin };
+                if (cat) payload.category = cat;
+                try {
+                    const data = await API.addPlugin(payload);
+                    if (!data.success) pluginOk = false;
+                } catch (err) {
+                    pluginOk = false;
                 }
-            } catch (err) {
+            }
+            if (pluginOk) {
+                addedCount++;
+            } else {
                 failCount++;
             }
         }
