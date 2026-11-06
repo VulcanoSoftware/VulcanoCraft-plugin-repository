@@ -92,51 +92,33 @@ class UI {
         return 0;
     }
 
-    _isNewerVersion(latest, pinned) {
-        if (!latest || !pinned || latest === pinned) return false;
+    // `plugin.versions` bevat enkel ondersteunde Minecraft-versies (bv. "1.20 1.21"),
+    // terwijl een gepinde versie een pluginversie is, optioneel met Minecraft-versie
+    // ("1.0.0 (1.21)"). Die twee mogen nooit met elkaar vergeleken worden: "1.21" is
+    // numeriek groter dan "1.0.0", wat een valse "update beschikbaar" gaf. Er is dus
+    // alleen een update als er een nieuwere Minecraft-versie is dan die van de pin.
+    _extractPinnedGameVersion(pinned) {
+        const match = String(pinned || '').match(/^.*?\s*\(([^)]+)\)\s*$/);
+        return match ? match[1].trim() : null;
+    }
 
-        const pinnedMatch = String(pinned).match(/^(.*?)\s*\(([^)]+)\)$/);
-        const latestMatch = String(latest).match(/^(.*?)\s*\(([^)]+)\)$/);
-
-        let pinnedPlugin = pinned;
-        let pinnedGame = null;
-        if (pinnedMatch) {
-            pinnedPlugin = pinnedMatch[1].trim();
-            pinnedGame = pinnedMatch[2].trim();
-        }
-
-        let latestPlugin = latest;
-        let latestGame = null;
-        if (latestMatch) {
-            latestPlugin = latestMatch[1].trim();
-            latestGame = latestMatch[2].trim();
-        }
-
-        if (latestGame && pinnedGame) {
-            if (this._compareParsedVersions(this._parseVersion(latestPlugin), this._parseVersion(pinnedPlugin)) > 0) return true;
-            return this._compareParsedVersions(this._parseVersion(latestGame), this._parseVersion(pinnedGame)) > 0;
-        }
-
-        if (pinnedGame && !latestMatch) {
-            const cmpGame = this._compareParsedVersions(this._parseVersion(latest), this._parseVersion(pinnedGame));
-            if (cmpGame > 0) return true;
-            if (cmpGame < 0) return false;
-            return this._compareParsedVersions(this._parseVersion(latest), this._parseVersion(pinnedPlugin)) > 0;
-        }
-
-        return this._compareParsedVersions(this._parseVersion(latestPlugin), this._parseVersion(pinnedPlugin)) > 0;
+    _isUpdateAvailable(latestGameVersion, pinned) {
+        const pinnedGame = this._extractPinnedGameVersion(pinned);
+        if (!latestGameVersion || !pinnedGame) return false;
+        return this._compareParsedVersions(
+            this._parseVersion(latestGameVersion),
+            this._parseVersion(pinnedGame)
+        ) > 0;
     }
 
     _getLatestVersion(versionsString) {
         if (!versionsString) return null;
-        const versions = versionsString.split(' ').filter(v => v.trim());
+        const versions = String(versionsString).split(/\s+/).filter(v => v.trim());
         if (versions.length === 0) return null;
 
-        const sorted = versions.sort((a, b) => {
-            if (this._isNewerVersion(a, b)) return 1;
-            if (this._isNewerVersion(b, a)) return -1;
-            return 0;
-        });
+        const sorted = versions.sort((a, b) =>
+            this._compareParsedVersions(this._parseVersion(a), this._parseVersion(b))
+        );
         return sorted[sorted.length - 1];
     }
 
@@ -155,7 +137,7 @@ class UI {
             pinnedBadgeHtml = `<span class="pinned-badge" title="${i18n.t('common.pinned')}"><i class="fas fa-thumbtack"></i> ${i18n.t('common.pinned')}: ${plugin.pinned_version}</span>`;
 
             const latestVersion = this._getLatestVersion(plugin.versions || '');
-            if (latestVersion && this._isNewerVersion(latestVersion, plugin.pinned_version)) {
+            if (latestVersion && this._isUpdateAvailable(latestVersion, plugin.pinned_version)) {
                 updateWarningBadgeHtml = `<span class="update-available-badge update-badge-click" data-url="${plugin.url || ''}" data-pinned="${plugin.pinned_version}" data-latest="${latestVersion}" title="${i18n.t('common.update_available')}"><i class="fas fa-arrow-alt-circle-up me-1"></i>${i18n.t('common.update_available')}</span>`;
             }
         }

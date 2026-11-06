@@ -123,6 +123,42 @@ class TestVersionPinning(unittest.TestCase):
         })
         self.assertEqual(res.status_code, 401)
 
+    def test_add_plugin_stores_pinned_version_from_import(self):
+        self.login('owner_user', 'password123')
+        res = self.client.post('/add_plugin', json={'plugin_data': {
+            'url': 'https://modrinth.com/plugin/imported',
+            'title': 'Imported',
+            'category': 'Lobby',
+            'pinned_version': '  2.4.1 (1.21.6)  '
+        }})
+        self.assertEqual(res.status_code, 200)
+        plugin = db.plugins.find_one({'url': 'https://modrinth.com/plugin/imported', 'owner': 'owner_user'})
+        self.assertEqual(plugin.get('pinned_version'), '2.4.1 (1.21.6)')
+
+    def test_add_plugin_without_pinned_version_keeps_existing_pin(self):
+        db.plugins.update_one({'url': 'https://modrinth.com/plugin/test-plugin'}, {'$set': {'pinned_version': '1.0.0 (1.21)'}})
+        self.login('owner_user', 'password123')
+        res = self.client.post('/add_plugin', json={'plugin_data': {
+            'url': 'https://modrinth.com/plugin/test-plugin',
+            'title': 'Test Plugin',
+            'category': 'Survival',
+            'pinned_version': ''
+        }})
+        self.assertEqual(res.status_code, 200)
+        plugin = db.plugins.find_one({'url': 'https://modrinth.com/plugin/test-plugin'})
+        self.assertEqual(plugin.get('pinned_version'), '1.0.0 (1.21)')
+
+    def test_add_plugin_rejects_non_string_pinned_version(self):
+        self.login('owner_user', 'password123')
+        res = self.client.post('/add_plugin', json={'plugin_data': {
+            'url': 'https://modrinth.com/plugin/injection',
+            'title': 'Injection',
+            'pinned_version': {'$ne': None}
+        }})
+        self.assertEqual(res.status_code, 200)
+        plugin = db.plugins.find_one({'url': 'https://modrinth.com/plugin/injection'})
+        self.assertNotIn('pinned_version', plugin)
+
     @patch('fetchers.versions.requests.get')
     def test_get_spigot_game_versions_without_pin_format(self, mock_get):
         class MockResponse:

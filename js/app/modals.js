@@ -613,6 +613,7 @@ class Modals {
                 progressBar.style.width = `${percent}%`;
             }
 
+            const pinnedVersion = (this.bulkPinnedMap && this.bulkPinnedMap.get(url)) || null;
             const itemCategories = (this.bulkItemMap && this.bulkItemMap.has(url))
                 ? this.bulkItemMap.get(url)
                 : (this.targetCategory && this.targetCategory !== 'ALL' ? [this.targetCategory] : []);
@@ -622,6 +623,7 @@ class Modals {
                 this.cachedBulkPlugins.push({
                     url,
                     targetCategories: itemCategories,
+                    pinnedVersion,
                     plugin,
                     status: 'success',
                     selected: true
@@ -690,6 +692,7 @@ class Modals {
                                 <div class="small mt-1 d-flex flex-wrap align-items-center gap-1 min-w-0">
                                     ${(item.targetCategories || []).map(c => `<span class="badge bg-primary text-truncate flex-shrink-0"><i class="fas fa-folder me-1"></i>${c}</span>`).join('')}
                                     <span class="badge bg-info text-dark flex-shrink-0">v: ${versionsStr}</span>
+                                    ${item.pinnedVersion ? `<span class="badge bg-warning text-dark flex-shrink-0"><i class="fas fa-thumbtack me-1"></i>${item.pinnedVersion}</span>` : ''}
                                     <span class="badge bg-secondary text-truncate mw-100" title="${item.url}">${item.url}</span>
                                 </div>
                             </div>
@@ -862,7 +865,11 @@ class Modals {
         // Een plugin kan in meerdere categorieën staan (bv. Lobby én Survival):
         // bewaar per URL alle categorieën in plaats van alleen de laatste.
         this.bulkItemMap = new Map();
+        // Gepinde versies uit het TXT-bestand (url -> versie), zodat ze na het
+        // toevoegen opnieuw gepind worden.
+        this.bulkPinnedMap = new Map();
         items.forEach(i => {
+            if (i.url && i.pinnedVersion) this.bulkPinnedMap.set(i.url, i.pinnedVersion);
             if (i.url && i.category) {
                 const cats = this.bulkItemMap.get(i.url) || [];
                 if (!cats.includes(i.category)) cats.push(i.category);
@@ -902,11 +909,12 @@ class Modals {
 
     // Eén aanroep per categorie: de server voegt categorieën samen bij een
     // bestaande plugin (add_user_plugin). Geeft true terug als alle aanroepen slaagden.
-    async _addPluginToCategories(plugin, categories) {
+    async _addPluginToCategories(plugin, categories, pinnedVersion = null) {
         let allOk = true;
         for (const cat of categories) {
             const payload = { ...plugin };
             if (cat) payload.category = cat;
+            if (pinnedVersion) payload.pinned_version = pinnedVersion;
             try {
                 const data = await API.addPlugin(payload);
                 if (!data.success) allOk = false;
@@ -929,7 +937,7 @@ class Modals {
 
         for (const item of selectedItems) {
             const categories = this._resolveBulkCategories(item, activeCategory);
-            if (await this._addPluginToCategories(item.plugin, categories)) {
+            if (await this._addPluginToCategories(item.plugin, categories, item.pinnedVersion)) {
                 addedCount++;
             } else {
                 failCount++;
@@ -952,6 +960,7 @@ class Modals {
         this.cachedPluginData = null;
         this.cachedBulkPlugins = [];
         this.bulkItemMap = null;
+        this.bulkPinnedMap = null;
         this.isReplaceMode = false;
         this.targetCategory = null;
         this._toggleAddModalButtons(true);
@@ -1020,6 +1029,7 @@ class Modals {
         this.cachedPluginData = null;
         this.cachedBulkPlugins = [];
         this.bulkItemMap = null;
+        this.bulkPinnedMap = null;
         this.isReplaceMode = false;
         this.targetCategory = null;
         this.addSuccess = false;

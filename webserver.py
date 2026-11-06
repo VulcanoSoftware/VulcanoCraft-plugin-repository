@@ -1792,7 +1792,16 @@ def add_plugin():
             return jsonify({'error': 'Geen plugin data opgegeven'}), 400
         
         username = session['user']
-        
+
+        # Een gepinde versie (bv. uit een TXT-import) moet een gewone string zijn.
+        # Leeg of ongeldig = niet meesturen, zodat een bestaande pin behouden blijft.
+        if isinstance(plugin_data, dict) and 'pinned_version' in plugin_data:
+            pinned_version = sanitize_str(plugin_data.get('pinned_version'))
+            if pinned_version:
+                plugin_data['pinned_version'] = pinned_version
+            else:
+                plugin_data.pop('pinned_version')
+
         if add_user_plugin(username, plugin_data):
             return jsonify({'success': True, 'message': 'Plugin succesvol toegevoegd'})
         else:

@@ -126,6 +126,7 @@ class App {
                     return;
                 }
 
+                // categorie -> (url -> exportregel), zodat dubbele URL's samenvallen
                 const categoryMap = new Map();
                 plugins.forEach(p => {
                     if (!p.url) return;
@@ -135,16 +136,16 @@ class App {
                     cats.forEach(c => {
                         const catName = c || 'Algemeen';
                         if (!categoryMap.has(catName)) {
-                            categoryMap.set(catName, new Set());
+                            categoryMap.set(catName, new Map());
                         }
-                        categoryMap.get(catName).add(p.url);
+                        categoryMap.get(catName).set(p.url, this.formatExportLine(p));
                     });
                 });
 
                 let textContent = '';
-                for (const [catName, urlsSet] of categoryMap.entries()) {
+                for (const [catName, linesByUrl] of categoryMap.entries()) {
                     if (textContent.length > 0) textContent += '\n\n';
-                    textContent += `[${catName}]\n` + Array.from(urlsSet).join('\n');
+                    textContent += `[${catName}]\n` + Array.from(linesByUrl.values()).join('\n');
                 }
 
                 this.triggerDownload(textContent, 'plugin-list-all.txt');
@@ -152,14 +153,17 @@ class App {
             } else {
                 const data = await API.getPlugins({ perPage: 0, category: selectedCategory });
                 const plugins = data.plugins || [];
-                const urls = Array.from(new Set(plugins.map(p => p.url).filter(Boolean)));
+                const linesByUrl = new Map();
+                plugins.forEach(p => {
+                    if (p.url) linesByUrl.set(p.url, this.formatExportLine(p));
+                });
 
-                if (urls.length === 0) {
+                if (linesByUrl.size === 0) {
                     UI.showEmptyMessage(i18n.t('error.no_plugins_export'));
                     return;
                 }
 
-                const textContent = `[${selectedCategory}]\n` + urls.join('\n');
+                const textContent = `[${selectedCategory}]\n` + Array.from(linesByUrl.values()).join('\n');
                 this.triggerDownload(textContent, `plugin-list-${selectedCategory}.txt`);
                 UI.showSuccessMessage(i18n.t('success.export_category', { category: selectedCategory }));
             }
@@ -167,6 +171,13 @@ class App {
             console.error('Export failed:', error);
             UI.showEmptyMessage(i18n.t('error.export_failed'));
         }
+    }
+
+    // Eén exportregel per plugin: "<url>" of, bij een gepinde versie, "<url> | <gepinde versie>".
+    // De scheiding " | " komt niet voor in een URL of in een versie zoals "1.0.0 (1.21)".
+    formatExportLine(plugin) {
+        const pinned = typeof plugin.pinned_version === 'string' ? plugin.pinned_version.trim() : '';
+        return pinned ? `${plugin.url} | ${pinned}` : plugin.url;
     }
 
     triggerDownload(content, fileName) {
@@ -331,9 +342,12 @@ class App {
                 continue;
             }
 
-            if (line.startsWith('http://') || line.startsWith('https://')) {
+            // "<url>" of "<url> | <gepinde versie>" (optioneel met "pinned:" ervoor)
+            const urlMatch = line.match(/^(https?:\/\/[^\s|]+)\s*(?:\|\s*(?:pinned\s*:\s*)?(.*))?$/i);
+            if (urlMatch) {
                 const cat = (defaultCategory && defaultCategory !== 'ALL') ? defaultCategory : currentCategory;
-                items.push({ url: line, category: cat });
+                const pinnedVersion = (urlMatch[2] || '').trim();
+                items.push({ url: urlMatch[1], category: cat, pinnedVersion: pinnedVersion || null });
             }
         }
         return items;
@@ -568,7 +582,7 @@ class App {
                     const pinnedMatch = res.versions.find(v => v === pinned || v.startsWith(`${pinned} `) || v.startsWith(`${pinned}(`));
                     if (pinnedMatch) pinned = pinnedMatch;
 
-                    const latestMatch = res.versions.find(v => v === latest || v.startsWith(`${latest} `) || v.startsWith(`${latest}(`));
+                    const latestMatch = res.versions.find(v => v === latest || v.startsWith(`${latest} `) || v.startsWith(`${latest}(`) || v.endsWith(`(${latest})`));
                     if (latestMatch) {
                         latest = latestMatch;
                     } else if (res.versions[0]) {
