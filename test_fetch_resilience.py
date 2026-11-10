@@ -144,7 +144,9 @@ EMPTY_FETCH = {
 def db():
     database = mongomock.MongoClient()["cron_test"]
     database.plugins.insert_one(dict(FULL_PLUGIN))
-    with patch.object(cron, "_db", database), patch.object(cron, "PLUGIN_DELAY_SECONDS", 0):
+    with patch.object(cron, "_db", database), \
+            patch.object(cron, "PLUGIN_DELAY_SECONDS", 0), \
+            patch.object(cron, "wait_for_connectivity", return_value=True):
         yield database
 
 
@@ -200,3 +202,76 @@ def test_no_update_notification_when_previous_version_was_unknown(db):
     assert db.notifications.count_documents({}) == 0
     assert db.plugin_changes.count_documents({}) == 0
     webhooks.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# Connectiviteitscheck en diagnose
+# ---------------------------------------------------------------------------
+
+def test_http_get_logs_final_failure_to_stderr(capsys):
+    with patch("requests.get", side_effect=requests.exceptions.ConnectionError("dns kapot")):
+        with pytest.raises(requests.exceptions.ConnectionError):
+            http_get("https://api.modrinth.com/v2/project/x")
+    err = capsys.readouterr().err
+    assert "api.modrinth.com" in err and "ConnectionError" in err
+
+
+def test_http_get_logs_blocking_status(capsys):
+    with patch("requests.get", return_value=_response(403)):
+        http_get("https://hangar.papermc.io/api/v1/projects/x")
+    assert "hangar.papermc.io: HTTP 403" in capsys.readouterr().err
+
+
+def test_http_get_does_not_log_success_or_404(capsys):
+    with patch("requests.get", side_effect=[_response(200), _response(404)]):
+        http_get("https://example.com/a")
+        http_get("https://example.com/b")
+    assert capsys.readouterr().err == ""
+
+
+def test_check_connectivity_counts_any_http_response_as_reachable():
+    side_effect = [
+        _response(200),
+        _response(403),
+        requests.exceptions.ConnectionError("down"),
+        requests.exceptions.Timeout("slow"),
+    ]
+    with patch("requests.get", side_effect=side_effect):
+        reachable = cron.check_connectivity()
+    assert reachable == list(cron.CONNECTIVITY_CHECK_URLS[:2])
+
+
+def test_wait_for_connectivity_gives_up_after_all_attempts(_no_sleep_and_clean_env):
+    with patch.object(cron, "check_connectivity", return_value=[]) as check:
+        assert cron.wait_for_connectivity() is False
+    assert check.call_count == cron.CONNECTIVITY_ATTEMPTS
+    assert _no_sleep_and_clean_env.call_count == cron.CONNECTIVITY_ATTEMPTS - 1
+
+
+def test_wait_for_connectivity_recovers_when_network_comes_up():
+    with patch.object(cron, "check_connectivity", side_effect=[[], [], ["https://api.github.com/"]]) as check:
+        assert cron.wait_for_connectivity() is True
+    assert check.call_count == 3
+
+
+def test_cron_cycle_is_skipped_when_offline():
+    database = mongomock.MongoClient()["cron_offline"]
+    database.plugins.insert_one(dict(FULL_PLUGIN))
+    with patch.object(cron, "_db", database), \
+            patch.object(cron, "wait_for_connectivity", return_value=False), \
+            patch.object(cron, "update_plugin") as update:
+        result = cron.run_cron_cycle()
+    assert result is None
+    update.assert_not_called()
+    assert database.plugins.find_one({"url": URL}, {"_id": 0}) == FULL_PLUGIN
+    # een overgeslagen cyclus mag niet als geslaagde fetch geregistreerd worden
+    assert database.settings.count_documents({}) == 0
+
+
+def test_launcher_forwards_fetcher_stderr(capsys):
+    import subprocess
+    import launcher
+    completed = subprocess.CompletedProcess(args=[], returncode=0, stdout="[]", stderr="[http_get] x: HTTP 403")
+    with patch("launcher.subprocess.run", return_value=completed):
+        assert launcher.run_script("loaders", "https://example.com") == "[]"
+    assert "[loaders] [http_get] x: HTTP 403" in capsys.readouterr().err

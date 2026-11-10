@@ -15,6 +15,10 @@ def run_script(script_name, url):
             check=True,
             env=os.environ.copy()
         )
+        # Geef diagnose-uitvoer van de fetcher door (ook als die slaagt), zodat in de
+        # container-logs zichtbaar is waarom een fetch eventueel leeg bleef.
+        if result.stderr and result.stderr.strip():
+            print(f"[{script_name}] {result.stderr.strip()}", file=sys.stderr)
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
         print(f"Fout bij uitvoeren fetchers/{script_name}.py: {e}", file=sys.stderr)
