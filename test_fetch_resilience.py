@@ -275,3 +275,13 @@ def test_launcher_forwards_fetcher_stderr(capsys):
     with patch("launcher.subprocess.run", return_value=completed):
         assert launcher.run_script("loaders", "https://example.com") == "[]"
     assert "[loaders] [http_get] x: HTTP 403" in capsys.readouterr().err
+
+
+def test_fetchers_still_import_when_http_utils_is_missing(tmp_path):
+    """Regressie: op de host ontbrak http_utils.py en crashte elke fetcher op de import."""
+    import shutil, subprocess, sys
+    shutil.copytree("fetchers", tmp_path / "fetchers", ignore=shutil.ignore_patterns("http_utils.py", "__pycache__"))
+    for name in ["author", "description", "icon", "loaders", "titles", "versions"]:
+        result = subprocess.run([sys.executable, "-I", f"fetchers/{name}.py", "--help"], cwd=tmp_path,
+                                capture_output=True, text=True, timeout=60)
+        assert "ModuleNotFoundError" not in result.stderr, f"{name}: {result.stderr}"
