@@ -3,6 +3,10 @@ import json
 import os
 import re
 import requests
+try:
+    from http_utils import http_get
+except ImportError:  # geimporteerd als package (bijv. in tests)
+    from fetchers.http_utils import http_get
 import sys
 from urllib.parse import urlparse
 
@@ -50,7 +54,7 @@ def _parse_modrinth_game_versions(data, server_platforms, platform_priority):
 def get_modrinth_server_game_versions(slug, pin_format=False):
     try:
         url = f"https://api.modrinth.com/v2/project/{slug}/version"
-        response = requests.get(url)
+        response = http_get(url)
         response.raise_for_status()
         data = response.json()
 
@@ -73,7 +77,7 @@ def get_spigot_game_versions(url, pin_format=False):
         resource_id = match.group(1)
         api_url = f"https://api.spiget.org/v2/resources/{resource_id}"
         
-        response = requests.get(api_url)
+        response = http_get(api_url)
         if response.status_code != 200:
             return None
         
@@ -84,7 +88,7 @@ def get_spigot_game_versions(url, pin_format=False):
             return sorted(tested_versions) if tested_versions else []
 
         versions_url = f"https://api.spiget.org/v2/resources/{resource_id}/versions?size=100&sort=-id"
-        v_response = requests.get(versions_url)
+        v_response = http_get(versions_url)
         if v_response.status_code != 200:
             return []
 
@@ -153,7 +157,7 @@ def get_hangar_game_versions(combined_slug, pin_format=False):
         while True:
             url = f"https://hangar.papermc.io/api/v1/projects/{combined_slug}/versions?limit={limit}&offset={offset}"
             
-            response = requests.get(url)
+            response = http_get(url)
             response.raise_for_status()
                 
             data = response.json()
@@ -178,7 +182,7 @@ def get_hangar_game_versions(combined_slug, pin_format=False):
 def _get_servermods_project(slug):
     try:
         search_url = f"https://api.curseforge.com/servermods/projects?search={slug}"
-        search_response = requests.get(search_url)
+        search_response = http_get(search_url)
         if search_response.status_code != 200:
             return None
         projects = search_response.json()
@@ -186,7 +190,7 @@ def _get_servermods_project(slug):
             if "-" not in slug and slug.endswith("plate"):
                 alt_slug = slug[:-5] + "-plate"
                 search_url = f"https://api.curseforge.com/servermods/projects?search={alt_slug}"
-                search_response = requests.get(search_url)
+                search_response = http_get(search_url)
                 if search_response.status_code != 200:
                     return None
                 projects = search_response.json()
@@ -292,7 +296,7 @@ def _scrape_bukkitdev_files(slug):
     try:
         url = f"https://dev.bukkit.org/projects/{slug}/files"
         headers = {"User-Agent": "Mozilla/5.0"}
-        r = requests.get(url, headers=headers, timeout=10)
+        r = http_get(url, headers=headers, timeout=10)
         if r.status_code != 200:
             return []
         rows = re.findall(r'<tr class="project-file-list-item">.*?</tr>', r.text, re.DOTALL)
@@ -334,7 +338,7 @@ def get_bukkitdev_game_versions(slug, pin_format=False):
         if not project_id:
             return []
         files_url = f"https://api.curseforge.com/servermods/files?projectIds={project_id}"
-        files_response = requests.get(files_url)
+        files_response = http_get(files_url)
         if files_response.status_code != 200:
             return []
         files = files_response.json()
@@ -430,7 +434,7 @@ def get_curseforge_game_versions(url, pin_format=False):
         
         api_url = f"https://api.curseforge.com/v1/mods/search?gameId=432&slug={project_slug}&classId={class_id}"
         headers = {'Accept': 'application/json', 'x-api-key': CURSEFORGE_API_KEY or ''}
-        response = requests.get(api_url, headers=headers)
+        response = http_get(api_url, headers=headers)
         if response.status_code != 200:
             return []
         
@@ -451,7 +455,7 @@ def get_github_game_versions(repo_slug):
 
 def get_planetminecraft_game_versions(url):
     try:
-        response = requests.get(url)
+        response = http_get(url)
         if response.status_code != 200:
             return []
         text = response.text

@@ -1,5 +1,9 @@
 import sys
 import requests
+try:
+    from http_utils import http_get
+except ImportError:  # geimporteerd als package (bijv. in tests)
+    from fetchers.http_utils import http_get
 import json
 import os
 import re
@@ -34,7 +38,7 @@ def extract_slug_from_url(url):
 def get_modrinth_loaders(project_id):
     """Haalt de loaders voor een specifiek Modrinth-project op."""
     try:
-        response = requests.get(f"https://api.modrinth.com/v2/project/{project_id}")
+        response = http_get(f"https://api.modrinth.com/v2/project/{project_id}")
         response.raise_for_status()
         project_data = response.json()
         return [loader.lower() for loader in project_data.get("loaders", [])]
@@ -50,7 +54,7 @@ def get_modrinth_loaders(project_id):
 def get_spigotmc_loaders(resource_id):
     """Haalt de loaders voor een specifiek SpigotMC-resource op."""
     try:
-        response = requests.get(f"https://api.spiget.org/v2/resources/{resource_id}")
+        response = http_get(f"https://api.spiget.org/v2/resources/{resource_id}")
         response.raise_for_status()
         return ["spigot", "bukkit"]  # Al lowercase
     except requests.exceptions.RequestException as e:
@@ -65,7 +69,7 @@ def get_spigotmc_loaders(resource_id):
 def get_hangar_loaders(author, slug):
     """Haalt de loaders voor een specifiek Hangar-project op."""
     try:
-        response = requests.get(
+        response = http_get(
             f"https://hangar.papermc.io/api/v1/projects/{author}/{slug}/versions"
         )
         response.raise_for_status()
@@ -104,7 +108,7 @@ def get_curseforge_loaders(url, api_key=None):
     try:
         # Zoek mod op basis van slug
         params = {'gameId': 432, 'slug': slug, 'classId': 6}
-        search_response = requests.get(
+        search_response = http_get(
             "https://api.curseforge.com/v1/mods/search",
             headers=headers,
             params=params
@@ -120,7 +124,7 @@ def get_curseforge_loaders(url, api_key=None):
             return []
 
         # Haal files op
-        files_response = requests.get(
+        files_response = http_get(
             f"https://api.curseforge.com/v1/mods/{mod_id}/files",
             headers=headers
         )
