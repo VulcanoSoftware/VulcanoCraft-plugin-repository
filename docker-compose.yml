@@ -14,6 +14,7 @@ services:
       - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
       - ADMIN_DEFAULT_PASSWORD=${ADMIN_DEFAULT_PASSWORD}
       - CURSEFORGE_API_KEY=${CURSEFORGE_API_KEY}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
     mem_limit: 512m
     cpus: 1.0
     logging:
@@ -60,6 +61,7 @@ services:
       - MONGO_URI=${MONGO_URI}
       - MONGO_DB_NAME=${MONGO_DB_NAME}
       - CURSEFORGE_API_KEY=${CURSEFORGE_API_KEY}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
     depends_on:
       mongo:
         condition: service_healthy

@@ -2,6 +2,10 @@ import argparse
 import os
 import re
 import requests
+try:
+    from http_utils import http_get
+except ImportError:  # geimporteerd als package (bijv. in tests)
+    from fetchers.http_utils import http_get
 import sys
 from urllib.parse import urlparse
 
@@ -11,7 +15,7 @@ CURSEFORGE_API_KEY = os.environ.get("CURSEFORGE_API_KEY")
 def get_modrinth_title(slug):
     try:
         url = f"https://api.modrinth.com/v2/project/{slug}"
-        response = requests.get(url)
+        response = http_get(url)
         response.raise_for_status()
         data = response.json()
         return data.get("title")
@@ -28,7 +32,7 @@ def get_spigot_title(url):
         resource_id = match.group(1)
         api_url = f"https://api.spiget.org/v2/resources/{resource_id}"
         
-        response = requests.get(api_url)
+        response = http_get(api_url)
         if response.status_code != 200:
             return None
         
@@ -41,7 +45,7 @@ def get_spigot_title(url):
 def get_hangar_title(combined_slug):
     try:
         url = f"https://hangar.papermc.io/api/v1/projects/{combined_slug}"
-        response = requests.get(url)
+        response = http_get(url)
         response.raise_for_status()
         data = response.json()
         return data.get("name")
@@ -51,7 +55,7 @@ def get_hangar_title(combined_slug):
 def _get_servermods_project(slug):
     try:
         api_url = f"https://api.curseforge.com/servermods/projects?search={slug}"
-        response = requests.get(api_url)
+        response = http_get(api_url)
         if response.status_code != 200:
             return None
         projects = response.json()
@@ -59,7 +63,7 @@ def _get_servermods_project(slug):
             if "-" not in slug and slug.endswith("plate"):
                 alt_slug = slug[:-5] + "-plate"
                 api_url = f"https://api.curseforge.com/servermods/projects?search={alt_slug}"
-                response = requests.get(api_url)
+                response = http_get(api_url)
                 if response.status_code != 200:
                     return None
                 projects = response.json()
@@ -107,7 +111,7 @@ def get_curseforge_title(url):
             'x-api-key': CURSEFORGE_API_KEY or ''
         }
         
-        response = requests.get(api_url, headers=headers)
+        response = http_get(api_url, headers=headers)
         if response.status_code != 200:
             return None
         
@@ -131,7 +135,7 @@ def _extract_meta_content(text, meta_name):
 
 def get_planetminecraft_title(url):
     try:
-        response = requests.get(url)
+        response = http_get(url)
         title = None
         if response.status_code == 200:
             text = response.text
@@ -168,7 +172,7 @@ def get_github_title(repo_slug):
         owner, repo = repo_slug.split('/', 1)
         url = f"https://api.github.com/repos/{owner}/{repo}"
         headers = {"Accept": "application/vnd.github+json"}
-        response = requests.get(url, headers=headers)
+        response = http_get(url, headers=headers)
         if response.status_code != 200:
             return None
         data = response.json()

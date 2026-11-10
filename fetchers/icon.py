@@ -2,6 +2,10 @@ import argparse
 import os
 import re
 import requests
+try:
+    from http_utils import http_get
+except ImportError:  # geimporteerd als package (bijv. in tests)
+    from fetchers.http_utils import http_get
 import sys
 from urllib.parse import urlparse, urlunparse
 
@@ -17,7 +21,7 @@ CURSEFORGE_API_KEY = os.environ.get("CURSEFORGE_API_KEY")
 def get_modrinth_icon(slug):
     try:
         url = f"https://api.modrinth.com/v2/project/{slug}"
-        response = requests.get(url)
+        response = http_get(url)
         response.raise_for_status()
         data = response.json()
         icon_url = data.get("icon_url")
@@ -38,7 +42,7 @@ def get_spigot_icon(url):
         resource_id = match.group(1)
         api_url = f"https://api.spiget.org/v2/resources/{resource_id}"
         
-        response = requests.get(api_url)
+        response = http_get(api_url)
         if response.status_code != 200:
             return None
         
@@ -60,7 +64,7 @@ def get_spigot_icon(url):
 def get_hangar_icon(combined_slug):
     try:
         url = f"https://hangar.papermc.io/api/v1/projects/{combined_slug}"
-        response = requests.get(url)
+        response = http_get(url)
         response.raise_for_status()
         data = response.json()
         
@@ -91,7 +95,7 @@ def _get_curseforge_mod(project_slug, class_id):
             "Accept": "application/json",
             "x-api-key": CURSEFORGE_API_KEY,
         }
-        response = requests.get(api_url, headers=headers)
+        response = http_get(api_url, headers=headers)
         if response.status_code != 200:
             return None
         data = response.json()
@@ -104,7 +108,7 @@ def _get_curseforge_mod(project_slug, class_id):
 def _get_servermods_project(slug):
     try:
         url = f"https://api.curseforge.com/servermods/projects?search={slug}"
-        response = requests.get(url)
+        response = http_get(url)
         if response.status_code != 200:
             return None
         projects = response.json()
@@ -112,7 +116,7 @@ def _get_servermods_project(slug):
             if "-" not in slug and slug.endswith("plate"):
                 alt_slug = slug[:-5] + "-plate"
                 url = f"https://api.curseforge.com/servermods/projects?search={alt_slug}"
-                response = requests.get(url)
+                response = http_get(url)
                 if response.status_code != 200:
                     return None
                 projects = response.json()
@@ -144,7 +148,7 @@ def _search_modrinth_icon(name_hint):
             return None
         search_url = "https://api.modrinth.com/v2/search"
         params = {"query": name_hint}
-        response = requests.get(search_url, params=params)
+        response = http_get(search_url, params=params)
         if response.status_code != 200:
             return None
         data = response.json()
@@ -184,7 +188,7 @@ def get_bukkitdev_icon(slug):
                         avatar_url = avatar_url.split("?", 1)[0]
                     return avatar_url
         page_url = f"https://dev.bukkit.org/projects/{project_slug}"
-        response = requests.get(page_url, headers=HTML_HEADERS)
+        response = http_get(page_url, headers=HTML_HEADERS)
         if response.status_code != 200:
             return None
         icon_url = _extract_meta_image(response.text)
@@ -219,7 +223,7 @@ def get_curseforge_icon(url):
 
         if category == 'bukkit-plugins':
             try:
-                response = requests.get(url, headers=HTML_HEADERS)
+                response = http_get(url, headers=HTML_HEADERS)
                 if response.status_code != 200:
                     return None
                 icon_url = _extract_meta_image(response.text)
@@ -238,7 +242,7 @@ def get_planetminecraft_icon(url):
     try:
         icon_url = None
         try:
-            response = requests.get(url, headers=HTML_HEADERS)
+            response = http_get(url, headers=HTML_HEADERS)
             if response.status_code == 200:
                 text = response.text
                 icon_url = _extract_planetminecraft_avatar(text)
@@ -269,7 +273,7 @@ def get_github_icon(repo_slug):
         owner, repo = repo_slug.split('/', 1)
         url = f"https://api.github.com/repos/{owner}/{repo}"
         headers = {"Accept": "application/vnd.github+json"}
-        response = requests.get(url, headers=headers)
+        response = http_get(url, headers=headers)
         if response.status_code != 200:
             return None
         data = response.json()

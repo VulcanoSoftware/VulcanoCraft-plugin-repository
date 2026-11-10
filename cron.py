@@ -10,6 +10,21 @@ from pymongo import MongoClient
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "vulcanocraft")
 
+# Velden die door launcher.py/fetchers worden opgehaald. Een mislukte fetch levert
+# voor deze velden een lege waarde op ("" of []), die nooit een gevulde waarde in de
+# database mag overschrijven.
+FETCHED_FIELDS = ("title", "description", "author", "icon", "versions", "loaders")
+
+def _env_float(name, default):
+    try:
+        return max(0.0, float(os.getenv(name, default)))
+    except (TypeError, ValueError):
+        return float(default)
+
+# Korte pauze tussen plugins, zodat een cyclus met honderden plugins de
+# externe API's (Modrinth, GitHub, Spiget, ...) niet in één burst raakt.
+PLUGIN_DELAY_SECONDS = _env_float("CRON_PLUGIN_DELAY", 1.0)
+
 _db = None
 
 def get_db():
@@ -33,6 +48,33 @@ def load_plugins():
     except Exception as e:
         print(f"Fout bij het laden van plugins: {e}")
         return []
+
+def _is_empty(value):
+    """True voor None, lege/whitespace-strings en lege collecties."""
+    if value is None:
+        return True
+    if isinstance(value, str):
+        return not value.strip()
+    if isinstance(value, (list, tuple, set, dict)):
+        return len(value) == 0
+    return False
+
+def has_fetched_data(fetched):
+    """True als minstens één opgehaald veld daadwerkelijk een waarde bevat."""
+    return any(not _is_empty(fetched.get(field)) for field in FETCHED_FIELDS)
+
+def merge_plugin_data(existing, fetched):
+    """Combineer nieuw opgehaalde data met de bestaande plugin.
+
+    Een leeg resultaat voor een veld (bijv. door rate limiting of een tijdelijke
+    storing) overschrijft nooit een eerder opgeslagen, gevulde waarde. Zo kan één
+    slechte cyclus de titels, auteurs, versies en loaders niet meer wissen.
+    """
+    merged = dict(fetched)
+    for field in FETCHED_FIELDS:
+        if _is_empty(merged.get(field)) and not _is_empty(existing.get(field)):
+            merged[field] = existing[field]
+    return merged
 
 def record_cron_status():
     """Sla de huidige datum/tijd op als last_fetched in settings"""
@@ -134,7 +176,9 @@ def detect_and_record_changes(existing, updated_data, owner):
         if isinstance(new_v, list):
             new_v = " ".join(new_v)
 
-        is_version_changed = (old_v != new_v) and bool(new_v)
+        # Alleen een echte wijziging melden: als er nog geen vorige versie bekend was
+        # (bijv. na een mislukte eerdere fetch) is dit een eerste vulling, geen update.
+        is_version_changed = (old_v != new_v) and bool(new_v) and bool(old_v)
 
         if is_version_changed:
             msg = f"Nieuwe versie gedetecteerd voor '{title}': {new_v}"
@@ -259,21 +303,25 @@ def run_cron_cycle():
                 continue
 
             updated_data = update_plugin(url, owner)
-            if updated_data:
-                detect_and_record_changes(existing, updated_data, owner)
+            if updated_data and has_fetched_data(updated_data):
+                merged_data = merge_plugin_data(existing, updated_data)
+                detect_and_record_changes(existing, merged_data, owner)
                 db.plugins.update_one(
                     {"url": url, "owner": owner},
-                    {"$set": updated_data},
+                    {"$set": merged_data},
                     upsert=True,
                 )
                 success_count += 1
             else:
+                # Ook als launcher.py "slaagt" maar overal een lege waarde teruggeeft
+                # (alle fetchers mislukt), blijft de bestaande data ongemoeid. Er wordt
+                # bewust niets teruggeschreven: de database bevat de data al, en een
+                # momentopname van het begin van de cyclus zou wijzigingen van
+                # gebruikers (bijv. een vastgepinde versie) kunnen terugdraaien.
                 print(f"Originele data behouden voor: {url}")
-                db.plugins.update_one(
-                    {"url": url, "owner": owner},
-                    {"$set": plugin},
-                    upsert=True,
-                )
+
+            if PLUGIN_DELAY_SECONDS > 0:
+                time.sleep(PLUGIN_DELAY_SECONDS)
         else:
             print("Plugin zonder URL gevonden, overslaan...")
 

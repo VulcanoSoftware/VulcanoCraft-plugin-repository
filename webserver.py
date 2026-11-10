@@ -695,6 +695,14 @@ def is_plugin_included(plugin, search_term, selected_version, selected_platforms
     sel_loaders = selected_loaders or []
 
     if include:
+        # Zijn alle bekende platformen/loaders aangevinkt, dan is er feitelijk niet
+        # gefilterd. Plugins waarvan het platform onbekend is of waarvan de loaders
+        # (nog) niet zijn opgehaald horen dan gewoon zichtbaar te blijven; anders
+        # verdwijnen ze stilletjes uit de lijst terwijl de filters op "alles" staan.
+        if p_provided and all_platforms and set(all_platforms).issubset(sel_platforms):
+            p_provided = False
+        if l_provided and all_loaders and set(all_loaders).issubset(sel_loaders):
+            l_provided = False
         return _check_include_general_filters(plugin, search_term, selected_version, sel_platforms, sel_loaders, p_provided, l_provided)
     return _check_exclude_general_filters(plugin, search_term, selected_version, sel_platforms, sel_loaders, p_provided, l_provided)
 
