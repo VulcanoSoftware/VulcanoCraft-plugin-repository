@@ -47,8 +47,9 @@ def _log(message):
     """
     try:
         print(f"[http_get] {message}", file=sys.stderr)
-    except Exception:
-        pass
+    except (OSError, ValueError):
+        # stderr is gesloten of onbeschrijfbaar: loggen mag een fetch nooit breken.
+        return
 
 
 def _host(url):
@@ -81,6 +82,14 @@ def _build_headers(url, headers):
     return merged
 
 
+def _parse_seconds(value):
+    """Zet een Retry-After-header om naar seconden, of None als hij onbruikbaar is."""
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _retry_delay(response, attempt):
     delay = BACKOFF_BASE_SECONDS * (2 ** attempt)
     retry_after = None
@@ -88,11 +97,9 @@ def _retry_delay(response, attempt):
         retry_after = response.headers.get("Retry-After")
     except Exception:
         retry_after = None
-    if retry_after is not None:
-        try:
-            delay = max(delay, float(retry_after))
-        except (TypeError, ValueError):
-            pass
+    seconds = _parse_seconds(retry_after)
+    if seconds is not None:
+        delay = max(delay, seconds)
     return min(delay, MAX_RETRY_AFTER_SECONDS)
 
 

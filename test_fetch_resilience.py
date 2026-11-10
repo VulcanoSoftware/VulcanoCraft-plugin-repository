@@ -285,3 +285,14 @@ def test_fetchers_still_import_when_http_utils_is_missing(tmp_path):
         result = subprocess.run([sys.executable, "-I", f"fetchers/{name}.py", "--help"], cwd=tmp_path,
                                 capture_output=True, text=True, timeout=60)
         assert "ModuleNotFoundError" not in result.stderr, f"{name}: {result.stderr}"
+
+
+def test_retry_after_unusable_value_falls_back_to_backoff():
+    assert http_utils._retry_delay(_response(429, {"Retry-After": "Wed, 21 Oct 2026 07:28:00 GMT"}), 1) == 2.0
+    assert http_utils._retry_delay(_response(429, {"Retry-After": "7"}), 0) == 7.0
+    assert http_utils._retry_delay(_response(429, {"Retry-After": "999"}), 0) == http_utils.MAX_RETRY_AFTER_SECONDS
+
+
+def test_log_never_raises_when_stderr_is_closed():
+    with patch("fetchers.http_utils.sys.stderr", new=MagicMock(write=MagicMock(side_effect=ValueError("closed")))):
+        http_utils._log("x")
