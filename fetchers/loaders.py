@@ -3,7 +3,13 @@ import requests
 try:
     from http_utils import http_get
 except ImportError:  # geimporteerd als package (bijv. in tests)
-    from fetchers.http_utils import http_get
+    try:
+        from fetchers.http_utils import http_get
+    except ImportError:
+        # http_utils.py ontbreekt (de in-app updater kopieert alleen bestanden die al op de host
+        # bestaan). Val terug op een kale call zodat de fetchers nooit crashen op de import.
+        def http_get(url, headers=None, timeout=None, **kwargs):
+            return requests.get(url, headers=headers, timeout=timeout or 15, **kwargs)
 import json
 import os
 import re

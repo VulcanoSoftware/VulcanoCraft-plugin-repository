@@ -200,3 +200,13 @@ def test_no_update_notification_when_previous_version_was_unknown(db):
     assert db.notifications.count_documents({}) == 0
     assert db.plugin_changes.count_documents({}) == 0
     webhooks.assert_not_called()
+
+
+def test_fetchers_still_import_when_http_utils_is_missing(tmp_path):
+    """Regressie: op de host ontbrak http_utils.py en crashte elke fetcher op de import."""
+    import shutil, subprocess, sys
+    shutil.copytree("fetchers", tmp_path / "fetchers", ignore=shutil.ignore_patterns("http_utils.py", "__pycache__"))
+    for name in ["author", "description", "icon", "loaders", "titles", "versions"]:
+        result = subprocess.run([sys.executable, "-I", f"fetchers/{name}.py", "--help"], cwd=tmp_path,
+                                capture_output=True, text=True, timeout=60)
+        assert "ModuleNotFoundError" not in result.stderr, f"{name}: {result.stderr}"
