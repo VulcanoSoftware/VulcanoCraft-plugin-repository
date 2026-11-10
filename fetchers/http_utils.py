@@ -21,6 +21,7 @@ Er wordt bewust ``requests.get`` aangeroepen (geen Session), zodat bestaande
 """
 
 import os
+import sys
 import time
 from urllib.parse import urlparse
 
@@ -35,6 +36,27 @@ MAX_ATTEMPTS = 3
 BACKOFF_BASE_SECONDS = 1.0
 MAX_RETRY_AFTER_SECONDS = 15.0
 RETRY_STATUS_CODES = frozenset({429, 500, 502, 503, 504})
+
+
+def _log(message):
+    """Schrijf een diagnose-regel naar stderr.
+
+    De fetchers slikken fouten bewust in (een ontbrekende titel mag niets breken),
+    maar daardoor was nergens te zien *waarom* een fetch leeg bleef. launcher.py en
+    cron.py sturen deze stderr door naar de container-logs.
+    """
+    try:
+        print(f"[http_get] {message}", file=sys.stderr)
+    except (OSError, ValueError):
+        # stderr is gesloten of onbeschrijfbaar: loggen mag een fetch nooit breken.
+        return
+
+
+def _host(url):
+    try:
+        return (urlparse(url).hostname or "?").lower()
+    except ValueError:
+        return "?"
 
 
 def _github_token():
@@ -60,6 +82,14 @@ def _build_headers(url, headers):
     return merged
 
 
+def _parse_seconds(value):
+    """Zet een Retry-After-header om naar seconden, of None als hij onbruikbaar is."""
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _retry_delay(response, attempt):
     delay = BACKOFF_BASE_SECONDS * (2 ** attempt)
     retry_after = None
@@ -67,11 +97,9 @@ def _retry_delay(response, attempt):
         retry_after = response.headers.get("Retry-After")
     except Exception:
         retry_after = None
-    if retry_after is not None:
-        try:
-            delay = max(delay, float(retry_after))
-        except (TypeError, ValueError):
-            pass
+    seconds = _parse_seconds(retry_after)
+    if seconds is not None:
+        delay = max(delay, seconds)
     return min(delay, MAX_RETRY_AFTER_SECONDS)
 
 
@@ -96,6 +124,7 @@ def http_get(url, headers=None, timeout=None, **kwargs):
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as exc:
             last_exc = exc
             if is_last:
+                _log(f"{_host(url)}: {type(exc).__name__} na {MAX_ATTEMPTS} pogingen: {exc}")
                 raise
             time.sleep(BACKOFF_BASE_SECONDS * (2 ** attempt))
             continue
@@ -104,6 +133,8 @@ def http_get(url, headers=None, timeout=None, **kwargs):
         if isinstance(status, int) and status in RETRY_STATUS_CODES and not is_last:
             time.sleep(_retry_delay(response, attempt))
             continue
+        if isinstance(status, int) and (status in RETRY_STATUS_CODES or status in (401, 403)):
+            _log(f"{_host(url)}: HTTP {status}")
         return response
 
     # Onbereikbaar in de praktijk (de laatste poging returnt of raiset), maar

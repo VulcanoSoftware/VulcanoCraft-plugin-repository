@@ -25,6 +25,18 @@ def _env_float(name, default):
 # externe API's (Modrinth, GitHub, Spiget, ...) niet in één burst raakt.
 PLUGIN_DELAY_SECONDS = _env_float("CRON_PLUGIN_DELAY", 1.0)
 
+# Controle vóór elke cyclus: kan de container überhaupt naar buiten?
+CONNECTIVITY_CHECK_URLS = (
+    "https://api.modrinth.com/v2/",
+    "https://hangar.papermc.io/",
+    "https://api.spiget.org/v2/status",
+    "https://api.github.com/",
+)
+CONNECTIVITY_ATTEMPTS = 6
+CONNECTIVITY_RETRY_SECONDS = 20
+# Bij een overgeslagen cyclus niet 6 uur wachten, maar snel opnieuw proberen.
+OFFLINE_RETRY_SECONDS = 900
+
 _db = None
 
 def get_db():
@@ -235,6 +247,9 @@ def update_plugin(url, owner=None):
             timeout=300
         )
         
+        if result.stderr and result.stderr.strip():
+            print(f"Diagnose voor {url}:\n{result.stderr.strip()}")
+
         if not result.stdout.strip():
             print(f"Geen output ontvangen voor plugin {url}")
             return None
@@ -276,8 +291,47 @@ def save_plugins(plugins):
         print(f"Fout bij het opslaan van plugins: {e}")
         return False
 
+def check_connectivity(timeout=5):
+    """Geef de lijst bereikbare hosts terug.
+
+    Elke HTTP-respons (ook een 4xx) telt als bereikbaar; alleen een netwerkfout
+    (DNS, timeout, geweigerde verbinding) telt als onbereikbaar.
+    """
+    reachable = []
+    for url in CONNECTIVITY_CHECK_URLS:
+        try:
+            requests.get(url, timeout=timeout, headers={"User-Agent": "VulcanoCraft-Plugin-Repository/1.0"})
+            reachable.append(url)
+        except requests.exceptions.RequestException as e:
+            print(f"Connectiviteitscheck mislukt voor {url}: {type(e).__name__}: {e}")
+    return reachable
+
+def wait_for_connectivity():
+    """Wacht tot de cron-container internet heeft.
+
+    Vlak na het (her)starten van de container kan het uitgaande netwerk/DNS nog niet
+    klaar zijn. Zonder deze check falen dan alle fetches tegelijk, bij alle platformen.
+    """
+    for attempt in range(1, CONNECTIVITY_ATTEMPTS + 1):
+        reachable = check_connectivity()
+        if reachable:
+            return True
+        print(f"Geen internetverbinding vanuit cron (poging {attempt}/{CONNECTIVITY_ATTEMPTS})")
+        if attempt < CONNECTIVITY_ATTEMPTS:
+            time.sleep(CONNECTIVITY_RETRY_SECONDS)
+    return False
+
 def run_cron_cycle():
-    """Voer één update-cyclus van de cron-dienst uit"""
+    """Voer één update-cyclus van de cron-dienst uit.
+
+    Geeft het aantal bijgewerkte plugins terug, of None als de cyclus is overgeslagen
+    omdat er geen internetverbinding was.
+    """
+    if not wait_for_connectivity():
+        print("Cyclus overgeslagen: geen van de controle-hosts is bereikbaar vanuit de cron-container. "
+              "Bestaande plugin-data blijft ongewijzigd.")
+        return None
+
     db = get_db()
     record_cron_status()
     purge_old_records()
@@ -374,13 +428,14 @@ def main():
     while True:
         try:
             snapshot = _code_snapshot()
-            run_cron_cycle()
-            
-            next_run = datetime.now() + timedelta(hours=6)
+            result = run_cron_cycle()
+
+            wait_seconds = OFFLINE_RETRY_SECONDS if result is None else 21600
+            next_run = datetime.now() + timedelta(seconds=wait_seconds)
             print(f"Volgende update om: {next_run.strftime('%Y-%m-%d %H:%M:%S')}")
             print("-" * 50)
-            
-            sleep_until_next_cycle(21600, snapshot)
+
+            sleep_until_next_cycle(wait_seconds, snapshot)
             
         except KeyboardInterrupt:
             print("\nCron service gestopt door gebruiker")
